@@ -595,6 +595,20 @@ new_identifier(const char *n, struct compiling *c)
 
 #define NEW_IDENTIFIER(n) new_identifier(STR(n), c)
 
+static string
+new_type_comment(char *s, struct compiling *c){
+    int len = strlen(s);
+    // TODO(ddfisher): double check this -- it seems a bit silly
+    if (c->c_encoding == NULL) {
+        return PyUnicode_DecodeLatin1(s, len, NULL);
+    } else if (strcmp(c->c_encoding, "utf-8") == 0) {
+        return PyUnicode_FromStringAndSize(s, len);
+    } else {
+        return PyUnicode_DecodeUTF8(s, len, NULL);
+    }
+}
+#define NEW_TYPE_COMMENT(n) new_type_comment(STR(n), c)
+
 static int
 ast_error(struct compiling *c, const node *n, const char *errmsg)
 {
@@ -667,8 +681,11 @@ num_stmts(const node *n)
             if (NCH(n) == 1)
                 return num_stmts(CHILD(n, 0));
             else {
+                i = 2;
                 l = 0;
-                for (i = 2; i < (NCH(n) - 1); i++)
+                if (TYPE(CHILD(n, 1)) == TYPE_COMMENT)
+                    i += 2;
+                for (; i < (NCH(n) - 1); i++)
                     l += num_stmts(CHILD(n, i));
                 return l;
             }
@@ -691,12 +708,15 @@ mod_ty
 PyAST_FromNodeObject(const node *n, PyCompilerFlags *flags,
                      PyObject *filename, PyArena *arena)
 {
-    int i, j, k, num;
+    int i, j, k, l, num;
     asdl_seq *stmts = NULL;
+    asdl_seq *type_ignores = NULL;
     stmt_ty s;
     node *ch;
     struct compiling c;
     mod_ty res = NULL;
+    asdl_seq *argtypes = NULL;
+    expr_ty ret, arg;
 
     c.c_arena = arena;
     /* borrowed reference */
@@ -720,6 +740,7 @@ PyAST_FromNodeObject(const node *n, PyCompilerFlags *flags,
     }
 
     k = 0;
+    l = 0;
     switch (TYPE(n)) {
         case file_input:
             stmts = _Py_asdl_seq_new(num_stmts(n), arena);
@@ -730,6 +751,7 @@ PyAST_FromNodeObject(const node *n, PyCompilerFlags *flags,
                 if (TYPE(ch) == NEWLINE)
                     continue;
                 REQ(ch, stmt);
+
                 num = num_stmts(ch);
                 if (num == 1) {
                     s = ast_for_stmt(&c, ch);
@@ -748,7 +770,23 @@ PyAST_FromNodeObject(const node *n, PyCompilerFlags *flags,
                     }
                 }
             }
-            res = Module(stmts, arena);
+
+            ch = CHILD(n, NCH(n) - 1);
+            REQ(ch, ENDMARKER);
+
+            /* type_ignores are stored under the ENDMARKER in file_input */
+            num = NCH(ch);
+            type_ignores = _Py_asdl_seq_new(num, arena);
+            if (!type_ignores)
+                goto out;
+
+            for (i = 0; i < num; i++) {
+                type_ignore_ty ti = TypeIgnore(LINENO(CHILD(ch, i)), c.c_arena);
+                if (!ti)
+                    goto out;
+                asdl_seq_SET(type_ignores, i, ti);
+            }
+            res = Module(stmts, type_ignores, arena);
             break;
         case eval_input: {
             expr_ty testlist_ast;
@@ -798,6 +836,40 @@ PyAST_FromNodeObject(const node *n, PyCompilerFlags *flags,
 
                 res = Interactive(stmts, arena);
             }
+            break;
+        case func_type_input:
+            n = CHILD(n, 0);
+            REQ(n, func_type);
+
+            if (TYPE(CHILD(n, 1)) == typelist) {
+                ch = CHILD(n, 1);
+                /* this is overly permissive -- we don't pay any attention to
+                 * stars on the args -- just parse them into an ordered list */
+                num = 0;
+                for (i = 0; i < NCH(ch); i++) {
+                    if (TYPE(CHILD(ch, i)) == test)
+                        num++;
+                }
+
+                argtypes = _Py_asdl_seq_new(num, arena);
+
+                l = 0;
+                for (i = 0; i < NCH(ch); i++) {
+                    if (TYPE(CHILD(ch, i)) == test) {
+                        arg = ast_for_expr(&c, CHILD(ch, i));
+                        if (!arg)
+                            goto out;
+                        asdl_seq_SET(argtypes, l++, arg);
+                    }
+                }
+            }
+            else
+                argtypes = _Py_asdl_seq_new(0, arena);
+
+            ret = ast_for_expr(&c, CHILD(n, NCH(n) - 1));
+            if (!ret)
+                goto out;
+            res = FunctionType(argtypes, ret, arena);
             break;
         default:
             PyErr_Format(PyExc_SystemError,
@@ -1511,12 +1583,14 @@ static stmt_ty
 ast_for_funcdef_impl(struct compiling *c, const node *n,
                      asdl_seq *decorator_seq, int is_async)
 {
-    /* funcdef: 'def' NAME parameters ['->' test] ':' suite */
+    /* funcdef: 'def' NAME parameters ['->' test] ':' [TYPE_COMMENT] suite */
     identifier name;
     arguments_ty args;
     asdl_seq *body;
     expr_ty returns = NULL;
     int name_i = 1;
+    node *tc;
+    string type_comment = NULL;
 
     REQ(n, funcdef);
 
@@ -1534,17 +1608,30 @@ ast_for_funcdef_impl(struct compiling *c, const node *n,
             return NULL;
         name_i += 2;
     }
+    if (TYPE(CHILD(n, name_i + 3)) == TYPE_COMMENT) {
+        type_comment = NEW_TYPE_COMMENT(CHILD(n, name_i + 3));
+        name_i += 1;
+    }
     body = ast_for_suite(c, CHILD(n, name_i + 3));
     if (!body)
         return NULL;
 
+    if (!type_comment) {
+        /* if the function doesn't have a type comment on the same line, check
+         * if the suite has a type comment in it */
+        tc = CHILD(CHILD(n, name_i + 3), 1);
+
+        if (TYPE(tc) == TYPE_COMMENT)
+            type_comment = NEW_TYPE_COMMENT(tc);
+    }
+
     if (is_async)
         return AsyncFunctionDef(name, args, body, decorator_seq, returns,
-                                LINENO(n),
+                                type_comment, LINENO(n),
                                 n->n_col_offset, c->c_arena);
     else
         return FunctionDef(name, args, body, decorator_seq, returns,
-                           LINENO(n),
+                           type_comment, LINENO(n),
                            n->n_col_offset, c->c_arena);
 }
 
@@ -2806,14 +2893,15 @@ ast_for_expr_stmt(struct compiling *c, const node *n)
 {
     REQ(n, expr_stmt);
     /* expr_stmt: testlist_star_expr (augassign (yield_expr|testlist)
-                | ('=' (yield_expr|testlist))*)
+                | ('=' (yield_expr|testlist_star_expr))* [TYPE_COMMENT])
        testlist_star_expr: (test|star_expr) (',' test|star_expr)* [',']
        augassign: '+=' | '-=' | '*=' | '@=' | '/=' | '%=' | '&=' | '|=' | '^='
                 | '<<=' | '>>=' | '**=' | '//='
        test: ... here starts the operator precendence dance
      */
+    int num = NCH(n);
 
-    if (NCH(n) == 1) {
+    if (num == 1 || (num == 2 && TYPE(CHILD(n, num - 1)) == TYPE_COMMENT)) {
         expr_ty e = ast_for_testlist(c, CHILD(n, 0));
         if (!e)
             return NULL;
@@ -2859,17 +2947,23 @@ ast_for_expr_stmt(struct compiling *c, const node *n)
         return AugAssign(expr1, newoperator, expr2, LINENO(n), n->n_col_offset, c->c_arena);
     }
     else {
-        int i;
+        int i, real_children, has_type_comment;
         asdl_seq *targets;
         node *value;
         expr_ty expression;
+        string type_comment;
+
 
         /* a normal assignment */
         REQ(CHILD(n, 1), EQUAL);
-        targets = _Py_asdl_seq_new(NCH(n) / 2, c->c_arena);
+
+        has_type_comment = TYPE(CHILD(n, num - 1)) == TYPE_COMMENT;
+        real_children = num - has_type_comment;
+
+        targets = _Py_asdl_seq_new(real_children / 2, c->c_arena);
         if (!targets)
             return NULL;
-        for (i = 0; i < NCH(n) - 2; i += 2) {
+        for (i = 0; i < real_children - 2; i += 2) {
             expr_ty e;
             node *ch = CHILD(n, i);
             if (TYPE(ch) == yield_expr) {
@@ -2886,17 +2980,20 @@ ast_for_expr_stmt(struct compiling *c, const node *n)
 
             asdl_seq_SET(targets, i / 2, e);
         }
-        value = CHILD(n, NCH(n) - 1);
+        value = CHILD(n, real_children - 1);
         if (TYPE(value) == testlist_star_expr)
             expression = ast_for_testlist(c, value);
         else
             expression = ast_for_expr(c, value);
         if (!expression)
             return NULL;
-        return Assign(targets, expression, LINENO(n), n->n_col_offset, c->c_arena);
+        if (has_type_comment)
+            type_comment = NEW_TYPE_COMMENT(CHILD(n, real_children));
+        else
+            type_comment = NULL;
+        return Assign(targets, expression, type_comment, LINENO(n), n->n_col_offset, c->c_arena);
     }
 }
-
 
 static asdl_seq *
 ast_for_exprlist(struct compiling *c, const node *n, expr_context_ty context)
@@ -2992,9 +3089,6 @@ ast_for_flow_stmt(struct compiling *c, const node *n)
                          "unexpected flow_stmt: %d", TYPE(ch));
             return NULL;
     }
-
-    PyErr_SetString(PyExc_SystemError, "unhandled flow statement");
-    return NULL;
 }
 
 static alias_ty
@@ -3303,7 +3397,7 @@ ast_for_assert_stmt(struct compiling *c, const node *n)
 static asdl_seq *
 ast_for_suite(struct compiling *c, const node *n)
 {
-    /* suite: simple_stmt | NEWLINE INDENT stmt+ DEDENT */
+    /* suite: simple_stmt | NEWLINE [TYPE_COMMENT NEWLINE] INDENT stmt+ DEDENT */
     asdl_seq *seq;
     stmt_ty s;
     int i, total, num, end, pos = 0;
@@ -3333,7 +3427,11 @@ ast_for_suite(struct compiling *c, const node *n)
         }
     }
     else {
-        for (i = 2; i < (NCH(n) - 1); i++) {
+        i = 2;
+        if (TYPE(CHILD(n, 1)) == TYPE_COMMENT)
+            i += 2;
+
+        for (; i < (NCH(n) - 1); i++) {
             ch = CHILD(n, i);
             REQ(ch, stmt);
             num = num_stmts(ch);
@@ -3530,15 +3628,19 @@ ast_for_while_stmt(struct compiling *c, const node *n)
 static stmt_ty
 ast_for_for_stmt(struct compiling *c, const node *n, int is_async)
 {
+    int has_type_comment;
     asdl_seq *_target, *seq = NULL, *suite_seq;
     expr_ty expression;
     expr_ty target, first;
     const node *node_target;
-    /* for_stmt: 'for' exprlist 'in' testlist ':' suite ['else' ':' suite] */
+    string type_comment;
+    /* for_stmt: 'for' exprlist 'in' testlist ':' [TYPE_COMMENT] suite ['else' ':' suite] */
     REQ(n, for_stmt);
 
-    if (NCH(n) == 9) {
-        seq = ast_for_suite(c, CHILD(n, 8));
+    has_type_comment = TYPE(CHILD(n, 5)) == TYPE_COMMENT;
+
+    if (NCH(n) == 9 + has_type_comment) {
+        seq = ast_for_suite(c, CHILD(n, 8 + has_type_comment));
         if (!seq)
             return NULL;
     }
@@ -3558,9 +3660,14 @@ ast_for_for_stmt(struct compiling *c, const node *n, int is_async)
     expression = ast_for_testlist(c, CHILD(n, 3));
     if (!expression)
         return NULL;
-    suite_seq = ast_for_suite(c, CHILD(n, 5));
+    suite_seq = ast_for_suite(c, CHILD(n, 5 + has_type_comment));
     if (!suite_seq)
         return NULL;
+
+    if (has_type_comment)
+        type_comment = NEW_TYPE_COMMENT(CHILD(n, 5));
+    else
+        type_comment = NULL;
 
     if (is_async)
         return AsyncFor(target, expression, suite_seq, seq,
@@ -3568,7 +3675,7 @@ ast_for_for_stmt(struct compiling *c, const node *n, int is_async)
                         c->c_arena);
     else
         return For(target, expression, suite_seq, seq,
-                   LINENO(n), n->n_col_offset,
+                   type_comment, LINENO(n), n->n_col_offset,
                    c->c_arena);
 }
 
@@ -3714,20 +3821,24 @@ ast_for_with_item(struct compiling *c, const node *n)
     return withitem(context_expr, optional_vars, c->c_arena);
 }
 
-/* with_stmt: 'with' with_item (',' with_item)* ':' suite */
+/* with_stmt: 'with' with_item (',' with_item)*  ':' [TYPE_COMMENT] suite */
 static stmt_ty
 ast_for_with_stmt(struct compiling *c, const node *n, int is_async)
 {
-    int i, n_items;
+    int i, n_items, real_children, has_type_comment;
     asdl_seq *items, *body;
+    string type_comment;
 
     REQ(n, with_stmt);
 
-    n_items = (NCH(n) - 2) / 2;
+    has_type_comment = TYPE(CHILD(n, NCH(n) - 2)) == TYPE_COMMENT;
+    real_children = NCH(n) - has_type_comment;
+
+    n_items = (real_children - 2) / 2;
     items = _Py_asdl_seq_new(n_items, c->c_arena);
     if (!items)
         return NULL;
-    for (i = 1; i < NCH(n) - 2; i += 2) {
+    for (i = 1; i < real_children - 2; i += 2) {
         withitem_ty item = ast_for_with_item(c, CHILD(n, i));
         if (!item)
             return NULL;
@@ -3738,10 +3849,15 @@ ast_for_with_stmt(struct compiling *c, const node *n, int is_async)
     if (!body)
         return NULL;
 
+    if (has_type_comment)
+        type_comment = NEW_TYPE_COMMENT(CHILD(n, NCH(n) - 2));
+    else
+        type_comment = NULL;
+
     if (is_async)
         return AsyncWith(items, body, LINENO(n), n->n_col_offset, c->c_arena);
     else
-        return With(items, body, LINENO(n), n->n_col_offset, c->c_arena);
+        return With(items, body, type_comment, LINENO(n), n->n_col_offset, c->c_arena);
 }
 
 static stmt_ty

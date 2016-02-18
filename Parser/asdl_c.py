@@ -725,7 +725,7 @@ static PyGetSetDef ast_type_getsets[] = {
 
 static PyTypeObject AST_type = {
     PyVarObject_HEAD_INIT(&PyType_Type, 0)
-    "_ast.AST",
+    "_typed_ast.AST",
     sizeof(AST_object),
     0,
     (destructor)ast_dealloc, /* tp_dealloc */
@@ -781,7 +781,7 @@ static PyTypeObject* make_type(char *type, PyTypeObject* base, char**fields, int
         PyTuple_SET_ITEM(fnames, i, field);
     }
     result = PyObject_CallFunction((PyObject*)&PyType_Type, "s(O){sOss}",
-                    type, base, "_fields", fnames, "__module__", "_ast");
+                    type, base, "_fields", fnames, "__module__", "_typed_ast");
     Py_DECREF(fnames);
     return (PyTypeObject*)result;
 }
@@ -1000,15 +1000,22 @@ static int exists_not_none(PyObject *obj, _Py_Identifier *id)
 class ASTModuleVisitor(PickleVisitor):
 
     def visitModule(self, mod):
-        self.emit("static struct PyModuleDef _astmodule = {", 0)
-        self.emit('  PyModuleDef_HEAD_INIT, "_ast"', 0)
+        # add parse method to module
+        self.emit('PyObject *typed_ast_parse(PyObject *self, PyObject *args);', 0)
+        self.emit('static PyMethodDef typed_ast_methods[] = {', 0)
+        self.emit('{"parse",  typed_ast_parse, METH_VARARGS, "Parse string into typed AST."},', 1)
+        self.emit('{NULL, NULL, 0, NULL}', 1)
+        self.emit('};', 0)
+
+        self.emit("static struct PyModuleDef _typed_ast_module = {", 0)
+        self.emit('  PyModuleDef_HEAD_INIT, "_typed_ast", NULL, 0, typed_ast_methods', 0)
         self.emit("};", 0)
         self.emit("PyMODINIT_FUNC", 0)
-        self.emit("PyInit__ast(void)", 0)
+        self.emit("PyInit__typed_ast(void)", 0)
         self.emit("{", 0)
         self.emit("PyObject *m, *d;", 1)
         self.emit("if (!init_types()) return NULL;", 1)
-        self.emit('m = PyModule_Create(&_astmodule);', 1)
+        self.emit('m = PyModule_Create(&_typed_ast_module);', 1)
         self.emit("if (!m) return NULL;", 1)
         self.emit("d = PyModule_GetDict(m);", 1)
         self.emit('if (PyDict_SetItemString(d, "AST", (PyObject*)&AST_type) < 0) return NULL;', 1)

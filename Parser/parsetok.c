@@ -188,6 +188,10 @@ parsetok(struct tok_state *tok, grammar *g, int start, perrdetail *err_ret,
     node *n;
     int started = 0;
 
+    int num_type_ignores = 0;
+    int size_type_ignores = 10;
+    int *type_ignores = malloc(size_type_ignores * sizeof(*type_ignores));
+
     if ((ps = PyParser_New(g, start)) == NULL) {
         err_ret->error = E_NOMEM;
         PyTokenizer_Free(tok);
@@ -259,6 +263,21 @@ parsetok(struct tok_state *tok, grammar *g, int start, perrdetail *err_ret,
         else
             col_offset = -1;
 
+        if (type == TYPE_IGNORE) {
+            if (num_type_ignores >= size_type_ignores) {
+                size_type_ignores *= 2;
+                type_ignores = realloc(type_ignores, size_type_ignores * sizeof(*type_ignores));
+                if (!type_ignores) {
+                    err_ret->error = E_NOMEM;
+                    break;
+                }
+            }
+
+            type_ignores[num_type_ignores] = tok->lineno;
+            num_type_ignores++;
+            continue;
+        }
+
         if ((err_ret->error =
              PyParser_AddToken(ps, (int)type, str,
                                tok->lineno, col_offset,
@@ -274,6 +293,21 @@ parsetok(struct tok_state *tok, grammar *g, int start, perrdetail *err_ret,
     if (err_ret->error == E_DONE) {
         n = ps->p_tree;
         ps->p_tree = NULL;
+
+        if (n->n_type == file_input) {
+            /* put type_ignore nodes in the ENDMARKER of the file_input */
+            int num;
+            node *ch;
+
+            num = NCH(n);
+            ch = CHILD(n, num - 1); /* ENDMARKER should be the last child */
+            REQ(ch, ENDMARKER);
+
+            for (int i = 0; i < num_type_ignores; i++) {
+                PyNode_AddChild(ch, TYPE_IGNORE, NULL, type_ignores[i], 0);
+            }
+        }
+        free(type_ignores);
 
 #ifndef PGEN
         /* Check that the source for a single input statement really

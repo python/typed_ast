@@ -105,9 +105,14 @@ const char *_PyParser_TokenNames[] = {
     "OP",
     "AWAIT",
     "ASYNC",
+    "TYPE_IGNORE",
+    "TYPE_COMMENT",
     "<ERRORTOKEN>",
     "<N_TOKENS>"
 };
+
+#define TYPE_COMMENT_LENGTH 8
+static const char* type_comment = "# type: ";
 
 
 /* Create and initialize a new tok_state structure */
@@ -1461,10 +1466,32 @@ tok_get(struct tok_state *tok, char **p_start, char **p_end)
     /* Set start of current token */
     tok->start = tok->cur - 1;
 
-    /* Skip comment */
-    if (c == '#')
-        while (c != EOF && c != '\n')
+    /* Skip comment, unless it's "type: ignore" */
+    if (c == '#') {
+        const char *tc = type_comment;
+        int is_type_comment = 1;
+        while (c != EOF && c != '\n') {
+            is_type_comment = is_type_comment && (!*tc || c == *tc++);
             c = tok_nextc(tok);
+        }
+
+        /* make sure we matched all of type_comment */
+        is_type_comment = is_type_comment && !*tc;
+
+        if (is_type_comment) {
+            tok_backup(tok, c);  /* don't eat the newline */
+
+            if (tok->cur - tok->start == TYPE_COMMENT_LENGTH + 6 &&
+                    memcmp(tok->start + TYPE_COMMENT_LENGTH, "ignore", 6) == 0) {
+                return TYPE_IGNORE;
+            } else {
+                *p_start = tok->start + TYPE_COMMENT_LENGTH;  /* after "# type: " */
+                *p_end = tok->cur;
+                return TYPE_COMMENT;
+            }
+        }
+    }
+
 
     /* Check for EOF and errors now */
     if (c == EOF) {

@@ -69,5 +69,6 @@ PyAPI_FUNC(int) PyCompile_OpcodeStackEffect(int opcode, int oparg);
 #define Py_single_input 256
 #define Py_file_input 257
 #define Py_eval_input 258
+#define Py_func_type_input 341
 
 #endif /* !Py_COMPILE_H */
