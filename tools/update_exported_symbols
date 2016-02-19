@@ -1,0 +1,13 @@
+#!/bin/bash
+PROJ_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )/.."
+
+for FILE in $( find $PROJ_DIR -type f -name '*.h' -or -name '*.c' ); do
+  for CHANGE in $( cat "$PROJ_DIR/exported_symbols.txt" ); do
+    if [[ ${CHANGE:0:1} == "_" ]] ; then
+      NEW="_Ta${CHANGE:3}"
+    else
+      NEW="Ta${CHANGE:2}"
+    fi
+    sed -i '' "s/$CHANGE/$NEW/" $FILE
+  done
+done

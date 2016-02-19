@@ -1,0 +1,5 @@
+#!/bin/bash
+PROJ_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )/.."
+
+gobjdump -t $PROJ_DIR/build/lib*/_typed_ast.*.so | grep ' g ' | grep -v UND > exported_symbols.txt
+echo "Symbols written to exported_symbols.txt.  This file must be edited before it can be used with update_exported_symbols."
