@@ -31,7 +31,11 @@
                || c == '_'\
                || (c >= 128))
 
+#if PY_MINOR_VERSION >= 4
 extern char *PyOS_Readline(FILE *, FILE *, const char *);
+#else
+extern char *PyOS_Readline(FILE *, FILE *, char *);
+#endif
 /* Return malloc'ed string including trailing \n;
    empty malloc'ed string for EOF;
    NULL if interrupted */
@@ -1855,7 +1859,9 @@ TaTokenizer_FindEncodingFilename(int fd, PyObject *filename)
     char *p_start =NULL , *p_end =NULL , *encoding = NULL;
 
 #ifndef PGEN
+#if PY_MINOR_VERSION >= 4
     fd = _Py_dup(fd);
+#endif
 #else
     fd = dup(fd);
 #endif

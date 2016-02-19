@@ -11,6 +11,10 @@
 
 #include <assert.h>
 
+#if PY_MINOR_VERSION < 4
+#define PyErr_ProgramTextObject PyErr_ProgramText
+#endif
+
 static int validate_stmts(asdl_seq *);
 static int validate_exprs(asdl_seq *, expr_context_ty, int);
 static int validate_nonempty_seq(asdl_seq *, const char *, const char *);
