@@ -1,0 +1,10 @@
+#!/bin/bash
+
+PROJ_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )/.."
+
+
+if [ "$(uname)" == "Darwin" ]; then
+  find . -type f -name '*.h' | xargs -n 1 sed -i '' 's/Py\([A-Z_]*_H\( \*\/\)\{0,1\}\)$/Ta\1/'
+else
+  find . -type f -name '*.h' | xargs -n 1 sed -i 's/Py\([A-Z_]*_H\( \*\/\)\{0,1\}\)$/Ta\1/'
+fi
