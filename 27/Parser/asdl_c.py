@@ -668,7 +668,7 @@ static PyMethodDef ast_type_methods[] = {
 
 static PyTypeObject AST_type = {
     PyVarObject_HEAD_INIT(&PyType_Type, 0)
-    "_ast.AST",
+    "_typed_ast_27.AST",
     sizeof(PyObject),
     0,
     0,                       /* tp_dealloc */
@@ -724,7 +724,7 @@ static PyTypeObject* make_type(char *type, PyTypeObject* base, char**fields, int
         PyTuple_SET_ITEM(fnames, i, field);
     }
     result = PyObject_CallFunction((PyObject*)&PyType_Type, "s(O){sOss}",
-                    type, base, "_fields", fnames, "__module__", "_ast");
+                    type, base, "_fields", fnames, "__module__", "_typed_ast_27");
     Py_DECREF(fnames);
     return (PyTypeObject*)result;
 }
@@ -924,11 +924,11 @@ class ASTModuleVisitor(PickleVisitor):
 
     def visitModule(self, mod):
         self.emit("PyMODINIT_FUNC", 0)
-        self.emit("init_ast(void)", 0)
+        self.emit("init_typed_ast_27(void)", 0)
         self.emit("{", 0)
         self.emit("PyObject *m, *d;", 1)
         self.emit("if (!init_types()) return;", 1)
-        self.emit('m = Py_InitModule3("_ast", NULL, NULL);', 1)
+        self.emit('m = Py_InitModule3("_typed_ast_27", NULL, NULL);', 1)
         self.emit("if (!m) return;", 1)
         self.emit("d = PyModule_GetDict(m);", 1)
         self.emit('if (PyDict_SetItemString(d, "AST", (PyObject*)&AST_type) < 0) return;', 1)

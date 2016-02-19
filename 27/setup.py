@@ -1,7 +1,7 @@
 from distutils.core import setup, Extension
 
 _typed_ast = Extension(
-    '_typed_ast',
+    '_typed_ast_27',
     include_dirs = ['Include'],
     sources = [
         'Parser/acceler.c',
@@ -23,5 +23,5 @@ setup (name = 'Typed AST Module',
        version = '0.1',
        description = '',
        package_dir = {'': 'Lib'},
-       py_modules = ['typed_ast'],
+       py_modules = [],
        ext_modules = [_typed_ast])
