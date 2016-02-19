@@ -269,9 +269,9 @@ class PrototypeVisitor(EmitVisitor):
         margs = "a0"
         for i in range(1, len(args)+1):
             margs += ", a%d" % i
-        self.emit("#define %s(%s) _Py_%s(%s)" % (name, margs, name, margs), 0,
+        self.emit("#define %s(%s) _Ta_%s(%s)" % (name, margs, name, margs), 0,
                 reflow=False)
-        self.emit("%s _Py_%s(%s);" % (ctype, name, argstr), False)
+        self.emit("%s _Ta_%s(%s);" % (ctype, name, argstr), False)
 
     def visitProduct(self, prod, name):
         self.emit_function(name, get_c_type(name),
@@ -1197,7 +1197,7 @@ class ObjVisitor(PickleVisitor):
 class PartingShots(StaticVisitor):
 
     CODE = """
-PyObject* PyAST_mod2obj(mod_ty t)
+PyObject* TaAST_mod2obj(mod_ty t)
 {
     if (!init_types())
         return NULL;
@@ -1205,7 +1205,7 @@ PyObject* PyAST_mod2obj(mod_ty t)
 }
 
 /* mode is 0 for "exec", 1 for "eval" and 2 for "single" input */
-mod_ty PyAST_obj2mod(PyObject* ast, PyArena* arena, int mode)
+mod_ty TaAST_obj2mod(PyObject* ast, PyArena* arena, int mode)
 {
     mod_ty res;
     PyObject *req_type[3];
@@ -1235,7 +1235,7 @@ mod_ty PyAST_obj2mod(PyObject* ast, PyArena* arena, int mode)
         return res;
 }
 
-int PyAST_Check(PyObject* obj)
+int TaAST_Check(PyObject* obj)
 {
     if (!init_types())
         return -1;
@@ -1275,9 +1275,9 @@ def main(srcfile, dump_module=False):
                             PrototypeVisitor(f),
                             )
         c.visit(mod)
-        f.write("PyObject* PyAST_mod2obj(mod_ty t);\n")
-        f.write("mod_ty PyAST_obj2mod(PyObject* ast, PyArena* arena, int mode);\n")
-        f.write("int PyAST_Check(PyObject* obj);\n")
+        f.write("PyObject* TaAST_mod2obj(mod_ty t);\n")
+        f.write("mod_ty TaAST_obj2mod(PyObject* ast, PyArena* arena, int mode);\n")
+        f.write("int TaAST_Check(PyObject* obj);\n")
         f.close()
 
     if SRC_DIR:

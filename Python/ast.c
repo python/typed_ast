@@ -1,6 +1,6 @@
 /*
  * This file includes functions to transform a concrete syntax tree (CST) to
- * an abstract syntax tree (AST). The main function is PyAST_FromNode().
+ * an abstract syntax tree (AST). The main function is TaAST_FromNode().
  *
  */
 #include "Python.h"
@@ -480,7 +480,7 @@ validate_exprs(asdl_seq *exprs, expr_context_ty ctx, int null_ok)
 }
 
 int
-PyAST_Validate(mod_ty mod)
+TaAST_Validate(mod_ty mod)
 {
     int res = 0;
 
@@ -705,7 +705,7 @@ num_stmts(const node *n)
 */
 
 mod_ty
-PyAST_FromNodeObject(const node *n, PyCompilerFlags *flags,
+TaAST_FromNodeObject(const node *n, PyCompilerFlags *flags,
                      PyObject *filename, PyArena *arena)
 {
     int i, j, k, l, num;
@@ -873,7 +873,7 @@ PyAST_FromNodeObject(const node *n, PyCompilerFlags *flags,
             break;
         default:
             PyErr_Format(PyExc_SystemError,
-                         "invalid node %d for PyAST_FromNode", TYPE(n));
+                         "invalid node %d for TaAST_FromNode", TYPE(n));
             goto out;
     }
  out:
@@ -886,7 +886,7 @@ PyAST_FromNodeObject(const node *n, PyCompilerFlags *flags,
 }
 
 mod_ty
-PyAST_FromNode(const node *n, PyCompilerFlags *flags, const char *filename_str,
+TaAST_FromNode(const node *n, PyCompilerFlags *flags, const char *filename_str,
                PyArena *arena)
 {
     mod_ty mod;
@@ -894,7 +894,7 @@ PyAST_FromNode(const node *n, PyCompilerFlags *flags, const char *filename_str,
     filename = PyUnicode_DecodeFSDefault(filename_str);
     if (filename == NULL)
         return NULL;
-    mod = PyAST_FromNodeObject(n, flags, filename, arena);
+    mod = TaAST_FromNodeObject(n, flags, filename, arena);
     Py_DECREF(filename);
     return mod;
 

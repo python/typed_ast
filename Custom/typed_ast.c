@@ -1,5 +1,6 @@
-#include <Python.h>
+#include "Python.h"
 #include "Python-ast.h"
+#include "compile.h"
 #include "node.h"
 #include "grammar.h"
 #include "token.h"
@@ -7,7 +8,7 @@
 #include "parsetok.h"
 #include "errcode.h"
 
-extern grammar _PyParser_Grammar; /* from graminit.c */
+extern grammar _TaParser_Grammar; /* from graminit.c */
 
 // from Python/bltinmodule.c
 static const char *
@@ -209,7 +210,7 @@ err_free(perrdetail *err)
 
 // copy of PyParser_ASTFromStringObject in Python/pythonrun.c
 /* Preferred access to parser is through AST. */
-mod_ty
+static mod_ty
 string_object_to_c_ast(const char *s, PyObject *filename, int start,
                              PyCompilerFlags *flags, PyArena *arena)
 {
@@ -218,8 +219,8 @@ string_object_to_c_ast(const char *s, PyObject *filename, int start,
     perrdetail err;
     int iflags = PARSER_FLAGS(flags);
 
-    node *n = PyParser_ParseStringObject(s, filename,
-                                         &_PyParser_Grammar, start, &err,
+    node *n = TaParser_ParseStringObject(s, filename,
+                                         &_TaParser_Grammar, start, &err,
                                          &iflags);
     if (flags == NULL) {
         localflags.cf_flags = 0;
@@ -227,8 +228,8 @@ string_object_to_c_ast(const char *s, PyObject *filename, int start,
     }
     if (n) {
         flags->cf_flags |= iflags & PyCF_MASK;
-        mod = PyAST_FromNodeObject(n, flags, filename, arena);
-        PyNode_Free(n);
+        mod = TaAST_FromNodeObject(n, flags, filename, arena);
+        TaNode_Free(n);
     }
     else {
         err_input(&err);
@@ -254,7 +255,7 @@ string_object_to_py_ast(const char *str, PyObject *filename, int start,
         return NULL;
     }
 
-    PyObject *result = PyAST_mod2obj(mod);
+    PyObject *result = TaAST_mod2obj(mod);
     PyArena_Free(arena);
     return result;
 }

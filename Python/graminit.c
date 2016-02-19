@@ -2,7 +2,7 @@
 
 #include "pgenheaders.h"
 #include "grammar.h"
-PyAPI_DATA(grammar) _PyParser_Grammar;
+PyAPI_DATA(grammar) _TaParser_Grammar;
 static arc arcs_0_0[3] = {
     {2, 1},
     {3, 1},
@@ -2347,7 +2347,7 @@ static label labels[179] = {
     {342, 0},
     {343, 0},
 };
-grammar _PyParser_Grammar = {
+grammar _TaParser_Grammar = {
     88,
     dfas,
     {179, labels},
