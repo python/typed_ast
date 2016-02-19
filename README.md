@@ -5,8 +5,8 @@ goals of this module are correctness and speed.  This project is still a work in
 progress, but is being actively developed.
 
 ### Current Caveats for Use
-- The module may not compile correctly on Python versions other than 3.5.1.
-  (Further testing and robustness fixes are in active development.)
+- This project currently works on Python 3.3 - 3.5.  Python 3.2 is likely to be
+  supported, depending on difficulty.  There are no plans to support Python 2.7.
 - Type comments in invalid locations produce syntax errors.
 - The matching of type comments is space sensitive.  They will only be matched
   if they begin with exactly `# type: `, including the space after the colon.
@@ -31,16 +31,16 @@ progress, but is being actively developed.
  typed\_ast's graminit files.
 
 ### TODO
-- [ ] stop aliasing the official Python headers
-- [ ] ensure we're not using duplicate versions of important standard library
+- [x] stop aliasing the official Python headers
+- [x] ensure we're not using duplicate versions of important standard library
   functions (like object creation)
-- [ ] hide most global symbols from being exported to prevent conflicts with other
-  libraries
+- [x] hide most global symbols from being exported to prevent conflicts with other
+  libraries -- *changed to a unique prefix*
 - [ ] allow type ignores to be followed by a comment
 - [ ] prevent type comments in incorrect locations from causing syntax errors
 - [ ] find a better way to compile pgen
 - [ ] check compatibility with older Python versions
- - [ ] Python 3.4
- - [ ] Python 3.3
+ - [x] Python 3.4 (*works on 3.4.4*)
+ - [x] Python 3.3 (*works on 3.3.6*)
  - [ ] Python 3.2
 - [ ] parse Python 2.7 ASTs
