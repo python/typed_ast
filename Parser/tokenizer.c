@@ -1483,10 +1483,20 @@ tok_get(struct tok_state *tok, char **p_start, char **p_end)
         is_type_comment = is_type_comment && !*tc;
 
         if (is_type_comment) {
+            int is_type_ignore = 1;
             tok_backup(tok, c);  /* don't eat the newline */
 
-            if (tok->cur - tok->start == TYPE_COMMENT_LENGTH + 6 &&
-                    memcmp(tok->start + TYPE_COMMENT_LENGTH, "ignore", 6) == 0) {
+            tc = tok->start + TYPE_COMMENT_LENGTH;
+            is_type_ignore = tok->cur >= tc + 6 && memcmp(tc, "ignore", 6) == 0;
+            tc += 6;
+            while (is_type_ignore && tc < tok->cur) {
+              if (*tc == '#')  /* comment */
+                  break;
+              is_type_ignore = is_type_ignore && (*tc == ' ' || *tc == '\t');
+              tc++;
+            }
+
+            if (is_type_ignore) {
                 return TYPE_IGNORE;
             } else {
                 *p_start = tok->start + TYPE_COMMENT_LENGTH;  /* after "# type: " */

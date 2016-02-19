@@ -6,7 +6,8 @@ progress, but is being actively developed.
 
 ### Current Caveats for Use
 - This project currently works on Python 3.3 - 3.5.  Python 3.2 is likely to be
-  supported, depending on difficulty.  There are no plans to support Python 2.7.
+  supported, depending on difficulty.  There are currently no plans to support
+  Python 2.7.
 - Type comments in invalid locations produce syntax errors.
 - The matching of type comments is space sensitive.  They will only be matched
   if they begin with exactly `# type: `, including the space after the colon.
@@ -36,7 +37,7 @@ progress, but is being actively developed.
   functions (like object creation)
 - [x] hide most global symbols from being exported to prevent conflicts with other
   libraries -- *changed to a unique prefix*
-- [ ] allow type ignores to be followed by a comment
+- [x] allow type ignores to be followed by a comment
 - [ ] prevent type comments in incorrect locations from causing syntax errors
 - [ ] find a better way to compile pgen
 - [ ] check compatibility with older Python versions
