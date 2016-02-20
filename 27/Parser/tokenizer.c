@@ -12,14 +12,14 @@
 
 #ifndef PGEN
 #include "unicodeobject.h"
-#include "stringobject.h"
+#include "bytesobject.h"
 #include "fileobject.h"
 #include "codecs.h"
 #include "abstract.h"
 #include "pydebug.h"
 #endif /* PGEN */
 
-extern char *PyOS_Readline(FILE *, FILE *, char *);
+extern char *PyOS_Readline(FILE *, FILE *, const char *);
 /* Return malloc'ed string including trailing \n;
    empty malloc'ed string for EOF;
    NULL if interrupted */
@@ -389,7 +389,7 @@ check_bom(int get_char(struct tok_state *),
      1) NULL: need to call tok->decoding_readline to get a new line
      2) PyUnicodeObject *: decoding_feof has called tok->decoding_readline and
        stored the result in tok->decoding_buffer
-     3) PyStringObject *: previous call to fp_readl did not have enough room
+     3) PyBytesObject *: previous call to fp_readl did not have enough room
        (in the s buffer) to copy entire contents of the line read
        by tok->decoding_readline.  tok->decoding_buffer has the overflow.
        In this case, fp_readl is called in a loop (with an expanded buffer)
@@ -426,7 +426,7 @@ fp_readl(char *s, int size, struct tok_state *tok)
         }
     } else {
         tok->decoding_buffer = NULL;
-        if (PyString_CheckExact(buf))
+        if (PyBytes_CheckExact(buf))
             utf8 = buf;
     }
     if (utf8 == NULL) {
@@ -435,10 +435,10 @@ fp_readl(char *s, int size, struct tok_state *tok)
         if (utf8 == NULL)
             return error_ret(tok);
     }
-    str = PyString_AsString(utf8);
-    utf8len = PyString_GET_SIZE(utf8);
+    str = PyBytes_AsString(utf8);
+    utf8len = PyBytes_GET_SIZE(utf8);
     if (utf8len > size) {
-        tok->decoding_buffer = PyString_FromStringAndSize(str+size, utf8len-size);
+        tok->decoding_buffer = PyBytes_FromStringAndSize(str+size, utf8len-size);
         if (tok->decoding_buffer == NULL) {
             Py_DECREF(utf8);
             return error_ret(tok);
@@ -467,25 +467,47 @@ fp_readl(char *s, int size, struct tok_state *tok)
 static int
 fp_setreadl(struct tok_state *tok, const char* enc)
 {
-    PyObject *reader, *stream, *readline;
+    PyObject *readline = NULL, *stream = NULL, *io = NULL;
+    _Py_IDENTIFIER(open);
+    _Py_IDENTIFIER(readline);
+    int fd;
+    long pos;
 
-    /* XXX: constify filename argument. */
-    stream = PyFile_FromFile(tok->fp, (char*)tok->filename, "rb", NULL);
+    io = PyImport_ImportModuleNoBlock("io");
+    if (io == NULL)
+        goto cleanup;
+
+    fd = fileno(tok->fp);
+    /* Due to buffering the file offset for fd can be different from the file
+     * position of tok->fp.  If tok->fp was opened in text mode on Windows,
+     * its file position counts CRLF as one char and can't be directly mapped
+     * to the file offset for fd.  Instead we step back one byte and read to
+     * the end of line.*/
+    pos = ftell(tok->fp);
+    if (pos == -1 ||
+        lseek(fd, (off_t)(pos > 0 ? pos - 1 : pos), SEEK_SET) == (off_t)-1) {
+        PyErr_SetFromErrnoWithFilename(PyExc_OSError, NULL);
+        goto cleanup;
+    }
+
+    stream = _PyObject_CallMethodId(io, &PyId_open, "isisOOO",
+                    fd, "r", -1, enc, Py_None, Py_None, Py_False);
     if (stream == NULL)
-        return 0;
+        goto cleanup;
 
-    reader = PyCodec_StreamReader(enc, stream, NULL);
-    Py_DECREF(stream);
-    if (reader == NULL)
-        return 0;
+    readline = _PyObject_GetAttrId(stream, &PyId_readline);
+    Py_SETREF(tok->decoding_readline, readline);
+    if (pos > 0) {
+        if (PyObject_CallObject(readline, NULL) == NULL) {
+            readline = NULL;
+            goto cleanup;
+        }
+    }
 
-    readline = PyObject_GetAttrString(reader, "readline");
-    Py_DECREF(reader);
-    if (readline == NULL)
-        return 0;
-
-    tok->decoding_readline = readline;
-    return 1;
+  cleanup:
+    Py_XDECREF(stream);
+    Py_XDECREF(io);
+    return readline != NULL;
 }
 
 /* Fetch the next byte from TOK. */
@@ -688,7 +710,7 @@ decode_str(const char *input, int single, struct tok_state *tok)
         utf8 = translate_into_utf8(str, tok->enc);
         if (utf8 == NULL)
             return error_ret(tok);
-        str = PyString_AsString(utf8);
+        str = PyBytes_AsString(utf8);
     }
 #endif
     for (s = str;; s++) {
@@ -718,7 +740,7 @@ decode_str(const char *input, int single, struct tok_state *tok)
         utf8 = translate_into_utf8(str, tok->enc);
         if (utf8 == NULL)
             return error_ret(tok);
-        str = PyString_AsString(utf8);
+        str = PyBytes_AsString(utf8);
     }
 #endif
     assert(tok->decoding_buffer == NULL);
@@ -802,11 +824,11 @@ tok_stdin_decode(struct tok_state *tok, char **inp)
         return 0;
 
     enc = ((PyFileObject *)sysstdin)->f_encoding;
-    if (enc == NULL || !PyString_Check(enc))
+    if (enc == NULL || !PyBytes_Check(enc))
         return 0;
     Py_INCREF(enc);
 
-    encoding = PyString_AsString(enc);
+    encoding = PyBytes_AsString(enc);
     decoded = PyUnicode_Decode(*inp, strlen(*inp), encoding, NULL);
     if (decoded == NULL)
         goto error_clear;
@@ -816,9 +838,9 @@ tok_stdin_decode(struct tok_state *tok, char **inp)
     if (utf8 == NULL)
         goto error_clear;
 
-    assert(PyString_Check(utf8));
-    converted = new_string(PyString_AS_STRING(utf8),
-                           PyString_GET_SIZE(utf8));
+    assert(PyBytes_Check(utf8));
+    converted = new_string(PyBytes_AS_STRING(utf8),
+                           PyBytes_GET_SIZE(utf8));
     Py_DECREF(utf8);
     if (converted == NULL)
         goto error_nomem;
@@ -1719,8 +1741,8 @@ PyTokenizer_RestoreEncoding(struct tok_state* tok, int len, int *offset)
         /* convert source to original encondig */
         PyObject *lineobj = dec_utf8(tok->encoding, tok->buf, len);
         if (lineobj != NULL) {
-            int linelen = PyString_Size(lineobj);
-            const char *line = PyString_AsString(lineobj);
+            int linelen = PyBytes_Size(lineobj);
+            const char *line = PyBytes_AsString(lineobj);
             text = PyObject_MALLOC(linelen + 1);
             if (text != NULL && line != NULL) {
                 if (linelen)
@@ -1734,7 +1756,7 @@ PyTokenizer_RestoreEncoding(struct tok_state* tok, int len, int *offset)
                 PyObject *offsetobj = dec_utf8(tok->encoding,
                                                tok->buf, *offset-1);
                 if (offsetobj) {
-                    *offset = PyString_Size(offsetobj) + 1;
+                    *offset = PyBytes_Size(offsetobj) + 1;
                     Py_DECREF(offsetobj);
                 }
             }
