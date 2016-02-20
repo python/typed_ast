@@ -1003,7 +1003,7 @@ class ASTModuleVisitor(PickleVisitor):
         # add parse method to module
         self.emit('PyObject *typed_ast_parse(PyObject *self, PyObject *args);', 0)
         self.emit('static PyMethodDef typed_ast_methods[] = {', 0)
-        self.emit('{"parse",  typed_ast_parse, METH_VARARGS, "Parse string into typed AST."},', 1)
+        self.emit('{"_parse",  typed_ast_parse, METH_VARARGS, "Parse string into typed AST."},', 1)
         self.emit('{NULL, NULL, 0, NULL}', 1)
         self.emit('};', 0)
 

@@ -31,10 +31,7 @@
     :license: Python License.
 """
 import _typed_ast
-from _typed_ast import (
-    AST, Expr, Str, AsyncFunctionDef, FunctionDef, ClassDef, Module
-)
-
+from _typed_ast import *
 
 
 def parse(source, filename='<unknown>', mode='exec'):
@@ -42,7 +39,7 @@ def parse(source, filename='<unknown>', mode='exec'):
     Parse the source into an AST node including type comment information.
     Similar to compile(source, filename, mode, PyCF_ONLY_AST).
     """
-    return _typed_ast.parse(source, filename, mode)
+    return _typed_ast._parse(source, filename, mode)
 
 
 def dump(node, annotate_fields=True, include_attributes=False):

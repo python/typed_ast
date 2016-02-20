@@ -7557,7 +7557,7 @@ obj2ast_type_ignore(PyObject* obj, type_ignore_ty* out, PyArena* arena)
 
 PyObject *typed_ast_parse(PyObject *self, PyObject *args);
 static PyMethodDef typed_ast_methods[] = {
-    {"parse",  typed_ast_parse, METH_VARARGS, "Parse string into typed AST."},
+    {"_parse",  typed_ast_parse, METH_VARARGS, "Parse string into typed AST."},
     {NULL, NULL, 0, NULL}
 };
 static struct PyModuleDef _typed_ast_module = {
