@@ -177,6 +177,37 @@ warn(const char *msg, const char *filename, int lineno)
 #endif
 #endif
 
+typedef struct {
+    int *items;
+    unsigned int size;
+    unsigned int num_items;
+} growable_int_array;
+
+int growable_int_array_init(growable_int_array *arr, unsigned int initial_size) {
+    arr->items = malloc(initial_size * sizeof(*arr->items));
+    arr->size = initial_size;
+    arr->num_items = 0;
+
+    return arr->items != NULL;
+}
+
+int growable_int_array_add(growable_int_array *arr, int item) {
+    if (arr->num_items >= arr->size) {
+        arr->size *= 2;
+        arr->items = realloc(arr->items, arr->size * sizeof(*arr->items));
+        if (!arr->items)
+            return 0;
+    }
+
+    arr->items[arr->num_items] = item;
+    arr->num_items++;
+    return 1;
+}
+
+void growable_int_array_deallocate(growable_int_array *arr) {
+    free(arr->items);
+}
+
 /* Parse input coming from the given tokenizer structure.
    Return error code. */
 
@@ -188,9 +219,12 @@ parsetok(struct tok_state *tok, grammar *g, int start, perrdetail *err_ret,
     node *n;
     int started = 0;
 
-    int num_type_ignores = 0;
-    int size_type_ignores = 10;
-    int *type_ignores = malloc(size_type_ignores * sizeof(*type_ignores));
+    growable_int_array type_ignores;
+    if (!growable_int_array_init(&type_ignores, 10)) {
+        err_ret->error = E_NOMEM;
+        TaTokenizer_Free(tok);
+        return NULL;
+    }
 
     if ((ps = TaParser_New(g, start)) == NULL) {
         err_ret->error = E_NOMEM;
@@ -264,17 +298,10 @@ parsetok(struct tok_state *tok, grammar *g, int start, perrdetail *err_ret,
             col_offset = -1;
 
         if (type == TYPE_IGNORE) {
-            if (num_type_ignores >= size_type_ignores) {
-                size_type_ignores *= 2;
-                type_ignores = realloc(type_ignores, size_type_ignores * sizeof(*type_ignores));
-                if (!type_ignores) {
-                    err_ret->error = E_NOMEM;
-                    break;
-                }
+            if (!growable_int_array_add(&type_ignores, tok->lineno)) {
+                err_ret->error = E_NOMEM;
+                break;
             }
-
-            type_ignores[num_type_ignores] = tok->lineno;
-            num_type_ignores++;
             continue;
         }
 
@@ -303,11 +330,11 @@ parsetok(struct tok_state *tok, grammar *g, int start, perrdetail *err_ret,
             ch = CHILD(n, num - 1);
             REQ(ch, ENDMARKER);
 
-            for (int i = 0; i < num_type_ignores; i++) {
-                TaNode_AddChild(ch, TYPE_IGNORE, NULL, type_ignores[i], 0);
+            for (unsigned int i = 0; i < type_ignores.num_items; i++) {
+                TaNode_AddChild(ch, TYPE_IGNORE, NULL, type_ignores.items[i], 0);
             }
         }
-        free(type_ignores);
+        growable_int_array_deallocate(&type_ignores);
 
 #ifndef PGEN
         /* Check that the source for a single input statement really
