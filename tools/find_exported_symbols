@@ -2,4 +2,7 @@
 PROJ_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )/.."
 
 gobjdump -t $PROJ_DIR/build/lib*/_typed_ast.*.so | grep ' g ' | grep -v UND > exported_symbols.txt
-echo "Symbols written to exported_symbols.txt.  This file must be edited before it can be used with update_exported_symbols."
+echo "Symbols written to exported_symbols.txt.  You should edit this file to "
+echo "remove any symbols you still want to export (like PyInit functions) "
+echo "and to make each line contain only a function name you want updated "
+echo "(and none of the other output) before running update_exported_symbols."
