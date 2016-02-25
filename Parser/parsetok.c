@@ -295,12 +295,12 @@ parsetok(struct tok_state *tok, grammar *g, int start, perrdetail *err_ret,
         ps->p_tree = NULL;
 
         if (n->n_type == file_input) {
-            /* put type_ignore nodes in the ENDMARKER of the file_input */
+            /* Put type_ignore nodes in the ENDMARKER of file_input. */
             int num;
             node *ch;
 
             num = NCH(n);
-            ch = CHILD(n, num - 1); /* ENDMARKER should be the last child */
+            ch = CHILD(n, num - 1);
             REQ(ch, ENDMARKER);
 
             for (int i = 0; i < num_type_ignores; i++) {

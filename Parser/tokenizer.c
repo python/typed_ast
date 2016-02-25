@@ -116,7 +116,7 @@ const char *_TaParser_TokenNames[] = {
 };
 
 #define TYPE_COMMENT_LENGTH 8
-static const char* type_comment = "# type: ";
+static const char* type_comment_prefix = "# type: ";
 
 
 /* Create and initialize a new tok_state structure */
@@ -1470,16 +1470,16 @@ tok_get(struct tok_state *tok, char **p_start, char **p_end)
     /* Set start of current token */
     tok->start = tok->cur - 1;
 
-    /* Skip comment, unless it's "type: ignore" */
+    /* Skip comment, unless it's a type comment */
     if (c == '#') {
-        const char *tc = type_comment;
+        const char *tc = type_comment_prefix;
         int is_type_comment = 1;
         while (c != EOF && c != '\n') {
             is_type_comment = is_type_comment && (!*tc || c == *tc++);
             c = tok_nextc(tok);
         }
 
-        /* make sure we matched all of type_comment */
+        /* make sure we matched all of type_comment_prefix */
         is_type_comment = is_type_comment && !*tc;
 
         if (is_type_comment) {
