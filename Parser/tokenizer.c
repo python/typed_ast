@@ -115,7 +115,8 @@ const char *_TaParser_TokenNames[] = {
     "<N_TOKENS>"
 };
 
-#define TYPE_COMMENT_LENGTH 8
+/* Spaces in this constant are treated as "zero or more spaces or tabs" when
+   tokenizing. */
 static const char* type_comment_prefix = "# type: ";
 
 
@@ -1473,21 +1474,49 @@ tok_get(struct tok_state *tok, char **p_start, char **p_end)
     /* Skip comment, unless it's a type comment */
     if (c == '#') {
         const char *tc = type_comment_prefix;
+        const char *tc_start = NULL;
         int is_type_comment = 1;
         while (c != EOF && c != '\n') {
-            is_type_comment = is_type_comment && (!*tc || c == *tc++);
+            if (is_type_comment) {
+                if (*tc) {
+                    if (*tc == ' ') {
+                        if (c == ' ' || c == '\t')
+                            /* Skip over spaces in the file. */
+                            c = tok_nextc(tok);
+                        else
+                            /* Type_comment_prefix contains no consecutive spaces. */
+                            tc++;
+
+                        continue;
+                    }
+
+                    /* We're not at the end of type_comment_prefix. */
+                    is_type_comment = c == *tc;
+                    tc++;
+                } else {
+                    /* We're at the end of type_comment_prefix. */
+                    if (!tc_start) {
+                        tc_start = tok->cur - 1;
+                    }
+                }
+            }
+
             c = tok_nextc(tok);
         }
+
+        /* The final space in type_comment_prefix doesn't have to be matched. */
+        if (*tc == ' ')
+            tc++;
 
         /* make sure we matched all of type_comment_prefix */
         is_type_comment = is_type_comment && !*tc;
 
         if (is_type_comment) {
             int is_type_ignore = 1;
-            tok_backup(tok, c);  /* don't eat the newline */
+            tok_backup(tok, c);  /* don't eat the newline or EOF */
 
-            tc = tok->start + TYPE_COMMENT_LENGTH;
-            is_type_ignore = tok->cur >= tc + 6 && memcmp(tc, "ignore", 6) == 0;
+            tc = tc_start;
+            is_type_ignore = tok->cur >= tc && memcmp(tc, "ignore", 6) == 0;
             tc += 6;
             while (is_type_ignore && tc < tok->cur) {
               if (*tc == '#')  /* comment */
@@ -1499,7 +1528,7 @@ tok_get(struct tok_state *tok, char **p_start, char **p_end)
             if (is_type_ignore) {
                 return TYPE_IGNORE;
             } else {
-                *p_start = tok->start + TYPE_COMMENT_LENGTH;  /* after "# type: " */
+                *p_start = (char *) tc_start;  /* after type_comment_prefix */
                 *p_end = tok->cur;
                 return TYPE_COMMENT;
             }
