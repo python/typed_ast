@@ -602,15 +602,7 @@ new_identifier(const char *n, struct compiling *c)
 static string
 new_type_comment(const char *s, struct compiling *c)
 {
-    int len = strlen(s);
-    // TODO(ddfisher): double check this -- it seems a bit silly
-    if (c->c_encoding == NULL) {
-        return PyUnicode_DecodeLatin1(s, len, NULL);
-    } else if (strcmp(c->c_encoding, "utf-8") == 0) {
-        return PyUnicode_FromStringAndSize(s, len);
-    } else {
-        return PyUnicode_DecodeUTF8(s, len, NULL);
-    }
+  return PyUnicode_DecodeUTF8(s, strlen(s), NULL);
 }
 #define NEW_TYPE_COMMENT(n) new_type_comment(STR(n), c)
 
