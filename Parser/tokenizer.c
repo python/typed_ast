@@ -1516,7 +1516,7 @@ tok_get(struct tok_state *tok, char **p_start, char **p_end)
             tok_backup(tok, c);  /* don't eat the newline or EOF */
 
             tc = tc_start;
-            is_type_ignore = tok->cur >= tc && memcmp(tc, "ignore", 6) == 0;
+            is_type_ignore = tok->cur >= tc + 6 && memcmp(tc, "ignore", 6) == 0;
             tc += 6;
             while (is_type_ignore && tc < tok->cur) {
               if (*tc == '#')  /* comment */
