@@ -1473,62 +1473,46 @@ tok_get(struct tok_state *tok, char **p_start, char **p_end)
 
     /* Skip comment, unless it's a type comment */
     if (c == '#') {
-        const char *tc = type_comment_prefix;
-        const char *tc_start = NULL;
-        int is_type_comment = 1;
-        while (c != EOF && c != '\n') {
-            if (is_type_comment) {
-                if (*tc) {
-                    if (*tc == ' ') {
-                        if (c == ' ' || c == '\t')
-                            /* Skip over spaces in the file. */
-                            c = tok_nextc(tok);
-                        else
-                            /* Type_comment_prefix contains no consecutive spaces. */
-                            tc++;
+        const char *prefix, *p, *type_start;
 
-                        continue;
-                    }
+        while (c != EOF && c != '\n')
+            c = tok_nextc(tok);
 
-                    /* We're not at the end of type_comment_prefix. */
-                    is_type_comment = c == *tc;
-                    tc++;
-                } else {
-                    /* We're at the end of type_comment_prefix. */
-                    if (!tc_start) {
-                        tc_start = tok->cur - 1;
-                    }
-                }
+        p = tok->start;
+        prefix = type_comment_prefix;
+        while (*prefix && p < tok->cur) {
+            if (*prefix == ' ') {
+                while (*p == ' ' || *p == '\t')
+                    p++;
+            } else if (*prefix != *p) {
+                break;
+            } else {
+                p++;
             }
 
-            c = tok_nextc(tok);
+            prefix++;
         }
 
-        /* The final space in type_comment_prefix doesn't have to be matched. */
-        if (*tc == ' ')
-            tc++;
-
-        /* make sure we matched all of type_comment_prefix */
-        is_type_comment = is_type_comment && !*tc;
-
-        if (is_type_comment) {
+        /* This is a type comment if we matched all of type_comment_prefix. */
+        if (!*prefix) {
             int is_type_ignore = 1;
             tok_backup(tok, c);  /* don't eat the newline or EOF */
 
-            tc = tc_start;
-            is_type_ignore = tok->cur >= tc + 6 && memcmp(tc, "ignore", 6) == 0;
-            tc += 6;
-            while (is_type_ignore && tc < tok->cur) {
-              if (*tc == '#')  /* comment */
+            type_start = p;
+
+            is_type_ignore = tok->cur >= p + 6 && memcmp(p, "ignore", 6) == 0;
+            p += 6;
+            while (is_type_ignore && p < tok->cur) {
+              if (*p == '#')  /* comment */
                   break;
-              is_type_ignore = is_type_ignore && (*tc == ' ' || *tc == '\t');
-              tc++;
+              is_type_ignore = is_type_ignore && (*p == ' ' || *p == '\t');
+              p++;
             }
 
             if (is_type_ignore) {
                 return TYPE_IGNORE;
             } else {
-                *p_start = (char *) tc_start;  /* after type_comment_prefix */
+                *p_start = (char *) type_start;  /* after type_comment_prefix */
                 *p_end = tok->cur;
                 return TYPE_COMMENT;
             }
