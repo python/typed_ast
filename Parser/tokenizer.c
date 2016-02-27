@@ -1484,10 +1484,10 @@ tok_get(struct tok_state *tok, char **p_start, char **p_end)
             if (*prefix == ' ') {
                 while (*p == ' ' || *p == '\t')
                     p++;
-            } else if (*prefix != *p) {
-                break;
-            } else {
+            } else if (*prefix == *p) {
                 p++;
+            } else {
+                break;
             }
 
             prefix++;
@@ -1503,7 +1503,7 @@ tok_get(struct tok_state *tok, char **p_start, char **p_end)
             is_type_ignore = tok->cur >= p + 6 && memcmp(p, "ignore", 6) == 0;
             p += 6;
             while (is_type_ignore && p < tok->cur) {
-              if (*p == '#')  /* comment */
+              if (*p == '#')
                   break;
               is_type_ignore = is_type_ignore && (*p == ' ' || *p == '\t');
               p++;
