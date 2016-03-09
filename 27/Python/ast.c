@@ -12,6 +12,7 @@
 #include "token.h"
 #include "parsetok.h"
 #include "graminit.h"
+#include "unicodeobject.h"
 
 #include <assert.h>
 
@@ -40,6 +41,9 @@ static PyObject *parsenumber(struct compiling *, const char *);
 static PyObject *parsestr(struct compiling *, const node *n, const char *);
 static PyObject *parsestrplus(struct compiling *, const node *n);
 
+static int Py_Py3kWarningFlag = 1;
+static int Py_UnicodeFlag = 1;
+
 #ifndef LINENO
 #define LINENO(n)       ((n)->n_lineno)
 #endif
@@ -49,7 +53,7 @@ static PyObject *parsestrplus(struct compiling *, const node *n);
 
 static identifier
 new_identifier(const char* n, PyArena *arena) {
-    PyObject* id = PyString_InternFromString(n);
+    PyObject* id = PyUnicode_InternFromString(n);
     if (id != NULL)
         PyArena_AddPyObject(arena, id);
     return id;
@@ -91,7 +95,7 @@ ast_error_finish(const char *filename)
     if (!errstr)
         return;
     Py_INCREF(errstr);
-    lineno = PyInt_AsLong(PyTuple_GetItem(value, 1));
+    lineno = PyLong_AsLong(PyTuple_GetItem(value, 1));
     if (lineno == -1) {
         Py_DECREF(errstr);
         return;
@@ -1384,7 +1388,7 @@ ast_for_atom(struct compiling *c, const node *n)
                 if (errstr) {
                     char *s = "";
                     char buf[128];
-                    s = PyString_AsString(errstr);
+                    s = _PyUnicode_AsString(errstr);
                     PyOS_snprintf(buf, sizeof(buf), "(unicode error) %s", s);
                     ast_error(n, buf);
                     Py_DECREF(errstr);
@@ -2076,9 +2080,9 @@ ast_for_call(struct compiling *c, const node *n, expr_ty func)
                 if (!forbidden_check(c, CHILD(ch, 0), PyBytes_AS_STRING(key)))
                     return NULL;
                 for (k = 0; k < nkeywords; k++) {
-                    tmp = PyString_AS_STRING(
+                    tmp = _PyUnicode_AsString(
                         ((keyword_ty)asdl_seq_GET(keywords, k))->arg);
-                    if (!strcmp(tmp, PyString_AS_STRING(key))) {
+                    if (!strcmp(tmp, _PyUnicode_AsString(key))) {
                         ast_error(CHILD(ch, 0), "keyword argument repeated");
                         return NULL;
                     }
@@ -2422,9 +2426,6 @@ ast_for_flow_stmt(struct compiling *c, const node *n)
                          "unexpected flow_stmt: %d", TYPE(ch));
             return NULL;
     }
-
-    PyErr_SetString(PyExc_SystemError, "unhandled flow statement");
-    return NULL;
 }
 
 static alias_ty
@@ -2499,10 +2500,10 @@ alias_for_import_name(struct compiling *c, const node *n, int store)
                     /* length of string plus one for the dot */
                     len += strlen(STR(CHILD(n, i))) + 1;
                 len--; /* the last name doesn't have a dot */
-                str = PyString_FromStringAndSize(NULL, len);
+                str = PyUnicode_FromStringAndSize(NULL, len);
                 if (!str)
                     return NULL;
-                s = PyString_AS_STRING(str);
+                s = _PyUnicode_AsString(str);
                 if (!s)
                     return NULL;
                 for (i = 0; i < NCH(n); i += 2) {
@@ -2513,13 +2514,13 @@ alias_for_import_name(struct compiling *c, const node *n, int store)
                 }
                 --s;
                 *s = '\0';
-                PyString_InternInPlace(&str);
+                PyUnicode_InternInPlace(&str);
                 PyArena_AddPyObject(c->c_arena, str);
                 return alias(str, NULL, c->c_arena);
             }
             break;
         case STAR:
-            str = PyString_InternFromString("*");
+            str = PyUnicode_InternFromString("*");
             PyArena_AddPyObject(c->c_arena, str);
             return alias(str, NULL, c->c_arena);
         default:
@@ -3343,7 +3344,7 @@ parsenumber(struct compiling *c, const char *s)
         if (*end == '\0') {
                 if (errno != 0)
                         return PyLong_FromString((char *)s, (char **)0, 0);
-                return PyInt_FromLong(x);
+                return PyLong_FromLong(x);
         }
         /* XXX Huge floats may silently fail */
 #ifndef WITHOUT_COMPLEX
@@ -3364,90 +3365,88 @@ parsenumber(struct compiling *c, const char *s)
         }
 }
 
+/* adapted from Python 3.5.1 */
 static PyObject *
-decode_utf8(struct compiling *c, const char **sPtr, const char *end, char* encoding)
+decode_utf8(struct compiling *c, const char **sPtr, const char *end)
 {
 #ifndef Py_USING_UNICODE
         Py_FatalError("decode_utf8 should not be called in this build.");
         return NULL;
 #else
-        PyObject *u, *v;
-        char *s, *t;
-        t = s = (char *)*sPtr;
-        /* while (s < end && *s != '\\') s++; */ /* inefficient for u".." */
-        while (s < end && (*s & 0x80)) s++;
-        *sPtr = s;
-        u = PyUnicode_DecodeUTF8(t, s - t, NULL);
-        if (u == NULL)
-                return NULL;
-        v = PyUnicode_AsEncodedString(u, encoding, NULL);
-        Py_DECREF(u);
-        return v;
+    const char *s, *t;
+    t = s = *sPtr;
+    /* while (s < end && *s != '\\') s++; */ /* inefficient for u".." */
+    while (s < end && (*s & 0x80)) s++;
+    *sPtr = s;
+    return PyUnicode_DecodeUTF8(t, s - t, NULL);
 #endif
 }
 
 #ifdef Py_USING_UNICODE
+/* taken from Python 3.5.1 */
 static PyObject *
 decode_unicode(struct compiling *c, const char *s, size_t len, int rawmode, const char *encoding)
 {
-        PyObject *v;
-        PyObject *u = NULL;
-        char *buf;
-        char *p;
-        const char *end;
-        if (encoding != NULL && strcmp(encoding, "iso-8859-1")) {
-                /* check for integer overflow */
-                if (len > PY_SIZE_MAX / 6)
-                        return NULL;
-                /* "<C3><A4>" (2 bytes) may become "\U000000E4" (10 bytes), or 1:5
-                   "\ä" (3 bytes) may become "\u005c\U000000E4" (16 bytes), or ~1:6 */
-                u = PyString_FromStringAndSize((char *)NULL, len * 6);
-                if (u == NULL)
-                        return NULL;
-                p = buf = PyString_AsString(u);
-                end = s + len;
-                while (s < end) {
-                        if (*s == '\\') {
-                                *p++ = *s++;
-                                if (*s & 0x80) {
-                                        strcpy(p, "u005c");
-                                        p += 5;
-                                }
-                        }
-                        if (*s & 0x80) { /* XXX inefficient */
-                                PyObject *w;
-                                char *r;
-                                Py_ssize_t rn, i;
-                                w = decode_utf8(c, &s, end, "utf-32-be");
-                                if (w == NULL) {
-                                        Py_DECREF(u);
-                                        return NULL;
-                                }
-                                r = PyString_AsString(w);
-                                rn = PyString_Size(w);
-                                assert(rn % 4 == 0);
-                                for (i = 0; i < rn; i += 4) {
-                                        sprintf(p, "\\U%02x%02x%02x%02x",
-                                                r[i + 0] & 0xFF,
-                                                r[i + 1] & 0xFF,
-                                                r[i + 2] & 0xFF,
-                                                r[i + 3] & 0xFF);
-                                        p += 10;
-                                }
-                                Py_DECREF(w);
-                        } else {
-                                *p++ = *s++;
-                        }
+    PyObject *v, *u;
+    char *buf;
+    char *p;
+    const char *end;
+
+    if (encoding == NULL) {
+        u = NULL;
+    } else {
+        /* check for integer overflow */
+        if (len > PY_SIZE_MAX / 6)
+            return NULL;
+        /* "ä" (2 bytes) may become "\U000000E4" (10 bytes), or 1:5
+           "\ä" (3 bytes) may become "\u005c\U000000E4" (16 bytes), or ~1:6 */
+        u = PyBytes_FromStringAndSize((char *)NULL, len * 6);
+        if (u == NULL)
+            return NULL;
+        p = buf = PyBytes_AsString(u);
+        end = s + len;
+        while (s < end) {
+            if (*s == '\\') {
+                *p++ = *s++;
+                if (*s & 0x80) {
+                    strcpy(p, "u005c");
+                    p += 5;
                 }
-                len = p - buf;
-                s = buf;
+            }
+            if (*s & 0x80) { /* XXX inefficient */
+                PyObject *w;
+                int kind;
+                void *data;
+                Py_ssize_t len, i;
+                w = decode_utf8(c, &s, end);
+                if (w == NULL) {
+                    Py_DECREF(u);
+                    return NULL;
+                }
+                kind = PyUnicode_KIND(w);
+                data = PyUnicode_DATA(w);
+                len = PyUnicode_GET_LENGTH(w);
+                for (i = 0; i < len; i++) {
+                    Py_UCS4 chr = PyUnicode_READ(kind, data, i);
+                    sprintf(p, "\\U%08x", chr);
+                    p += 10;
+                }
+                /* Should be impossible to overflow */
+                assert(p - buf <= Py_SIZE(u));
+                Py_DECREF(w);
+            } else {
+                *p++ = *s++;
+            }
         }
-        if (rawmode)
-                v = PyUnicode_DecodeRawUnicodeEscape(s, len, NULL);
-        else
-                v = PyUnicode_DecodeUnicodeEscape(s, len, NULL);
-        Py_XDECREF(u);
-        return v;
+        len = p - buf;
+        s = buf;
+    }
+    if (rawmode)
+        v = PyUnicode_DecodeRawUnicodeEscape(s, len, NULL);
+    else
+        v = PyUnicode_DecodeUnicodeEscape(s, len, NULL);
+    Py_XDECREF(u);
+    return v;
 }
 #endif
 
@@ -3537,12 +3536,11 @@ parsestr(struct compiling *c, const node *n, const char *s)
                         return v;
 #endif
                 } else {
-                        return PyString_FromStringAndSize(s, len);
+                        return PyUnicode_FromStringAndSize(s, len);
                 }
         }
 
-        return PyString_DecodeEscape(s, len, NULL, unicode,
-                                     need_encoding ? c->c_encoding : NULL);
+        return PyUnicode_DecodeUnicodeEscape(s, len, NULL);
 }
 
 /* Build a Python string object out of a STRING atom.  This takes care of
@@ -3562,8 +3560,8 @@ parsestrplus(struct compiling *c, const node *n)
                         s = parsestr(c, n, STR(CHILD(n, i)));
                         if (s == NULL)
                                 goto onError;
-                        if (PyString_Check(v) && PyString_Check(s)) {
-                                PyString_ConcatAndDel(&v, s);
+                        if (PyUnicode_Check(v) && PyUnicode_Check(s)) {
+                                PyUnicode_AppendAndDel(&v, s);
                                 if (v == NULL)
                                     goto onError;
                         }

@@ -1,141 +1,3 @@
-/* #include "Python.h" */
-/* #include "Python-ast.h" */
-/* #include "compile.h" */
-/* #include "node.h" */
-/* #include "grammar.h" */
-/* #include "token.h" */
-/* #include "ast.h" */
-/* #include "parsetok.h" */
-/* #include "errcode.h" */
-
-/* extern grammar _PyParser_Grammar; /1* from graminit.c *1/ */
-
-/* // from Python/pythonrun.c */
-/* #define PARSER_FLAGS(flags) \ */
-/*     ((flags) ? ((((flags)->cf_flags & PyCF_DONT_IMPLY_DEDENT) ? \ */
-/*                   PyPARSE_DONT_IMPLY_DEDENT : 0) \ */
-/*                 | (((flags)->cf_flags & CO_FUTURE_PRINT_FUNCTION) ? \ */
-/*                    PyPARSE_PRINT_IS_FUNCTION : 0) \ */
-/*                 | (((flags)->cf_flags & CO_FUTURE_UNICODE_LITERALS) ? \ */
-/*                    PyPARSE_UNICODE_LITERALS : 0) \ */
-/*                 ) : 0) */
-
-
-/* // from Include/stringobject.h */
-/* /1* #define PyString_AS_STRING(op) (((PyStringObject *)(op))->ob_sval) *1/ */
-/* /1* #define PyString_GET_SIZE(op)  Py_SIZE(op) *1/ */
-
-
-
-
-/* PyObject * */
-/* Py_CompileStringFlags(const char *str, const char *filename, int start, */
-/*                       PyCompilerFlags *flags) */
-/* { */
-/*     PyCodeObject *co; */
-/*     mod_ty mod; */
-/*     PyArena *arena = PyArena_New(); */
-/*     if (arena == NULL) */
-/*         return NULL; */
-
-/*     mod = PyParser_ASTFromString(str, filename, start, flags, arena); */
-/*     if (mod == NULL) { */
-/*         PyArena_Free(arena); */
-/*         return NULL; */
-/*     } */
-/*     if (flags && (flags->cf_flags & PyCF_ONLY_AST)) { */
-/*         PyObject *result = PyAST_mod2obj(mod); */
-/*         PyArena_Free(arena); */
-/*         return result; */
-/*     } */
-/*     co = PyAST_Compile(mod, filename, flags, arena); */
-/*     PyArena_Free(arena); */
-/*     return (PyObject *)co; */
-/* } */
-
-
-
-/* // adapted from builtin_compile_impl in Python/bltinmodule.c */
-/* static PyObject * */
-/* typed_ast_parse_27_impl(PyObject *source, */
-/*                      PyObject *filename, const char *mode) */
-/* { */
-/*     char *str; */
-/*     char *startstr; */
-/*     int compile_mode = -1; */
-/*     int dont_inherit = 0; */
-/*     int supplied_flags = 0; */
-/*     int is_ast; */
-/*     PyCompilerFlags cf; */
-/*     Py_ssize_t length; */
-
-/*     cf.cf_flags = PyCF_ONLY_AST; */
-
-/*     if (strcmp(mode, "exec") == 0) */
-/*         compile_mode = 0; */
-/*     else if (strcmp(mode, "eval") == 0) */
-/*         compile_mode = 1; */
-/*     else if (strcmp(mode, "single") == 0) */
-/*         compile_mode = 2; */
-/*     else if (strcmp(mode, "func_type") == 0) */
-/*         compile_mode = 3; */
-/*     else { */
-/*         PyErr_SetString(PyExc_ValueError, */
-/*                         "parse() mode must be 'exec', 'eval', 'single', for 'func_type'"); */
-/*         goto error; */
-/*     } */
-
-/*     if (PyString_Check(source)) { */
-/*         str = PyString_AS_STRING(source); */
-/*         length = PyString_GET_SIZE(source); */
-/*     } */
-/* #ifdef Py_USING_UNICODE */
-/*     else if (PyUnicode_Check(source)) { */
-/*         tmp = PyUnicode_AsUTF8String(source); */
-/*         if (tmp == NULL) */
-/*             return NULL; */
-/*         cf.cf_flags |= PyCF_SOURCE_IS_UTF8; */
-/*         str = PyString_AS_STRING(tmp); */
-/*         length = PyString_GET_SIZE(tmp); */
-/*     } */
-/* #endif */
-/*     /1* else if (!PyObject_AsReadBuffer(source, (const void **)&str, &length)) { *1/ */
-/*     /1*     /2* Copy to NUL-terminated buffer. *2/ *1/ */
-/*     /1*     tmp = PyString_FromStringAndSize(str, length); *1/ */
-/*     /1*     if (tmp == NULL) *1/ */
-/*     /1*         return NULL; *1/ */
-/*     /1*     str = PyString_AS_STRING(tmp); *1/ */
-/*     /1*     length = PyString_GET_SIZE(tmp); *1/ */
-/*     /1* } *1/ */
-/*     else */
-/*         goto cleanup; */
-/*     if ((size_t)length != strlen(str)) { */
-/*         PyErr_SetString(PyExc_TypeError, */
-/*                         "compile() expected string without null bytes"); */
-/*         goto cleanup; */
-/*     } */
-/*     result = Py_CompileStringFlags(str, filename, start[compile_mode], &cf); */
-/* cleanup: */
-/*     Py_XDECREF(tmp); */
-/*     return result; */
-
-/* } */
-
-/* // adapted from builtin_compile in Python/clinic/bltinmodule.c.h */
-/* static PyObject * */
-/* typed_ast_27_parse(PyObject *self, PyObject *args) */
-/* { */
-/*     PyObject *return_value = NULL; */
-/*     PyObject *source; */
-/*     PyObject *filename; */
-/*     const char *mode; */
-
-/*     if (PyArg_ParseTuple(args, "OO&s:parse", &source, PyUnicode_FSDecoder, &filename, &mode)) */
-/*         return_value = typed_ast_parse_impl(source, filename, mode); */
-
-/*     return return_value; */
-/* } */
-
 #include "Python.h"
 #include "Python-ast.h"
 #include "compile.h"
@@ -146,7 +8,7 @@
 #include "parsetok.h"
 #include "errcode.h"
 
-extern grammar _TaParser_Grammar; /* from graminit.c */
+extern grammar _PyParser_Grammar; /* from graminit.c */
 
 // from Python/bltinmodule.c
 static const char *
@@ -199,14 +61,20 @@ source_as_string(PyObject *cmd, const char *funcname, const char *what, PyCompil
 }
 
 // from Python/pythonrun.c
-#define PARSER_FLAGS(flags) \
-    ((flags) ? ((((flags)->cf_flags & PyCF_DONT_IMPLY_DEDENT) ? \
-                  PyPARSE_DONT_IMPLY_DEDENT : 0) \
-                | (((flags)->cf_flags & CO_FUTURE_PRINT_FUNCTION) ? \
-                   PyPARSE_PRINT_IS_FUNCTION : 0) \
-                | (((flags)->cf_flags & CO_FUTURE_UNICODE_LITERALS) ? \
-                   PyPARSE_UNICODE_LITERALS : 0) \
-                ) : 0)
+/* compute parser flags based on compiler flags */
+static int PARSER_FLAGS(PyCompilerFlags *flags)
+{
+    int parser_flags = 0;
+    if (!flags)
+        return 0;
+    if (flags->cf_flags & PyCF_DONT_IMPLY_DEDENT)
+        parser_flags |= PyPARSE_DONT_IMPLY_DEDENT;
+    /* if (flags->cf_flags & PyCF_IGNORE_COOKIE) */
+    /*     parser_flags |= PyPARSE_IGNORE_COOKIE; */
+    /* if (flags->cf_flags & CO_FUTURE_BARRY_AS_BDFL) */
+    /*     parser_flags |= PyPARSE_BARRY_AS_BDFL; */
+    return parser_flags;
+}
 
 // from Python/pythonrun.c
 /* Set the error appropriate to the given input error code (see errcode.h) */
@@ -284,12 +152,12 @@ err_input(perrdetail *err)
         msg = "unexpected character after line continuation character";
         break;
 
-    case E_IDENTIFIER:
-        msg = "invalid character in identifier";
-        break;
-    case E_BADSINGLE:
-        msg = "multiple statements found while compiling a single statement";
-        break;
+    /* case E_IDENTIFIER: */
+    /*     msg = "invalid character in identifier"; */
+    /*     break; */
+    /* case E_BADSINGLE: */
+    /*     msg = "multiple statements found while compiling a single statement"; */
+    /*     break; */
     default:
         fprintf(stderr, "error=%d\n", err->error);
         msg = "unknown parsing error";
@@ -351,8 +219,8 @@ string_object_to_c_ast(const char *s, PyObject *filename, int start,
     perrdetail err;
     int iflags = PARSER_FLAGS(flags);
 
-    node *n = TaParser_ParseStringObject(s, filename,
-                                         &_TaParser_Grammar, start, &err,
+    node *n = PyParser_ParseStringObject(s, filename,
+                                         &_PyParser_Grammar, start, &err,
                                          &iflags);
     if (flags == NULL) {
         localflags.cf_flags = 0;
@@ -360,8 +228,8 @@ string_object_to_c_ast(const char *s, PyObject *filename, int start,
     }
     if (n) {
         flags->cf_flags |= iflags & PyCF_MASK;
-        mod = TaAST_FromNodeObject(n, flags, filename, arena);
-        TaNode_Free(n);
+        mod = PyAST_FromNode(n, flags, "FIXME", arena);
+        PyNode_Free(n);
     }
     else {
         err_input(&err);
@@ -387,7 +255,7 @@ string_object_to_py_ast(const char *str, PyObject *filename, int start,
         return NULL;
     }
 
-    PyObject *result = TaAST_mod2obj(mod);
+    PyObject *result = PyAST_mod2obj(mod);
     PyArena_Free(arena);
     return result;
 }
@@ -401,7 +269,7 @@ typed_ast_parse_impl(PyObject *source,
     const char *str;
     int compile_mode = -1;
     PyCompilerFlags cf;
-    int start[] = {Py_file_input, Py_eval_input, Py_single_input, Py_func_type_input};
+    int start[] = {Py_file_input, Py_eval_input, Py_single_input /*, Py_func_type_input */};
     PyObject *result;
 
     cf.cf_flags = PyCF_ONLY_AST | PyCF_SOURCE_IS_UTF8;

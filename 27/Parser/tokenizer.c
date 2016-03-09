@@ -464,6 +464,8 @@ fp_readl(char *s, int size, struct tok_state *tok)
 
    Return 1 on success, 0 on failure. */
 
+/* taken from Python 3.5.1 */
+
 static int
 fp_setreadl(struct tok_state *tok, const char* enc)
 {
@@ -495,8 +497,9 @@ fp_setreadl(struct tok_state *tok, const char* enc)
     if (stream == NULL)
         goto cleanup;
 
+    Py_XDECREF(tok->decoding_readline);
     readline = _PyObject_GetAttrId(stream, &PyId_readline);
-    Py_SETREF(tok->decoding_readline, readline);
+    tok->decoding_readline = readline;
     if (pos > 0) {
         if (PyObject_CallObject(readline, NULL) == NULL) {
             readline = NULL;
@@ -809,74 +812,10 @@ PyTokenizer_Free(struct tok_state *tok)
     PyMem_FREE(tok);
 }
 
-#if !defined(PGEN) && defined(Py_USING_UNICODE)
-static int
-tok_stdin_decode(struct tok_state *tok, char **inp)
-{
-    PyObject *enc, *sysstdin, *decoded, *utf8;
-    const char *encoding;
-    char *converted;
-
-    if (PySys_GetFile((char *)"stdin", NULL) != stdin)
-        return 0;
-    sysstdin = PySys_GetObject("stdin");
-    if (sysstdin == NULL || !PyFile_Check(sysstdin))
-        return 0;
-
-    enc = ((PyFileObject *)sysstdin)->f_encoding;
-    if (enc == NULL || !PyBytes_Check(enc))
-        return 0;
-    Py_INCREF(enc);
-
-    encoding = PyBytes_AsString(enc);
-    decoded = PyUnicode_Decode(*inp, strlen(*inp), encoding, NULL);
-    if (decoded == NULL)
-        goto error_clear;
-
-    utf8 = PyUnicode_AsEncodedString(decoded, "utf-8", NULL);
-    Py_DECREF(decoded);
-    if (utf8 == NULL)
-        goto error_clear;
-
-    assert(PyBytes_Check(utf8));
-    converted = new_string(PyBytes_AS_STRING(utf8),
-                           PyBytes_GET_SIZE(utf8));
-    Py_DECREF(utf8);
-    if (converted == NULL)
-        goto error_nomem;
-
-    PyMem_FREE(*inp);
-    *inp = converted;
-    if (tok->encoding != NULL)
-        PyMem_FREE(tok->encoding);
-    tok->encoding = new_string(encoding, strlen(encoding));
-    if (tok->encoding == NULL)
-        goto error_nomem;
-
-    Py_DECREF(enc);
-    return 0;
-
-error_nomem:
-    Py_DECREF(enc);
-    tok->done = E_NOMEM;
-    return -1;
-
-error_clear:
-    Py_DECREF(enc);
-    if (!PyErr_ExceptionMatches(PyExc_UnicodeDecodeError)) {
-        tok->done = E_ERROR;
-        return -1;
-    }
-    /* Fallback to iso-8859-1: for backward compatibility */
-    PyErr_Clear();
-    return 0;
-}
-#endif
-
 /* Get next char, updating state; error code goes into tok->done */
-
+/* taken from Python 3.5.1 */
 static int
-tok_nextc(register struct tok_state *tok)
+tok_nextc(struct tok_state *tok)
 {
     for (;;) {
         if (tok->cur != tok->inp) {
@@ -904,6 +843,31 @@ tok_nextc(register struct tok_state *tok)
         }
         if (tok->prompt != NULL) {
             char *newtok = PyOS_Readline(stdin, stdout, tok->prompt);
+#ifndef PGEN
+            if (newtok != NULL) {
+                char *translated = translate_newlines(newtok, 0, tok);
+                PyMem_FREE(newtok);
+                if (translated == NULL)
+                    return EOF;
+                newtok = translated;
+            }
+            if (tok->encoding && newtok && *newtok) {
+                /* Recode to UTF-8 */
+                Py_ssize_t buflen;
+                const char* buf;
+                PyObject *u = translate_into_utf8(newtok, tok->encoding);
+                PyMem_FREE(newtok);
+                if (!u) {
+                    tok->done = E_DECODE;
+                    return EOF;
+                }
+                buflen = PyBytes_GET_SIZE(u);
+                buf = PyBytes_AS_STRING(u);
+                newtok = PyMem_MALLOC(buflen+1);
+                strcpy(newtok, buf);
+                Py_DECREF(u);
+            }
+#endif
             if (tok->nextprompt != NULL)
                 tok->prompt = tok->nextprompt;
             if (newtok == NULL)
@@ -912,10 +876,6 @@ tok_nextc(register struct tok_state *tok)
                 PyMem_FREE(newtok);
                 tok->done = E_EOF;
             }
-#if !defined(PGEN) && defined(Py_USING_UNICODE)
-            else if (tok_stdin_decode(tok, &newtok) != 0)
-                PyMem_FREE(newtok);
-#endif
             else if (tok->start != NULL) {
                 size_t start = tok->start - tok->buf;
                 size_t oldlen = tok->cur - tok->buf;
@@ -1653,7 +1613,7 @@ tok_get(register struct tok_state *tok, char **p_start, char **p_end)
         int c2 = tok_nextc(tok);
         int token = PyToken_TwoChars(c, c2);
 #ifndef PGEN
-        if (Py_Py3kWarningFlag && token == NOTEQUAL && c == '<') {
+        if (/* Py_Py3kWarningFlag && */ token == NOTEQUAL && c == '<') {
             if (PyErr_WarnExplicit(PyExc_DeprecationWarning,
                                    "<> not supported in 3.x; use !=",
                                    tok->filename, tok->lineno,
