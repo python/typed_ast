@@ -76,10 +76,11 @@ PyParser_ParseStringObject(const char *s, PyObject *filename,
 
     initerr(err_ret, filename);
 
-    /* if (*flags & PyPARSE_IGNORE_COOKIE) */
-    /*     tok = PyTokenizer_FromUTF8(s, exec_input); */
-    /* else */
-    tok = PyTokenizer_FromString(s, exec_input);
+    if (*flags & PyPARSE_IGNORE_COOKIE)
+        tok = PyTokenizer_FromUTF8(s, exec_input);
+    else
+        tok = PyTokenizer_FromString(s, exec_input);
+
     if (tok == NULL) {
         err_ret->error = PyErr_Occurred() ? E_DECODE : E_NOMEM;
         return NULL;
