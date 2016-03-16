@@ -228,7 +228,7 @@ string_object_to_c_ast(const char *s, PyObject *filename, int start,
     }
     if (n) {
         flags->cf_flags |= iflags & PyCF_MASK;
-        mod = PyAST_FromNode(n, flags, "FIXME", arena);
+        mod = PyAST_FromNode(n, flags, PyUnicode_AsUTF8(filename), arena);
         PyNode_Free(n);
     }
     else {

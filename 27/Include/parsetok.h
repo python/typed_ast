@@ -9,7 +9,7 @@ extern "C" {
 
 typedef struct {
     int error;
-    const char *filename;
+    PyObject *filename;
     int lineno;
     int offset;
     char *text;

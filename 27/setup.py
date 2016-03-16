@@ -23,5 +23,5 @@ setup (name = 'Typed AST Module',
        version = '0.1',
        description = '',
        package_dir = {'': 'Lib'},
-       py_modules = [],
+       py_modules = ['typed_ast_27'],
        ext_modules = [_typed_ast])

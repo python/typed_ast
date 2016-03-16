@@ -15,7 +15,7 @@ int Py_TabcheckFlag;
 
 /* Forward */
 static node *parsetok(struct tok_state *, grammar *, int, perrdetail *, int *);
-static void initerr(perrdetail *err_ret, const char* filename);
+static int initerr(perrdetail *err_ret, PyObject *filename);
 
 /* Parse input coming from a string.  Return error code, print some errors. */
 node *
@@ -42,29 +42,29 @@ PyParser_ParseStringFlagsFilename(const char *s, const char *filename,
                                                err_ret, &iflags);
 }
 
-node *
-PyParser_ParseStringFlagsFilenameEx(const char *s, const char *filename,
-                          grammar *g, int start,
-                          perrdetail *err_ret, int *flags)
-{
-    struct tok_state *tok;
+/* node * */
+/* PyParser_ParseStringFlagsFilenameEx(const char *s, const char *filename, */
+/*                           grammar *g, int start, */
+/*                           perrdetail *err_ret, int *flags) */
+/* { */
+/*     struct tok_state *tok; */
 
-    initerr(err_ret, filename);
+/*     initerr(err_ret, filename); */
 
-    if ((tok = PyTokenizer_FromString(s, start == file_input)) == NULL) {
-        err_ret->error = PyErr_Occurred() ? E_DECODE : E_NOMEM;
-        return NULL;
-    }
+/*     if ((tok = PyTokenizer_FromString(s, start == file_input)) == NULL) { */
+/*         err_ret->error = PyErr_Occurred() ? E_DECODE : E_NOMEM; */
+/*         return NULL; */
+/*     } */
 
-    tok->filename = filename ? filename : "<string>";
-    if (Py_TabcheckFlag || Py_VerboseFlag) {
-        tok->altwarning = (tok->filename != NULL);
-        if (Py_TabcheckFlag >= 2)
-            tok->alterror++;
-    }
+/*     tok->filename = filename ? filename : "<string>"; */
+/*     if (Py_TabcheckFlag || Py_VerboseFlag) { */
+/*         tok->altwarning = (tok->filename != NULL); */
+/*         if (Py_TabcheckFlag >= 2) */
+/*             tok->alterror++; */
+/*     } */
 
-    return parsetok(tok, g, start, err_ret, flags);
-}
+/*     return parsetok(tok, g, start, err_ret, flags); */
+/* } */
 
 node *
 PyParser_ParseStringObject(const char *s, PyObject *filename,
@@ -74,7 +74,7 @@ PyParser_ParseStringObject(const char *s, PyObject *filename,
     struct tok_state *tok;
     int exec_input = start == file_input;
 
-    initerr(err_ret, "FIXME");
+    initerr(err_ret, filename);
 
     /* if (*flags & PyPARSE_IGNORE_COOKIE) */
     /*     tok = PyTokenizer_FromUTF8(s, exec_input); */
@@ -87,7 +87,7 @@ PyParser_ParseStringObject(const char *s, PyObject *filename,
 
 #ifndef PGEN
     Py_INCREF(err_ret->filename);
-    tok->filename = err_ret->filename;
+    tok->filename = PyUnicode_AsUTF8(err_ret->filename);
 #endif
     return parsetok(tok, g, start, err_ret, flags);
 }
@@ -110,27 +110,27 @@ PyParser_ParseFileFlags(FILE *fp, const char *filename, grammar *g, int start,
     return PyParser_ParseFileFlagsEx(fp, filename, g, start, ps1, ps2, err_ret, &iflags);
 }
 
-node *
-PyParser_ParseFileFlagsEx(FILE *fp, const char *filename, grammar *g, int start,
-                          char *ps1, char *ps2, perrdetail *err_ret, int *flags)
-{
-    struct tok_state *tok;
+/* node * */
+/* PyParser_ParseFileFlagsEx(FILE *fp, const char *filename, grammar *g, int start, */
+/*                           char *ps1, char *ps2, perrdetail *err_ret, int *flags) */
+/* { */
+/*     struct tok_state *tok; */
 
-    initerr(err_ret, filename);
+/*     initerr(err_ret, filename); */
 
-    if ((tok = PyTokenizer_FromFile(fp, ps1, ps2)) == NULL) {
-        err_ret->error = E_NOMEM;
-        return NULL;
-    }
-    tok->filename = filename;
-    if (Py_TabcheckFlag || Py_VerboseFlag) {
-        tok->altwarning = (filename != NULL);
-        if (Py_TabcheckFlag >= 2)
-            tok->alterror++;
-    }
+/*     if ((tok = PyTokenizer_FromFile(fp, ps1, ps2)) == NULL) { */
+/*         err_ret->error = E_NOMEM; */
+/*         return NULL; */
+/*     } */
+/*     tok->filename = filename; */
+/*     if (Py_TabcheckFlag || Py_VerboseFlag) { */
+/*         tok->altwarning = (filename != NULL); */
+/*         if (Py_TabcheckFlag >= 2) */
+/*             tok->alterror++; */
+/*     } */
 
-    return parsetok(tok, g, start, err_ret, flags);
-}
+/*     return parsetok(tok, g, start, err_ret, flags); */
+/* } */
 
 #if 0
 static char with_msg[] =
@@ -295,14 +295,27 @@ done:
     return n;
 }
 
-static void
-initerr(perrdetail *err_ret, const char *filename)
+static int
+initerr(perrdetail *err_ret, PyObject *filename)
 {
     err_ret->error = E_OK;
-    err_ret->filename = filename;
     err_ret->lineno = 0;
     err_ret->offset = 0;
     err_ret->text = NULL;
     err_ret->token = -1;
     err_ret->expected = -1;
+#ifndef PGEN
+    if (filename) {
+        Py_INCREF(filename);
+        err_ret->filename = filename;
+    }
+    else {
+        err_ret->filename = PyUnicode_FromString("<string>");
+        if (err_ret->filename == NULL) {
+            err_ret->error = E_ERROR;
+            return -1;
+        }
+    }
+#endif
+    return 0;
 }
