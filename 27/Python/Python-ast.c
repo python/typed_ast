@@ -18,6 +18,7 @@ static PyObject* ast2obj_mod(void*);
 static PyTypeObject *Module_type;
 static char *Module_fields[]={
         "body",
+        "type_ignores",
 };
 static PyTypeObject *Interactive_type;
 static char *Interactive_fields[]={
@@ -26,6 +27,11 @@ static char *Interactive_fields[]={
 static PyTypeObject *Expression_type;
 static char *Expression_fields[]={
         "body",
+};
+static PyTypeObject *FunctionType_type;
+static char *FunctionType_fields[]={
+        "argtypes",
+        "returns",
 };
 static PyTypeObject *Suite_type;
 static char *Suite_fields[]={
@@ -43,6 +49,7 @@ static char *FunctionDef_fields[]={
         "args",
         "body",
         "decorator_list",
+        "type_comment",
 };
 static PyTypeObject *ClassDef_type;
 static char *ClassDef_fields[]={
@@ -63,6 +70,7 @@ static PyTypeObject *Assign_type;
 static char *Assign_fields[]={
         "targets",
         "value",
+        "type_comment",
 };
 static PyTypeObject *AugAssign_type;
 static char *AugAssign_fields[]={
@@ -82,6 +90,7 @@ static char *For_fields[]={
         "iter",
         "body",
         "orelse",
+        "type_comment",
 };
 static PyTypeObject *While_type;
 static char *While_fields[]={
@@ -100,6 +109,7 @@ static char *With_fields[]={
         "context_expr",
         "optional_vars",
         "body",
+        "type_comment",
 };
 static PyTypeObject *Raise_type;
 static char *Raise_fields[]={
@@ -378,6 +388,12 @@ static PyObject* ast2obj_alias(void*);
 static char *alias_fields[]={
         "name",
         "asname",
+};
+static PyTypeObject *type_ignore_type;
+static PyObject* ast2obj_type_ignore(void*);
+static PyTypeObject *TypeIgnore_type;
+static char *TypeIgnore_fields[]={
+        "lineno",
 };
 
 
@@ -671,18 +687,20 @@ static int init_types(void)
         mod_type = make_type("mod", &AST_type, NULL, 0);
         if (!mod_type) return 0;
         if (!add_attributes(mod_type, NULL, 0)) return 0;
-        Module_type = make_type("Module", mod_type, Module_fields, 1);
+        Module_type = make_type("Module", mod_type, Module_fields, 2);
         if (!Module_type) return 0;
         Interactive_type = make_type("Interactive", mod_type, Interactive_fields, 1);
         if (!Interactive_type) return 0;
         Expression_type = make_type("Expression", mod_type, Expression_fields, 1);
         if (!Expression_type) return 0;
+        FunctionType_type = make_type("FunctionType", mod_type, FunctionType_fields, 2);
+        if (!FunctionType_type) return 0;
         Suite_type = make_type("Suite", mod_type, Suite_fields, 1);
         if (!Suite_type) return 0;
         stmt_type = make_type("stmt", &AST_type, NULL, 0);
         if (!stmt_type) return 0;
         if (!add_attributes(stmt_type, stmt_attributes, 2)) return 0;
-        FunctionDef_type = make_type("FunctionDef", stmt_type, FunctionDef_fields, 4);
+        FunctionDef_type = make_type("FunctionDef", stmt_type, FunctionDef_fields, 5);
         if (!FunctionDef_type) return 0;
         ClassDef_type = make_type("ClassDef", stmt_type, ClassDef_fields, 4);
         if (!ClassDef_type) return 0;
@@ -690,19 +708,19 @@ static int init_types(void)
         if (!Return_type) return 0;
         Delete_type = make_type("Delete", stmt_type, Delete_fields, 1);
         if (!Delete_type) return 0;
-        Assign_type = make_type("Assign", stmt_type, Assign_fields, 2);
+        Assign_type = make_type("Assign", stmt_type, Assign_fields, 3);
         if (!Assign_type) return 0;
         AugAssign_type = make_type("AugAssign", stmt_type, AugAssign_fields, 3);
         if (!AugAssign_type) return 0;
         Print_type = make_type("Print", stmt_type, Print_fields, 3);
         if (!Print_type) return 0;
-        For_type = make_type("For", stmt_type, For_fields, 4);
+        For_type = make_type("For", stmt_type, For_fields, 5);
         if (!For_type) return 0;
         While_type = make_type("While", stmt_type, While_fields, 3);
         if (!While_type) return 0;
         If_type = make_type("If", stmt_type, If_fields, 3);
         if (!If_type) return 0;
-        With_type = make_type("With", stmt_type, With_fields, 3);
+        With_type = make_type("With", stmt_type, With_fields, 4);
         if (!With_type) return 0;
         Raise_type = make_type("Raise", stmt_type, Raise_fields, 3);
         if (!Raise_type) return 0;
@@ -951,6 +969,11 @@ static int init_types(void)
         if (!keyword_type) return 0;
         alias_type = make_type("alias", &AST_type, alias_fields, 2);
         if (!alias_type) return 0;
+        type_ignore_type = make_type("type_ignore", &AST_type, NULL, 0);
+        if (!type_ignore_type) return 0;
+        if (!add_attributes(type_ignore_type, NULL, 0)) return 0;
+        TypeIgnore_type = make_type("TypeIgnore", type_ignore_type, TypeIgnore_fields, 1);
+        if (!TypeIgnore_type) return 0;
         initialized = 1;
         return 1;
 }
@@ -969,9 +992,10 @@ static int obj2ast_excepthandler(PyObject* obj, excepthandler_ty* out, PyArena* 
 static int obj2ast_arguments(PyObject* obj, arguments_ty* out, PyArena* arena);
 static int obj2ast_keyword(PyObject* obj, keyword_ty* out, PyArena* arena);
 static int obj2ast_alias(PyObject* obj, alias_ty* out, PyArena* arena);
+static int obj2ast_type_ignore(PyObject* obj, type_ignore_ty* out, PyArena* arena);
 
 mod_ty
-Module(asdl_seq * body, PyArena *arena)
+Module(asdl_seq * body, asdl_seq * type_ignores, PyArena *arena)
 {
         mod_ty p;
         p = (mod_ty)PyArena_Malloc(arena, sizeof(*p));
@@ -979,6 +1003,7 @@ Module(asdl_seq * body, PyArena *arena)
                 return NULL;
         p->kind = Module_kind;
         p->v.Module.body = body;
+        p->v.Module.type_ignores = type_ignores;
         return p;
 }
 
@@ -1012,6 +1037,24 @@ Expression(expr_ty body, PyArena *arena)
 }
 
 mod_ty
+FunctionType(asdl_seq * argtypes, expr_ty returns, PyArena *arena)
+{
+        mod_ty p;
+        if (!returns) {
+                PyErr_SetString(PyExc_ValueError,
+                                "field returns is required for FunctionType");
+                return NULL;
+        }
+        p = (mod_ty)PyArena_Malloc(arena, sizeof(*p));
+        if (!p)
+                return NULL;
+        p->kind = FunctionType_kind;
+        p->v.FunctionType.argtypes = argtypes;
+        p->v.FunctionType.returns = returns;
+        return p;
+}
+
+mod_ty
 Suite(asdl_seq * body, PyArena *arena)
 {
         mod_ty p;
@@ -1024,8 +1067,8 @@ Suite(asdl_seq * body, PyArena *arena)
 }
 
 stmt_ty
-FunctionDef(identifier name, arguments_ty args, asdl_seq * body, asdl_seq * decorator_list, int
-            lineno, int col_offset, PyArena *arena)
+FunctionDef(identifier name, arguments_ty args, asdl_seq * body, asdl_seq * decorator_list, string
+            type_comment, int lineno, int col_offset, PyArena *arena)
 {
         stmt_ty p;
         if (!name) {
@@ -1046,6 +1089,7 @@ FunctionDef(identifier name, arguments_ty args, asdl_seq * body, asdl_seq * deco
         p->v.FunctionDef.args = args;
         p->v.FunctionDef.body = body;
         p->v.FunctionDef.decorator_list = decorator_list;
+        p->v.FunctionDef.type_comment = type_comment;
         p->lineno = lineno;
         p->col_offset = col_offset;
         return p;
@@ -1103,7 +1147,8 @@ Delete(asdl_seq * targets, int lineno, int col_offset, PyArena *arena)
 }
 
 stmt_ty
-Assign(asdl_seq * targets, expr_ty value, int lineno, int col_offset, PyArena *arena)
+Assign(asdl_seq * targets, expr_ty value, string type_comment, int lineno, int col_offset, PyArena
+       *arena)
 {
         stmt_ty p;
         if (!value) {
@@ -1117,6 +1162,7 @@ Assign(asdl_seq * targets, expr_ty value, int lineno, int col_offset, PyArena *a
         p->kind = Assign_kind;
         p->v.Assign.targets = targets;
         p->v.Assign.value = value;
+        p->v.Assign.type_comment = type_comment;
         p->lineno = lineno;
         p->col_offset = col_offset;
         return p;
@@ -1170,8 +1216,8 @@ Print(expr_ty dest, asdl_seq * values, bool nl, int lineno, int col_offset, PyAr
 }
 
 stmt_ty
-For(expr_ty target, expr_ty iter, asdl_seq * body, asdl_seq * orelse, int lineno, int col_offset,
-    PyArena *arena)
+For(expr_ty target, expr_ty iter, asdl_seq * body, asdl_seq * orelse, string type_comment, int
+    lineno, int col_offset, PyArena *arena)
 {
         stmt_ty p;
         if (!target) {
@@ -1192,6 +1238,7 @@ For(expr_ty target, expr_ty iter, asdl_seq * body, asdl_seq * orelse, int lineno
         p->v.For.iter = iter;
         p->v.For.body = body;
         p->v.For.orelse = orelse;
+        p->v.For.type_comment = type_comment;
         p->lineno = lineno;
         p->col_offset = col_offset;
         return p;
@@ -1240,8 +1287,8 @@ If(expr_ty test, asdl_seq * body, asdl_seq * orelse, int lineno, int col_offset,
 }
 
 stmt_ty
-With(expr_ty context_expr, expr_ty optional_vars, asdl_seq * body, int lineno, int col_offset,
-     PyArena *arena)
+With(expr_ty context_expr, expr_ty optional_vars, asdl_seq * body, string type_comment, int lineno,
+     int col_offset, PyArena *arena)
 {
         stmt_ty p;
         if (!context_expr) {
@@ -1256,6 +1303,7 @@ With(expr_ty context_expr, expr_ty optional_vars, asdl_seq * body, int lineno, i
         p->v.With.context_expr = context_expr;
         p->v.With.optional_vars = optional_vars;
         p->v.With.body = body;
+        p->v.With.type_comment = type_comment;
         p->lineno = lineno;
         p->col_offset = col_offset;
         return p;
@@ -2094,6 +2142,18 @@ alias(identifier name, identifier asname, PyArena *arena)
         return p;
 }
 
+type_ignore_ty
+TypeIgnore(int lineno, PyArena *arena)
+{
+        type_ignore_ty p;
+        p = (type_ignore_ty)PyArena_Malloc(arena, sizeof(*p));
+        if (!p)
+                return NULL;
+        p->kind = TypeIgnore_kind;
+        p->v.TypeIgnore.lineno = lineno;
+        return p;
+}
+
 
 PyObject*
 ast2obj_mod(void* _o)
@@ -2114,6 +2174,11 @@ ast2obj_mod(void* _o)
                 if (PyObject_SetAttrString(result, "body", value) == -1)
                         goto failed;
                 Py_DECREF(value);
+                value = ast2obj_list(o->v.Module.type_ignores, ast2obj_type_ignore);
+                if (!value) goto failed;
+                if (PyObject_SetAttrString(result, "type_ignores", value) == -1)
+                        goto failed;
+                Py_DECREF(value);
                 break;
         case Interactive_kind:
                 result = PyType_GenericNew(Interactive_type, NULL, NULL);
@@ -2130,6 +2195,20 @@ ast2obj_mod(void* _o)
                 value = ast2obj_expr(o->v.Expression.body);
                 if (!value) goto failed;
                 if (PyObject_SetAttrString(result, "body", value) == -1)
+                        goto failed;
+                Py_DECREF(value);
+                break;
+        case FunctionType_kind:
+                result = PyType_GenericNew(FunctionType_type, NULL, NULL);
+                if (!result) goto failed;
+                value = ast2obj_list(o->v.FunctionType.argtypes, ast2obj_expr);
+                if (!value) goto failed;
+                if (PyObject_SetAttrString(result, "argtypes", value) == -1)
+                        goto failed;
+                Py_DECREF(value);
+                value = ast2obj_expr(o->v.FunctionType.returns);
+                if (!value) goto failed;
+                if (PyObject_SetAttrString(result, "returns", value) == -1)
                         goto failed;
                 Py_DECREF(value);
                 break;
@@ -2182,6 +2261,11 @@ ast2obj_stmt(void* _o)
                 value = ast2obj_list(o->v.FunctionDef.decorator_list, ast2obj_expr);
                 if (!value) goto failed;
                 if (PyObject_SetAttrString(result, "decorator_list", value) == -1)
+                        goto failed;
+                Py_DECREF(value);
+                value = ast2obj_string(o->v.FunctionDef.type_comment);
+                if (!value) goto failed;
+                if (PyObject_SetAttrString(result, "type_comment", value) == -1)
                         goto failed;
                 Py_DECREF(value);
                 break;
@@ -2238,6 +2322,11 @@ ast2obj_stmt(void* _o)
                 value = ast2obj_expr(o->v.Assign.value);
                 if (!value) goto failed;
                 if (PyObject_SetAttrString(result, "value", value) == -1)
+                        goto failed;
+                Py_DECREF(value);
+                value = ast2obj_string(o->v.Assign.type_comment);
+                if (!value) goto failed;
+                if (PyObject_SetAttrString(result, "type_comment", value) == -1)
                         goto failed;
                 Py_DECREF(value);
                 break;
@@ -2302,6 +2391,11 @@ ast2obj_stmt(void* _o)
                 if (PyObject_SetAttrString(result, "orelse", value) == -1)
                         goto failed;
                 Py_DECREF(value);
+                value = ast2obj_string(o->v.For.type_comment);
+                if (!value) goto failed;
+                if (PyObject_SetAttrString(result, "type_comment", value) == -1)
+                        goto failed;
+                Py_DECREF(value);
                 break;
         case While_kind:
                 result = PyType_GenericNew(While_type, NULL, NULL);
@@ -2357,6 +2451,11 @@ ast2obj_stmt(void* _o)
                 value = ast2obj_list(o->v.With.body, ast2obj_stmt);
                 if (!value) goto failed;
                 if (PyObject_SetAttrString(result, "body", value) == -1)
+                        goto failed;
+                Py_DECREF(value);
+                value = ast2obj_string(o->v.With.type_comment);
+                if (!value) goto failed;
+                if (PyObject_SetAttrString(result, "type_comment", value) == -1)
                         goto failed;
                 Py_DECREF(value);
                 break;
@@ -3270,6 +3369,34 @@ failed:
         return NULL;
 }
 
+PyObject*
+ast2obj_type_ignore(void* _o)
+{
+        type_ignore_ty o = (type_ignore_ty)_o;
+        PyObject *result = NULL, *value = NULL;
+        if (!o) {
+                Py_INCREF(Py_None);
+                return Py_None;
+        }
+
+        switch (o->kind) {
+        case TypeIgnore_kind:
+                result = PyType_GenericNew(TypeIgnore_type, NULL, NULL);
+                if (!result) goto failed;
+                value = ast2obj_int(o->v.TypeIgnore.lineno);
+                if (!value) goto failed;
+                if (PyObject_SetAttrString(result, "lineno", value) == -1)
+                        goto failed;
+                Py_DECREF(value);
+                break;
+        }
+        return result;
+failed:
+        Py_XDECREF(value);
+        Py_XDECREF(result);
+        return NULL;
+}
+
 
 int
 obj2ast_mod(PyObject* obj, mod_ty* out, PyArena* arena)
@@ -3288,6 +3415,7 @@ obj2ast_mod(PyObject* obj, mod_ty* out, PyArena* arena)
         }
         if (isinstance) {
                 asdl_seq* body;
+                asdl_seq* type_ignores;
 
                 if (PyObject_HasAttrString(obj, "body")) {
                         int res;
@@ -3314,7 +3442,32 @@ obj2ast_mod(PyObject* obj, mod_ty* out, PyArena* arena)
                         PyErr_SetString(PyExc_TypeError, "required field \"body\" missing from Module");
                         return 1;
                 }
-                *out = Module(body, arena);
+                if (PyObject_HasAttrString(obj, "type_ignores")) {
+                        int res;
+                        Py_ssize_t len;
+                        Py_ssize_t i;
+                        tmp = PyObject_GetAttrString(obj, "type_ignores");
+                        if (tmp == NULL) goto failed;
+                        if (!PyList_Check(tmp)) {
+                                PyErr_Format(PyExc_TypeError, "Module field \"type_ignores\" must be a list, not a %.200s", tmp->ob_type->tp_name);
+                                goto failed;
+                        }
+                        len = PyList_GET_SIZE(tmp);
+                        type_ignores = asdl_seq_new(len, arena);
+                        if (type_ignores == NULL) goto failed;
+                        for (i = 0; i < len; i++) {
+                                type_ignore_ty value;
+                                res = obj2ast_type_ignore(PyList_GET_ITEM(tmp, i), &value, arena);
+                                if (res != 0) goto failed;
+                                asdl_seq_SET(type_ignores, i, value);
+                        }
+                        Py_XDECREF(tmp);
+                        tmp = NULL;
+                } else {
+                        PyErr_SetString(PyExc_TypeError, "required field \"type_ignores\" missing from Module");
+                        return 1;
+                }
+                *out = Module(body, type_ignores, arena);
                 if (*out == NULL) goto failed;
                 return 0;
         }
@@ -3374,6 +3527,55 @@ obj2ast_mod(PyObject* obj, mod_ty* out, PyArena* arena)
                         return 1;
                 }
                 *out = Expression(body, arena);
+                if (*out == NULL) goto failed;
+                return 0;
+        }
+        isinstance = PyObject_IsInstance(obj, (PyObject*)FunctionType_type);
+        if (isinstance == -1) {
+                return 1;
+        }
+        if (isinstance) {
+                asdl_seq* argtypes;
+                expr_ty returns;
+
+                if (PyObject_HasAttrString(obj, "argtypes")) {
+                        int res;
+                        Py_ssize_t len;
+                        Py_ssize_t i;
+                        tmp = PyObject_GetAttrString(obj, "argtypes");
+                        if (tmp == NULL) goto failed;
+                        if (!PyList_Check(tmp)) {
+                                PyErr_Format(PyExc_TypeError, "FunctionType field \"argtypes\" must be a list, not a %.200s", tmp->ob_type->tp_name);
+                                goto failed;
+                        }
+                        len = PyList_GET_SIZE(tmp);
+                        argtypes = asdl_seq_new(len, arena);
+                        if (argtypes == NULL) goto failed;
+                        for (i = 0; i < len; i++) {
+                                expr_ty value;
+                                res = obj2ast_expr(PyList_GET_ITEM(tmp, i), &value, arena);
+                                if (res != 0) goto failed;
+                                asdl_seq_SET(argtypes, i, value);
+                        }
+                        Py_XDECREF(tmp);
+                        tmp = NULL;
+                } else {
+                        PyErr_SetString(PyExc_TypeError, "required field \"argtypes\" missing from FunctionType");
+                        return 1;
+                }
+                if (PyObject_HasAttrString(obj, "returns")) {
+                        int res;
+                        tmp = PyObject_GetAttrString(obj, "returns");
+                        if (tmp == NULL) goto failed;
+                        res = obj2ast_expr(tmp, &returns, arena);
+                        if (res != 0) goto failed;
+                        Py_XDECREF(tmp);
+                        tmp = NULL;
+                } else {
+                        PyErr_SetString(PyExc_TypeError, "required field \"returns\" missing from FunctionType");
+                        return 1;
+                }
+                *out = FunctionType(argtypes, returns, arena);
                 if (*out == NULL) goto failed;
                 return 0;
         }
@@ -3468,6 +3670,7 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
                 arguments_ty args;
                 asdl_seq* body;
                 asdl_seq* decorator_list;
+                string type_comment;
 
                 if (PyObject_HasAttrString(obj, "name")) {
                         int res;
@@ -3543,7 +3746,19 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
                         PyErr_SetString(PyExc_TypeError, "required field \"decorator_list\" missing from FunctionDef");
                         return 1;
                 }
-                *out = FunctionDef(name, args, body, decorator_list, lineno, col_offset, arena);
+                if (PyObject_HasAttrString(obj, "type_comment")) {
+                        int res;
+                        tmp = PyObject_GetAttrString(obj, "type_comment");
+                        if (tmp == NULL) goto failed;
+                        res = obj2ast_string(tmp, &type_comment, arena);
+                        if (res != 0) goto failed;
+                        Py_XDECREF(tmp);
+                        tmp = NULL;
+                } else {
+                        type_comment = NULL;
+                }
+                *out = FunctionDef(name, args, body, decorator_list, type_comment, lineno,
+                                   col_offset, arena);
                 if (*out == NULL) goto failed;
                 return 0;
         }
@@ -3713,6 +3928,7 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
         if (isinstance) {
                 asdl_seq* targets;
                 expr_ty value;
+                string type_comment;
 
                 if (PyObject_HasAttrString(obj, "targets")) {
                         int res;
@@ -3751,7 +3967,18 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
                         PyErr_SetString(PyExc_TypeError, "required field \"value\" missing from Assign");
                         return 1;
                 }
-                *out = Assign(targets, value, lineno, col_offset, arena);
+                if (PyObject_HasAttrString(obj, "type_comment")) {
+                        int res;
+                        tmp = PyObject_GetAttrString(obj, "type_comment");
+                        if (tmp == NULL) goto failed;
+                        res = obj2ast_string(tmp, &type_comment, arena);
+                        if (res != 0) goto failed;
+                        Py_XDECREF(tmp);
+                        tmp = NULL;
+                } else {
+                        type_comment = NULL;
+                }
+                *out = Assign(targets, value, type_comment, lineno, col_offset, arena);
                 if (*out == NULL) goto failed;
                 return 0;
         }
@@ -3874,6 +4101,7 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
                 expr_ty iter;
                 asdl_seq* body;
                 asdl_seq* orelse;
+                string type_comment;
 
                 if (PyObject_HasAttrString(obj, "target")) {
                         int res;
@@ -3949,7 +4177,18 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
                         PyErr_SetString(PyExc_TypeError, "required field \"orelse\" missing from For");
                         return 1;
                 }
-                *out = For(target, iter, body, orelse, lineno, col_offset, arena);
+                if (PyObject_HasAttrString(obj, "type_comment")) {
+                        int res;
+                        tmp = PyObject_GetAttrString(obj, "type_comment");
+                        if (tmp == NULL) goto failed;
+                        res = obj2ast_string(tmp, &type_comment, arena);
+                        if (res != 0) goto failed;
+                        Py_XDECREF(tmp);
+                        tmp = NULL;
+                } else {
+                        type_comment = NULL;
+                }
+                *out = For(target, iter, body, orelse, type_comment, lineno, col_offset, arena);
                 if (*out == NULL) goto failed;
                 return 0;
         }
@@ -4111,6 +4350,7 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
                 expr_ty context_expr;
                 expr_ty optional_vars;
                 asdl_seq* body;
+                string type_comment;
 
                 if (PyObject_HasAttrString(obj, "context_expr")) {
                         int res;
@@ -4160,7 +4400,19 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
                         PyErr_SetString(PyExc_TypeError, "required field \"body\" missing from With");
                         return 1;
                 }
-                *out = With(context_expr, optional_vars, body, lineno, col_offset, arena);
+                if (PyObject_HasAttrString(obj, "type_comment")) {
+                        int res;
+                        tmp = PyObject_GetAttrString(obj, "type_comment");
+                        if (tmp == NULL) goto failed;
+                        res = obj2ast_string(tmp, &type_comment, arena);
+                        if (res != 0) goto failed;
+                        Py_XDECREF(tmp);
+                        tmp = NULL;
+                } else {
+                        type_comment = NULL;
+                }
+                *out = With(context_expr, optional_vars, body, type_comment, lineno, col_offset,
+                            arena);
                 if (*out == NULL) goto failed;
                 return 0;
         }
@@ -6520,6 +6772,49 @@ failed:
         return 1;
 }
 
+int
+obj2ast_type_ignore(PyObject* obj, type_ignore_ty* out, PyArena* arena)
+{
+        PyObject* tmp = NULL;
+        int isinstance;
+
+
+        if (obj == Py_None) {
+                *out = NULL;
+                return 0;
+        }
+        isinstance = PyObject_IsInstance(obj, (PyObject*)TypeIgnore_type);
+        if (isinstance == -1) {
+                return 1;
+        }
+        if (isinstance) {
+                int lineno;
+
+                if (PyObject_HasAttrString(obj, "lineno")) {
+                        int res;
+                        tmp = PyObject_GetAttrString(obj, "lineno");
+                        if (tmp == NULL) goto failed;
+                        res = obj2ast_int(tmp, &lineno, arena);
+                        if (res != 0) goto failed;
+                        Py_XDECREF(tmp);
+                        tmp = NULL;
+                } else {
+                        PyErr_SetString(PyExc_TypeError, "required field \"lineno\" missing from TypeIgnore");
+                        return 1;
+                }
+                *out = TypeIgnore(lineno, arena);
+                if (*out == NULL) goto failed;
+                return 0;
+        }
+
+        tmp = PyObject_Repr(obj);
+        if (tmp == NULL) goto failed;
+        PyErr_Format(PyExc_TypeError, "expected some sort of type_ignore, but got %.400s", _PyUnicode_AsString(tmp));
+failed:
+        Py_XDECREF(tmp);
+        return 1;
+}
+
 
 PyObject *typed_ast_parse(PyObject *self, PyObject *args);
 static PyMethodDef typed_ast_methods[] = {
@@ -6544,6 +6839,7 @@ PyInit__typed_ast_27(void)
         if (PyDict_SetItemString(d, "Module", (PyObject*)Module_type) < 0) return NULL;
         if (PyDict_SetItemString(d, "Interactive", (PyObject*)Interactive_type) < 0) return NULL;
         if (PyDict_SetItemString(d, "Expression", (PyObject*)Expression_type) < 0) return NULL;
+        if (PyDict_SetItemString(d, "FunctionType", (PyObject*)FunctionType_type) < 0) return NULL;
         if (PyDict_SetItemString(d, "Suite", (PyObject*)Suite_type) < 0) return NULL;
         if (PyDict_SetItemString(d, "stmt", (PyObject*)stmt_type) < 0) return NULL;
         if (PyDict_SetItemString(d, "FunctionDef", (PyObject*)FunctionDef_type) < 0) return NULL;
@@ -6645,6 +6941,8 @@ PyInit__typed_ast_27(void)
         if (PyDict_SetItemString(d, "arguments", (PyObject*)arguments_type) < 0) return NULL;
         if (PyDict_SetItemString(d, "keyword", (PyObject*)keyword_type) < 0) return NULL;
         if (PyDict_SetItemString(d, "alias", (PyObject*)alias_type) < 0) return NULL;
+        if (PyDict_SetItemString(d, "type_ignore", (PyObject*)type_ignore_type) < 0) return NULL;
+        if (PyDict_SetItemString(d, "TypeIgnore", (PyObject*)TypeIgnore_type) < 0) return NULL;
         return m;
 }
 

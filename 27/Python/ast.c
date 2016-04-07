@@ -222,6 +222,7 @@ PyAST_FromNode(const node *n, PyCompilerFlags *flags, const char *filename,
 {
     int i, j, k, num;
     asdl_seq *stmts = NULL;
+    asdl_seq *type_ignores = NULL;
     stmt_ty s;
     node *ch;
     struct compiling c;
@@ -271,7 +272,22 @@ PyAST_FromNode(const node *n, PyCompilerFlags *flags, const char *filename,
                     }
                 }
             }
-            return Module(stmts, arena);
+            /* Type ignores are stored under the ENDMARKER in file_input. */
+            ch = CHILD(n, NCH(n) - 1);
+            REQ(ch, ENDMARKER);
+            num = NCH(ch);
+            type_ignores = _Py_asdl_seq_new(num, arena);
+            if (!type_ignores)
+                goto error;
+
+            for (i = 0; i < num; i++) {
+                type_ignore_ty ti = TypeIgnore(LINENO(CHILD(ch, i)), arena);
+                if (!ti)
+                    goto error;
+                asdl_seq_SET(type_ignores, i, ti);
+            }
+
+            return Module(stmts, type_ignores, arena);
         case eval_input: {
             expr_ty testlist_ast;
 
@@ -916,7 +932,7 @@ ast_for_funcdef(struct compiling *c, const node *n, asdl_seq *decorator_seq)
     if (!body)
         return NULL;
 
-    return FunctionDef(name, args, body, decorator_seq, LINENO(n),
+    return FunctionDef(name, args, body, decorator_seq, NULL, LINENO(n),
                        n->n_col_offset, c->c_arena);
 }
 
@@ -2267,7 +2283,7 @@ ast_for_expr_stmt(struct compiling *c, const node *n)
             expression = ast_for_expr(c, value);
         if (!expression)
             return NULL;
-        return Assign(targets, expression, LINENO(n), n->n_col_offset,
+        return Assign(targets, expression, NULL, LINENO(n), n->n_col_offset,
                       c->c_arena);
     }
 }
@@ -3001,7 +3017,7 @@ ast_for_for_stmt(struct compiling *c, const node *n)
     if (!suite_seq)
         return NULL;
 
-    return For(target, expression, suite_seq, seq, LINENO(n), n->n_col_offset,
+    return For(target, expression, suite_seq, seq, NULL, LINENO(n), n->n_col_offset,
                c->c_arena);
 }
 
@@ -3158,7 +3174,7 @@ ast_for_with_item(struct compiling *c, const node *n, asdl_seq *content)
         }
     }
 
-    return With(context_expr, optional_vars, content, LINENO(n),
+    return With(context_expr, optional_vars, content, NULL, LINENO(n),
                 n->n_col_offset, c->c_arena);
 }
 

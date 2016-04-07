@@ -14,6 +14,7 @@
 #       single_input is a single interactive statement;
 #       file_input is a module or sequence of commands read from an input file;
 #       eval_input is the input for the eval() and input() functions.
+#       func_type_input is a PEP 484 Python 2 function type comment
 # NB: compound_stmt in single_input is followed by extra NEWLINE!
 single_input: NEWLINE | simple_stmt | compound_stmt NEWLINE
 file_input: (NEWLINE | stmt)* ENDMARKER
@@ -22,7 +23,7 @@ eval_input: testlist NEWLINE* ENDMARKER
 decorator: '@' dotted_name [ '(' [arglist] ')' ] NEWLINE
 decorators: decorator+
 decorated: decorators (classdef | funcdef)
-funcdef: 'def' NAME parameters ':' suite
+funcdef: 'def' NAME parameters ':' [TYPE_COMMENT] suite
 parameters: '(' [varargslist] ')'
 varargslist: ((fpdef ['=' test] ',')*
               ('*' NAME [',' '**' NAME] | '**' NAME) |
@@ -35,7 +36,7 @@ simple_stmt: small_stmt (';' small_stmt)* [';'] NEWLINE
 small_stmt: (expr_stmt | print_stmt  | del_stmt | pass_stmt | flow_stmt |
              import_stmt | global_stmt | exec_stmt | assert_stmt)
 expr_stmt: testlist (augassign (yield_expr|testlist) |
-                     ('=' (yield_expr|testlist))*)
+                     ('=' (yield_expr|testlist))* [TYPE_COMMENT])
 augassign: ('+=' | '-=' | '*=' | '/=' | '%=' | '&=' | '|=' | '^=' |
             '<<=' | '>>=' | '**=' | '//=')
 # For normal assignments, additional restrictions enforced by the interpreter
@@ -65,17 +66,18 @@ assert_stmt: 'assert' test [',' test]
 compound_stmt: if_stmt | while_stmt | for_stmt | try_stmt | with_stmt | funcdef | classdef | decorated
 if_stmt: 'if' test ':' suite ('elif' test ':' suite)* ['else' ':' suite]
 while_stmt: 'while' test ':' suite ['else' ':' suite]
-for_stmt: 'for' exprlist 'in' testlist ':' suite ['else' ':' suite]
+for_stmt: 'for' exprlist 'in' testlist ':' [TYPE_COMMENT] suite ['else' ':' suite]
 try_stmt: ('try' ':' suite
            ((except_clause ':' suite)+
             ['else' ':' suite]
             ['finally' ':' suite] |
            'finally' ':' suite))
-with_stmt: 'with' with_item (',' with_item)*  ':' suite
+with_stmt: 'with' with_item (',' with_item)*  ':' [TYPE_COMMENT] suite
 with_item: test ['as' expr]
 # NB compile.c makes sure that the default except clause is last
 except_clause: 'except' [test [('as' | ',') test]]
-suite: simple_stmt | NEWLINE INDENT stmt+ DEDENT
+# the TYPE_COMMENT in suites is only parsed for funcdefs, but can't go elsewhere due to ambiguity
+suite: simple_stmt | NEWLINE [TYPE_COMMENT NEWLINE] INDENT stmt+ DEDENT
 
 # Backward compatibility cruft to support:
 # [ x for x in lambda: True, lambda: False if x() ]
@@ -140,3 +142,10 @@ testlist1: test (',' test)*
 encoding_decl: NAME
 
 yield_expr: 'yield' [testlist]
+
+func_type_input: func_type NEWLINE* ENDMARKER
+func_type: '(' [typelist] ')' '->' test
+# typelist is a modified typedargslist (see above)
+typelist: (test (',' test)* [','
+       ['*' [test] (',' test)* [',' '**' test] | '**' test]]
+     |  '*' [test] (',' test)* [',' '**' test] | '**' test)

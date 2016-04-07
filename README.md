@@ -26,6 +26,7 @@ progress, but is being actively developed.
 - To get a working `pgen` binary: (this is hacky and will be changed)
  - get a clean copy of Python 3.5.1
  - overwrite `Include/token.h`, `Include/compile.h`, and `Parser/tokenizer.c`
+  - (or instead of copying Parser/tokenizer.h just modify _PyParser_TokenNames at the top and tokenization to RARROW)
  with the versions from typed\_ast
  - In the Python directory, run: `./configure && make`
  - `Parser/pgen` (in the Python directory) can now be used to regenerate
