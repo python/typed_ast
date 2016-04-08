@@ -748,7 +748,6 @@ TaAST_FromNodeObject(const node *n, PyCompilerFlags *flags,
                 if (TYPE(ch) == NEWLINE)
                     continue;
                 REQ(ch, stmt);
-
                 num = num_stmts(ch);
                 if (num == 1) {
                     s = ast_for_stmt(&c, ch);
@@ -2950,7 +2949,6 @@ ast_for_expr_stmt(struct compiling *c, const node *n)
         expr_ty expression;
         string type_comment;
 
-
         /* a normal assignment */
         REQ(CHILD(n, 1), EQUAL);
 
@@ -2991,6 +2989,7 @@ ast_for_expr_stmt(struct compiling *c, const node *n)
         return Assign(targets, expression, type_comment, LINENO(n), n->n_col_offset, c->c_arena);
     }
 }
+
 
 static asdl_seq *
 ast_for_exprlist(struct compiling *c, const node *n, expr_context_ty context)
@@ -3625,11 +3624,11 @@ ast_for_while_stmt(struct compiling *c, const node *n)
 static stmt_ty
 ast_for_for_stmt(struct compiling *c, const node *n, int is_async)
 {
-    int has_type_comment;
     asdl_seq *_target, *seq = NULL, *suite_seq;
     expr_ty expression;
     expr_ty target, first;
     const node *node_target;
+    int has_type_comment;
     string type_comment;
     /* for_stmt: 'for' exprlist 'in' testlist ':' [TYPE_COMMENT] suite ['else' ':' suite] */
     REQ(n, for_stmt);
