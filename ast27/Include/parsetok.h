@@ -9,7 +9,7 @@ extern "C" {
 
 typedef struct {
     int error;
-    const char *filename;
+    PyObject *filename;
     int lineno;
     int offset;
     char *text;
@@ -30,6 +30,7 @@ typedef struct {
 #define PyPARSE_PRINT_IS_FUNCTION       0x0004
 #define PyPARSE_UNICODE_LITERALS        0x0008
 
+#define PyPARSE_IGNORE_COOKIE 0x0010
 
 
 PyAPI_FUNC(node *) PyParser_ParseString(const char *, grammar *, int,
@@ -54,6 +55,14 @@ PyAPI_FUNC(node *) PyParser_ParseStringFlagsFilenameEx(const char *,
 					      const char *,
 					      grammar *, int,
                                               perrdetail *, int *);
+
+PyAPI_FUNC(node *) PyParser_ParseStringObject(
+    const char *s,
+    PyObject *filename,
+    grammar *g,
+    int start,
+    perrdetail *err_ret,
+    int *flags);
 
 /* Note that he following function is defined in pythonrun.c not parsetok.c. */
 PyAPI_FUNC(void) PyParser_SetError(perrdetail *);

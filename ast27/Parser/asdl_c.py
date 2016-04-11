@@ -9,7 +9,7 @@ import os, sys
 import asdl
 
 TABSIZE = 8
-MAX_COL = 80
+MAX_COL = 100
 
 def get_c_type(name):
     """Return a string for the C name of the type.
@@ -376,7 +376,7 @@ class Obj2ModVisitor(PickleVisitor):
         # there's really nothing more we can do if this fails ...
         self.emit("if (tmp == NULL) goto failed;", 1)
         error = "expected some sort of %s, but got %%.400s" % name
-        format = "PyErr_Format(PyExc_TypeError, \"%s\", PyString_AS_STRING(tmp));"
+        format = "PyErr_Format(PyExc_TypeError, \"%s\", _PyUnicode_AsString(tmp));"
         self.emit(format % error, 1, reflow=False)
         self.emit("failed:", 0)
         self.emit("Py_XDECREF(tmp);", 1)
@@ -668,7 +668,7 @@ static PyMethodDef ast_type_methods[] = {
 
 static PyTypeObject AST_type = {
     PyVarObject_HEAD_INIT(&PyType_Type, 0)
-    "_ast.AST",
+    "_ast27.AST",
     sizeof(PyObject),
     0,
     0,                       /* tp_dealloc */
@@ -716,7 +716,7 @@ static PyTypeObject* make_type(char *type, PyTypeObject* base, char**fields, int
     fnames = PyTuple_New(num_fields);
     if (!fnames) return NULL;
     for (i = 0; i < num_fields; i++) {
-        PyObject *field = PyString_FromString(fields[i]);
+        PyObject *field = PyUnicode_FromString(fields[i]);
         if (!field) {
             Py_DECREF(fnames);
             return NULL;
@@ -724,7 +724,7 @@ static PyTypeObject* make_type(char *type, PyTypeObject* base, char**fields, int
         PyTuple_SET_ITEM(fnames, i, field);
     }
     result = PyObject_CallFunction((PyObject*)&PyType_Type, "s(O){sOss}",
-                    type, base, "_fields", fnames, "__module__", "_ast");
+                    type, base, "_fields", fnames, "__module__", "_ast27");
     Py_DECREF(fnames);
     return (PyTypeObject*)result;
 }
@@ -736,7 +736,7 @@ static int add_attributes(PyTypeObject* type, char**attrs, int num_fields)
     if (!l)
         return 0;
     for (i = 0; i < num_fields; i++) {
-        s = PyString_FromString(attrs[i]);
+        s = PyUnicode_FromString(attrs[i]);
         if (!s) {
             Py_DECREF(l);
             return 0;
@@ -784,7 +784,7 @@ static PyObject* ast2obj_bool(bool b)
 
 static PyObject* ast2obj_int(long b)
 {
-    return PyInt_FromLong(b);
+    return PyLong_FromLong(b);
 }
 
 /* Conversion Python -> AST */
@@ -802,7 +802,7 @@ static int obj2ast_object(PyObject* obj, PyObject** out, PyArena* arena)
 
 static int obj2ast_identifier(PyObject* obj, PyObject** out, PyArena* arena)
 {
-    if (!PyString_CheckExact(obj) && obj != Py_None) {
+    if (!PyUnicode_CheckExact(obj) && obj != Py_None) {
         PyErr_Format(PyExc_TypeError,
                     "AST identifier must be of type str");
         return 1;
@@ -812,7 +812,7 @@ static int obj2ast_identifier(PyObject* obj, PyObject** out, PyArena* arena)
 
 static int obj2ast_string(PyObject* obj, PyObject** out, PyArena* arena)
 {
-    if (!PyString_CheckExact(obj) && !PyUnicode_CheckExact(obj)) {
+    if (!PyUnicode_CheckExact(obj) && !PyUnicode_CheckExact(obj)) {
         PyErr_SetString(PyExc_TypeError,
                        "AST string must be of type str or unicode");
         return 1;
@@ -823,11 +823,11 @@ static int obj2ast_string(PyObject* obj, PyObject** out, PyArena* arena)
 static int obj2ast_int(PyObject* obj, int* out, PyArena* arena)
 {
     int i;
-    if (!PyInt_Check(obj) && !PyLong_Check(obj)) {
+    if (!PyLong_Check(obj) && !PyLong_Check(obj)) {
         PyObject *s = PyObject_Repr(obj);
         if (s == NULL) return 1;
         PyErr_Format(PyExc_ValueError, "invalid integer value: %.400s",
-                     PyString_AS_STRING(s));
+                     _PyUnicode_AsString(s));
         Py_DECREF(s);
         return 1;
     }
@@ -845,7 +845,7 @@ static int obj2ast_bool(PyObject* obj, bool* out, PyArena* arena)
         PyObject *s = PyObject_Repr(obj);
         if (s == NULL) return 1;
         PyErr_Format(PyExc_ValueError, "invalid boolean value: %.400s",
-                     PyString_AS_STRING(s));
+                     _PyUnicode_AsString(s));
         Py_DECREF(s);
         return 1;
     }
@@ -923,23 +923,29 @@ static int add_ast_fields(void)
 class ASTModuleVisitor(PickleVisitor):
 
     def visitModule(self, mod):
+        self.emit('PyObject *ast27_parse(PyObject *self, PyObject *args);', 0)
+        self.emit('static PyMethodDef ast27_methods[] = {', 0)
+        self.emit('{"parse",  ast27_parse, METH_VARARGS, "Parse string into typed AST."},', 1)
+        self.emit('{NULL, NULL, 0, NULL}', 1)
+        self.emit('};', 0)
+
+        self.emit("static struct PyModuleDef _astmodule27 = {", 0)
+        self.emit('  PyModuleDef_HEAD_INIT, "_ast27", NULL, 0, ast27_methods', 0)
+        self.emit("};", 0)
         self.emit("PyMODINIT_FUNC", 0)
-        self.emit("init_ast(void)", 0)
+        self.emit("PyInit__ast27(void)", 0)
         self.emit("{", 0)
         self.emit("PyObject *m, *d;", 1)
-        self.emit("if (!init_types()) return;", 1)
-        self.emit('m = Py_InitModule3("_ast", NULL, NULL);', 1)
-        self.emit("if (!m) return;", 1)
+        self.emit("if (!init_types()) return NULL;", 1)
+        self.emit('m = PyModule_Create(&_astmodule27);', 1)
+        self.emit("if (!m) return NULL;", 1)
         self.emit("d = PyModule_GetDict(m);", 1)
-        self.emit('if (PyDict_SetItemString(d, "AST", (PyObject*)&AST_type) < 0) return;', 1)
-        self.emit('if (PyModule_AddIntConstant(m, "PyCF_ONLY_AST", PyCF_ONLY_AST) < 0)', 1)
-        self.emit("return;", 2)
-        # Value of version: "$Revision$"
-        self.emit('if (PyModule_AddStringConstant(m, "__version__", "%s") < 0)'
-                % mod.version, 1)
-        self.emit("return;", 2)
+        self.emit('if (PyDict_SetItemString(d, "AST", (PyObject*)&AST_type) < 0) return NULL;', 1)
+        self.emit('if (PyModule_AddIntMacro(m, PyCF_ONLY_AST) < 0)', 1)
+        self.emit("return NULL;", 2)
         for dfn in mod.dfns:
             self.visit(dfn)
+        self.emit("return m;", 1)
         self.emit("}", 0)
 
     def visitProduct(self, prod, name):
@@ -954,7 +960,7 @@ class ASTModuleVisitor(PickleVisitor):
         self.addObj(cons.name)
 
     def addObj(self, name):
-        self.emit('if (PyDict_SetItemString(d, "%s", (PyObject*)%s_type) < 0) return;' % (name, name), 1)
+        self.emit('if (PyDict_SetItemString(d, "%s", (PyObject*)%s_type) < 0) return NULL;' % (name, name), 1)
 
 
 _SPECIALIZED_SEQUENCES = ('stmt', 'expr')

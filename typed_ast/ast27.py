@@ -25,8 +25,8 @@
     :copyright: Copyright 2008 by Armin Ronacher.
     :license: Python License.
 """
-from _ast import *
-from _ast import __version__
+import _ast27
+from _ast27 import *
 
 
 def parse(source, filename='<unknown>', mode='exec'):
@@ -34,7 +34,7 @@ def parse(source, filename='<unknown>', mode='exec'):
     Parse the source into an AST node.
     Equivalent to compile(source, filename, mode, PyCF_ONLY_AST).
     """
-    return compile(source, filename, mode, PyCF_ONLY_AST)
+    return _ast27.parse(source, filename, mode)
 
 
 def literal_eval(node_or_string):

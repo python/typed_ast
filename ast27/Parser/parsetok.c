@@ -16,6 +16,7 @@ int Py_TabcheckFlag;
 /* Forward */
 static node *parsetok(struct tok_state *, grammar *, int, perrdetail *, int *);
 static void initerr(perrdetail *err_ret, const char* filename);
+static int initerr_object(perrdetail *err_ret, PyObject *filename);
 
 /* Parse input coming from a string.  Return error code, print some errors. */
 node *
@@ -63,6 +64,33 @@ PyParser_ParseStringFlagsFilenameEx(const char *s, const char *filename,
             tok->alterror++;
     }
 
+    return parsetok(tok, g, start, err_ret, flags);
+}
+
+node *
+PyParser_ParseStringObject(const char *s, PyObject *filename,
+                           grammar *g, int start,
+                           perrdetail *err_ret, int *flags)
+{
+    struct tok_state *tok;
+    int exec_input = start == file_input;
+
+    initerr_object(err_ret, filename);
+
+    if (*flags & PyPARSE_IGNORE_COOKIE)
+        tok = PyTokenizer_FromUTF8(s, exec_input);
+    else
+        tok = PyTokenizer_FromString(s, exec_input);
+
+    if (tok == NULL) {
+        err_ret->error = PyErr_Occurred() ? E_DECODE : E_NOMEM;
+        return NULL;
+    }
+
+#ifndef PGEN
+    Py_INCREF(err_ret->filename);
+    tok->filename = PyUnicode_AsUTF8(err_ret->filename);
+#endif
     return parsetok(tok, g, start, err_ret, flags);
 }
 
@@ -272,11 +300,30 @@ done:
 static void
 initerr(perrdetail *err_ret, const char *filename)
 {
+  initerr_object(err_ret, PyUnicode_FromString(filename));
+}
+
+static int
+initerr_object(perrdetail *err_ret, PyObject *filename)
+{
     err_ret->error = E_OK;
-    err_ret->filename = filename;
     err_ret->lineno = 0;
     err_ret->offset = 0;
     err_ret->text = NULL;
     err_ret->token = -1;
     err_ret->expected = -1;
+#ifndef PGEN
+    if (filename) {
+        Py_INCREF(filename);
+        err_ret->filename = filename;
+    }
+    else {
+        err_ret->filename = PyUnicode_FromString("<string>");
+        if (err_ret->filename == NULL) {
+            err_ret->error = E_ERROR;
+            return -1;
+        }
+    }
+#endif
+    return 0;
 }
