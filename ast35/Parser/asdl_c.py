@@ -1000,8 +1000,15 @@ static int exists_not_none(PyObject *obj, _Py_Identifier *id)
 class ASTModuleVisitor(PickleVisitor):
 
     def visitModule(self, mod):
+        # add parse method to module
+        self.emit('PyObject *ast35_parse(PyObject *self, PyObject *args);', 0)
+        self.emit('static PyMethodDef ast35_methods[] = {', 0)
+        self.emit('{"_parse",  ast35_parse, METH_VARARGS, "Parse string into typed AST."},', 1)
+        self.emit('{NULL, NULL, 0, NULL}', 1)
+        self.emit('};', 0)
+
         self.emit("static struct PyModuleDef _astmodule35 = {", 0)
-        self.emit('  PyModuleDef_HEAD_INIT, "_ast35"', 0)
+        self.emit('  PyModuleDef_HEAD_INIT, "_ast35", NULL, 0, ast35_methods', 0)
         self.emit("};", 0)
         self.emit("PyMODINIT_FUNC", 0)
         self.emit("PyInit__ast35(void)", 0)

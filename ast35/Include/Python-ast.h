@@ -38,14 +38,17 @@ typedef struct _alias *alias_ty;
 
 typedef struct _withitem *withitem_ty;
 
+typedef struct _type_ignore *type_ignore_ty;
+
 
 enum _mod_kind {Module_kind=1, Interactive_kind=2, Expression_kind=3,
-                 Suite_kind=4};
+                 FunctionType_kind=4, Suite_kind=5};
 struct _mod {
     enum _mod_kind kind;
     union {
         struct {
             asdl_seq *body;
+            asdl_seq *type_ignores;
         } Module;
         
         struct {
@@ -55,6 +58,11 @@ struct _mod {
         struct {
             expr_ty body;
         } Expression;
+        
+        struct {
+            asdl_seq *argtypes;
+            expr_ty returns;
+        } FunctionType;
         
         struct {
             asdl_seq *body;
@@ -79,6 +87,7 @@ struct _stmt {
             asdl_seq *body;
             asdl_seq *decorator_list;
             expr_ty returns;
+            string type_comment;
         } FunctionDef;
         
         struct {
@@ -87,6 +96,7 @@ struct _stmt {
             asdl_seq *body;
             asdl_seq *decorator_list;
             expr_ty returns;
+            string type_comment;
         } AsyncFunctionDef;
         
         struct {
@@ -108,6 +118,7 @@ struct _stmt {
         struct {
             asdl_seq *targets;
             expr_ty value;
+            string type_comment;
         } Assign;
         
         struct {
@@ -121,6 +132,7 @@ struct _stmt {
             expr_ty iter;
             asdl_seq *body;
             asdl_seq *orelse;
+            string type_comment;
         } For;
         
         struct {
@@ -145,6 +157,7 @@ struct _stmt {
         struct {
             asdl_seq *items;
             asdl_seq *body;
+            string type_comment;
         } With;
         
         struct {
@@ -414,78 +427,94 @@ struct _withitem {
     expr_ty optional_vars;
 };
 
+enum _type_ignore_kind {TypeIgnore_kind=1};
+struct _type_ignore {
+    enum _type_ignore_kind kind;
+    union {
+        struct {
+            int lineno;
+        } TypeIgnore;
+        
+    } v;
+};
 
-#define Module(a0, a1) _Ta35_Module(a0, a1)
-mod_ty _Ta35_Module(asdl_seq * body, PyArena *arena);
+
+#define Module(a0, a1, a2) _Ta35_Module(a0, a1, a2)
+mod_ty _Ta35_Module(asdl_seq * body, asdl_seq * type_ignores, PyArena *arena);
 #define Interactive(a0, a1) _Ta35_Interactive(a0, a1)
 mod_ty _Ta35_Interactive(asdl_seq * body, PyArena *arena);
 #define Expression(a0, a1) _Ta35_Expression(a0, a1)
 mod_ty _Ta35_Expression(expr_ty body, PyArena *arena);
+#define FunctionType(a0, a1, a2) _Ta35_FunctionType(a0, a1, a2)
+mod_ty _Ta35_FunctionType(asdl_seq * argtypes, expr_ty returns, PyArena *arena);
 #define Suite(a0, a1) _Ta35_Suite(a0, a1)
 mod_ty _Ta35_Suite(asdl_seq * body, PyArena *arena);
-#define FunctionDef(a0, a1, a2, a3, a4, a5, a6, a7) _Ta35_FunctionDef(a0, a1, a2, a3, a4, a5, a6, a7)
+#define FunctionDef(a0, a1, a2, a3, a4, a5, a6, a7, a8) _Ta35_FunctionDef(a0, a1, a2, a3, a4, a5, a6, a7, a8)
 stmt_ty _Ta35_FunctionDef(identifier name, arguments_ty args, asdl_seq * body,
-                        asdl_seq * decorator_list, expr_ty returns, int lineno,
-                        int col_offset, PyArena *arena);
-#define AsyncFunctionDef(a0, a1, a2, a3, a4, a5, a6, a7) _Ta35_AsyncFunctionDef(a0, a1, a2, a3, a4, a5, a6, a7)
+                          asdl_seq * decorator_list, expr_ty returns, string
+                          type_comment, int lineno, int col_offset, PyArena
+                          *arena);
+#define AsyncFunctionDef(a0, a1, a2, a3, a4, a5, a6, a7, a8) _Ta35_AsyncFunctionDef(a0, a1, a2, a3, a4, a5, a6, a7, a8)
 stmt_ty _Ta35_AsyncFunctionDef(identifier name, arguments_ty args, asdl_seq *
-                             body, asdl_seq * decorator_list, expr_ty returns,
-                             int lineno, int col_offset, PyArena *arena);
+                               body, asdl_seq * decorator_list, expr_ty
+                               returns, string type_comment, int lineno, int
+                               col_offset, PyArena *arena);
 #define ClassDef(a0, a1, a2, a3, a4, a5, a6, a7) _Ta35_ClassDef(a0, a1, a2, a3, a4, a5, a6, a7)
 stmt_ty _Ta35_ClassDef(identifier name, asdl_seq * bases, asdl_seq * keywords,
-                     asdl_seq * body, asdl_seq * decorator_list, int lineno,
-                     int col_offset, PyArena *arena);
+                       asdl_seq * body, asdl_seq * decorator_list, int lineno,
+                       int col_offset, PyArena *arena);
 #define Return(a0, a1, a2, a3) _Ta35_Return(a0, a1, a2, a3)
 stmt_ty _Ta35_Return(expr_ty value, int lineno, int col_offset, PyArena *arena);
 #define Delete(a0, a1, a2, a3) _Ta35_Delete(a0, a1, a2, a3)
 stmt_ty _Ta35_Delete(asdl_seq * targets, int lineno, int col_offset, PyArena
-                   *arena);
-#define Assign(a0, a1, a2, a3, a4) _Ta35_Assign(a0, a1, a2, a3, a4)
-stmt_ty _Ta35_Assign(asdl_seq * targets, expr_ty value, int lineno, int
-                   col_offset, PyArena *arena);
+                     *arena);
+#define Assign(a0, a1, a2, a3, a4, a5) _Ta35_Assign(a0, a1, a2, a3, a4, a5)
+stmt_ty _Ta35_Assign(asdl_seq * targets, expr_ty value, string type_comment,
+                     int lineno, int col_offset, PyArena *arena);
 #define AugAssign(a0, a1, a2, a3, a4, a5) _Ta35_AugAssign(a0, a1, a2, a3, a4, a5)
 stmt_ty _Ta35_AugAssign(expr_ty target, operator_ty op, expr_ty value, int
-                      lineno, int col_offset, PyArena *arena);
-#define For(a0, a1, a2, a3, a4, a5, a6) _Ta35_For(a0, a1, a2, a3, a4, a5, a6)
+                        lineno, int col_offset, PyArena *arena);
+#define For(a0, a1, a2, a3, a4, a5, a6, a7) _Ta35_For(a0, a1, a2, a3, a4, a5, a6, a7)
 stmt_ty _Ta35_For(expr_ty target, expr_ty iter, asdl_seq * body, asdl_seq *
-                orelse, int lineno, int col_offset, PyArena *arena);
+                  orelse, string type_comment, int lineno, int col_offset,
+                  PyArena *arena);
 #define AsyncFor(a0, a1, a2, a3, a4, a5, a6) _Ta35_AsyncFor(a0, a1, a2, a3, a4, a5, a6)
-stmt_ty _Ta35_AsyncFor(expr_ty target, expr_ty iter, asdl_seq * body, asdl_seq *
-                     orelse, int lineno, int col_offset, PyArena *arena);
+stmt_ty _Ta35_AsyncFor(expr_ty target, expr_ty iter, asdl_seq * body, asdl_seq
+                       * orelse, int lineno, int col_offset, PyArena *arena);
 #define While(a0, a1, a2, a3, a4, a5) _Ta35_While(a0, a1, a2, a3, a4, a5)
-stmt_ty _Ta35_While(expr_ty test, asdl_seq * body, asdl_seq * orelse, int lineno,
-                  int col_offset, PyArena *arena);
+stmt_ty _Ta35_While(expr_ty test, asdl_seq * body, asdl_seq * orelse, int
+                    lineno, int col_offset, PyArena *arena);
 #define If(a0, a1, a2, a3, a4, a5) _Ta35_If(a0, a1, a2, a3, a4, a5)
 stmt_ty _Ta35_If(expr_ty test, asdl_seq * body, asdl_seq * orelse, int lineno,
-               int col_offset, PyArena *arena);
-#define With(a0, a1, a2, a3, a4) _Ta35_With(a0, a1, a2, a3, a4)
-stmt_ty _Ta35_With(asdl_seq * items, asdl_seq * body, int lineno, int col_offset,
-                 PyArena *arena);
+                 int col_offset, PyArena *arena);
+#define With(a0, a1, a2, a3, a4, a5) _Ta35_With(a0, a1, a2, a3, a4, a5)
+stmt_ty _Ta35_With(asdl_seq * items, asdl_seq * body, string type_comment, int
+                   lineno, int col_offset, PyArena *arena);
 #define AsyncWith(a0, a1, a2, a3, a4) _Ta35_AsyncWith(a0, a1, a2, a3, a4)
 stmt_ty _Ta35_AsyncWith(asdl_seq * items, asdl_seq * body, int lineno, int
-                      col_offset, PyArena *arena);
+                        col_offset, PyArena *arena);
 #define Raise(a0, a1, a2, a3, a4) _Ta35_Raise(a0, a1, a2, a3, a4)
 stmt_ty _Ta35_Raise(expr_ty exc, expr_ty cause, int lineno, int col_offset,
-                  PyArena *arena);
+                    PyArena *arena);
 #define Try(a0, a1, a2, a3, a4, a5, a6) _Ta35_Try(a0, a1, a2, a3, a4, a5, a6)
 stmt_ty _Ta35_Try(asdl_seq * body, asdl_seq * handlers, asdl_seq * orelse,
-                asdl_seq * finalbody, int lineno, int col_offset, PyArena
-                *arena);
+                  asdl_seq * finalbody, int lineno, int col_offset, PyArena
+                  *arena);
 #define Assert(a0, a1, a2, a3, a4) _Ta35_Assert(a0, a1, a2, a3, a4)
 stmt_ty _Ta35_Assert(expr_ty test, expr_ty msg, int lineno, int col_offset,
-                   PyArena *arena);
+                     PyArena *arena);
 #define Import(a0, a1, a2, a3) _Ta35_Import(a0, a1, a2, a3)
 stmt_ty _Ta35_Import(asdl_seq * names, int lineno, int col_offset, PyArena
-                   *arena);
+                     *arena);
 #define ImportFrom(a0, a1, a2, a3, a4, a5) _Ta35_ImportFrom(a0, a1, a2, a3, a4, a5)
 stmt_ty _Ta35_ImportFrom(identifier module, asdl_seq * names, int level, int
-                       lineno, int col_offset, PyArena *arena);
+                         lineno, int col_offset, PyArena *arena);
 #define Global(a0, a1, a2, a3) _Ta35_Global(a0, a1, a2, a3)
 stmt_ty _Ta35_Global(asdl_seq * names, int lineno, int col_offset, PyArena
-                   *arena);
+                     *arena);
 #define Nonlocal(a0, a1, a2, a3) _Ta35_Nonlocal(a0, a1, a2, a3)
 stmt_ty _Ta35_Nonlocal(asdl_seq * names, int lineno, int col_offset, PyArena
-                     *arena);
+                       *arena);
 #define Expr(a0, a1, a2, a3) _Ta35_Expr(a0, a1, a2, a3)
 stmt_ty _Ta35_Expr(expr_ty value, int lineno, int col_offset, PyArena *arena);
 #define Pass(a0, a1, a2) _Ta35_Pass(a0, a1, a2)
@@ -495,50 +524,50 @@ stmt_ty _Ta35_Break(int lineno, int col_offset, PyArena *arena);
 #define Continue(a0, a1, a2) _Ta35_Continue(a0, a1, a2)
 stmt_ty _Ta35_Continue(int lineno, int col_offset, PyArena *arena);
 #define BoolOp(a0, a1, a2, a3, a4) _Ta35_BoolOp(a0, a1, a2, a3, a4)
-expr_ty _Ta35_BoolOp(boolop_ty op, asdl_seq * values, int lineno, int col_offset,
-                   PyArena *arena);
+expr_ty _Ta35_BoolOp(boolop_ty op, asdl_seq * values, int lineno, int
+                     col_offset, PyArena *arena);
 #define BinOp(a0, a1, a2, a3, a4, a5) _Ta35_BinOp(a0, a1, a2, a3, a4, a5)
-expr_ty _Ta35_BinOp(expr_ty left, operator_ty op, expr_ty right, int lineno, int
-                  col_offset, PyArena *arena);
+expr_ty _Ta35_BinOp(expr_ty left, operator_ty op, expr_ty right, int lineno,
+                    int col_offset, PyArena *arena);
 #define UnaryOp(a0, a1, a2, a3, a4) _Ta35_UnaryOp(a0, a1, a2, a3, a4)
-expr_ty _Ta35_UnaryOp(unaryop_ty op, expr_ty operand, int lineno, int col_offset,
-                    PyArena *arena);
+expr_ty _Ta35_UnaryOp(unaryop_ty op, expr_ty operand, int lineno, int
+                      col_offset, PyArena *arena);
 #define Lambda(a0, a1, a2, a3, a4) _Ta35_Lambda(a0, a1, a2, a3, a4)
-expr_ty _Ta35_Lambda(arguments_ty args, expr_ty body, int lineno, int col_offset,
-                   PyArena *arena);
+expr_ty _Ta35_Lambda(arguments_ty args, expr_ty body, int lineno, int
+                     col_offset, PyArena *arena);
 #define IfExp(a0, a1, a2, a3, a4, a5) _Ta35_IfExp(a0, a1, a2, a3, a4, a5)
 expr_ty _Ta35_IfExp(expr_ty test, expr_ty body, expr_ty orelse, int lineno, int
-                  col_offset, PyArena *arena);
+                    col_offset, PyArena *arena);
 #define Dict(a0, a1, a2, a3, a4) _Ta35_Dict(a0, a1, a2, a3, a4)
 expr_ty _Ta35_Dict(asdl_seq * keys, asdl_seq * values, int lineno, int
-                 col_offset, PyArena *arena);
+                   col_offset, PyArena *arena);
 #define Set(a0, a1, a2, a3) _Ta35_Set(a0, a1, a2, a3)
 expr_ty _Ta35_Set(asdl_seq * elts, int lineno, int col_offset, PyArena *arena);
 #define ListComp(a0, a1, a2, a3, a4) _Ta35_ListComp(a0, a1, a2, a3, a4)
 expr_ty _Ta35_ListComp(expr_ty elt, asdl_seq * generators, int lineno, int
-                     col_offset, PyArena *arena);
+                       col_offset, PyArena *arena);
 #define SetComp(a0, a1, a2, a3, a4) _Ta35_SetComp(a0, a1, a2, a3, a4)
 expr_ty _Ta35_SetComp(expr_ty elt, asdl_seq * generators, int lineno, int
-                    col_offset, PyArena *arena);
+                      col_offset, PyArena *arena);
 #define DictComp(a0, a1, a2, a3, a4, a5) _Ta35_DictComp(a0, a1, a2, a3, a4, a5)
 expr_ty _Ta35_DictComp(expr_ty key, expr_ty value, asdl_seq * generators, int
-                     lineno, int col_offset, PyArena *arena);
+                       lineno, int col_offset, PyArena *arena);
 #define GeneratorExp(a0, a1, a2, a3, a4) _Ta35_GeneratorExp(a0, a1, a2, a3, a4)
 expr_ty _Ta35_GeneratorExp(expr_ty elt, asdl_seq * generators, int lineno, int
-                         col_offset, PyArena *arena);
+                           col_offset, PyArena *arena);
 #define Await(a0, a1, a2, a3) _Ta35_Await(a0, a1, a2, a3)
 expr_ty _Ta35_Await(expr_ty value, int lineno, int col_offset, PyArena *arena);
 #define Yield(a0, a1, a2, a3) _Ta35_Yield(a0, a1, a2, a3)
 expr_ty _Ta35_Yield(expr_ty value, int lineno, int col_offset, PyArena *arena);
 #define YieldFrom(a0, a1, a2, a3) _Ta35_YieldFrom(a0, a1, a2, a3)
 expr_ty _Ta35_YieldFrom(expr_ty value, int lineno, int col_offset, PyArena
-                      *arena);
+                        *arena);
 #define Compare(a0, a1, a2, a3, a4, a5) _Ta35_Compare(a0, a1, a2, a3, a4, a5)
 expr_ty _Ta35_Compare(expr_ty left, asdl_int_seq * ops, asdl_seq * comparators,
-                    int lineno, int col_offset, PyArena *arena);
+                      int lineno, int col_offset, PyArena *arena);
 #define Call(a0, a1, a2, a3, a4, a5) _Ta35_Call(a0, a1, a2, a3, a4, a5)
 expr_ty _Ta35_Call(expr_ty func, asdl_seq * args, asdl_seq * keywords, int
-                 lineno, int col_offset, PyArena *arena);
+                   lineno, int col_offset, PyArena *arena);
 #define Num(a0, a1, a2, a3) _Ta35_Num(a0, a1, a2, a3)
 expr_ty _Ta35_Num(object n, int lineno, int col_offset, PyArena *arena);
 #define Str(a0, a1, a2, a3) _Ta35_Str(a0, a1, a2, a3)
@@ -547,54 +576,57 @@ expr_ty _Ta35_Str(string s, int lineno, int col_offset, PyArena *arena);
 expr_ty _Ta35_Bytes(bytes s, int lineno, int col_offset, PyArena *arena);
 #define NameConstant(a0, a1, a2, a3) _Ta35_NameConstant(a0, a1, a2, a3)
 expr_ty _Ta35_NameConstant(singleton value, int lineno, int col_offset, PyArena
-                         *arena);
+                           *arena);
 #define Ellipsis(a0, a1, a2) _Ta35_Ellipsis(a0, a1, a2)
 expr_ty _Ta35_Ellipsis(int lineno, int col_offset, PyArena *arena);
 #define Attribute(a0, a1, a2, a3, a4, a5) _Ta35_Attribute(a0, a1, a2, a3, a4, a5)
-expr_ty _Ta35_Attribute(expr_ty value, identifier attr, expr_context_ty ctx, int
-                      lineno, int col_offset, PyArena *arena);
+expr_ty _Ta35_Attribute(expr_ty value, identifier attr, expr_context_ty ctx,
+                        int lineno, int col_offset, PyArena *arena);
 #define Subscript(a0, a1, a2, a3, a4, a5) _Ta35_Subscript(a0, a1, a2, a3, a4, a5)
 expr_ty _Ta35_Subscript(expr_ty value, slice_ty slice, expr_context_ty ctx, int
-                      lineno, int col_offset, PyArena *arena);
+                        lineno, int col_offset, PyArena *arena);
 #define Starred(a0, a1, a2, a3, a4) _Ta35_Starred(a0, a1, a2, a3, a4)
 expr_ty _Ta35_Starred(expr_ty value, expr_context_ty ctx, int lineno, int
-                    col_offset, PyArena *arena);
+                      col_offset, PyArena *arena);
 #define Name(a0, a1, a2, a3, a4) _Ta35_Name(a0, a1, a2, a3, a4)
 expr_ty _Ta35_Name(identifier id, expr_context_ty ctx, int lineno, int
-                 col_offset, PyArena *arena);
+                   col_offset, PyArena *arena);
 #define List(a0, a1, a2, a3, a4) _Ta35_List(a0, a1, a2, a3, a4)
 expr_ty _Ta35_List(asdl_seq * elts, expr_context_ty ctx, int lineno, int
-                 col_offset, PyArena *arena);
+                   col_offset, PyArena *arena);
 #define Tuple(a0, a1, a2, a3, a4) _Ta35_Tuple(a0, a1, a2, a3, a4)
 expr_ty _Ta35_Tuple(asdl_seq * elts, expr_context_ty ctx, int lineno, int
-                  col_offset, PyArena *arena);
+                    col_offset, PyArena *arena);
 #define Slice(a0, a1, a2, a3) _Ta35_Slice(a0, a1, a2, a3)
-slice_ty _Ta35_Slice(expr_ty lower, expr_ty upper, expr_ty step, PyArena *arena);
+slice_ty _Ta35_Slice(expr_ty lower, expr_ty upper, expr_ty step, PyArena
+                     *arena);
 #define ExtSlice(a0, a1) _Ta35_ExtSlice(a0, a1)
 slice_ty _Ta35_ExtSlice(asdl_seq * dims, PyArena *arena);
 #define Index(a0, a1) _Ta35_Index(a0, a1)
 slice_ty _Ta35_Index(expr_ty value, PyArena *arena);
 #define comprehension(a0, a1, a2, a3) _Ta35_comprehension(a0, a1, a2, a3)
 comprehension_ty _Ta35_comprehension(expr_ty target, expr_ty iter, asdl_seq *
-                                   ifs, PyArena *arena);
+                                     ifs, PyArena *arena);
 #define ExceptHandler(a0, a1, a2, a3, a4, a5) _Ta35_ExceptHandler(a0, a1, a2, a3, a4, a5)
 excepthandler_ty _Ta35_ExceptHandler(expr_ty type, identifier name, asdl_seq *
-                                   body, int lineno, int col_offset, PyArena
-                                   *arena);
+                                     body, int lineno, int col_offset, PyArena
+                                     *arena);
 #define arguments(a0, a1, a2, a3, a4, a5, a6) _Ta35_arguments(a0, a1, a2, a3, a4, a5, a6)
 arguments_ty _Ta35_arguments(asdl_seq * args, arg_ty vararg, asdl_seq *
-                           kwonlyargs, asdl_seq * kw_defaults, arg_ty kwarg,
-                           asdl_seq * defaults, PyArena *arena);
+                             kwonlyargs, asdl_seq * kw_defaults, arg_ty kwarg,
+                             asdl_seq * defaults, PyArena *arena);
 #define arg(a0, a1, a2, a3, a4) _Ta35_arg(a0, a1, a2, a3, a4)
-arg_ty _Ta35_arg(identifier arg, expr_ty annotation, int lineno, int col_offset,
-               PyArena *arena);
+arg_ty _Ta35_arg(identifier arg, expr_ty annotation, int lineno, int
+                 col_offset, PyArena *arena);
 #define keyword(a0, a1, a2) _Ta35_keyword(a0, a1, a2)
 keyword_ty _Ta35_keyword(identifier arg, expr_ty value, PyArena *arena);
 #define alias(a0, a1, a2) _Ta35_alias(a0, a1, a2)
 alias_ty _Ta35_alias(identifier name, identifier asname, PyArena *arena);
 #define withitem(a0, a1, a2) _Ta35_withitem(a0, a1, a2)
 withitem_ty _Ta35_withitem(expr_ty context_expr, expr_ty optional_vars, PyArena
-                         *arena);
+                           *arena);
+#define TypeIgnore(a0, a1) _Ta35_TypeIgnore(a0, a1)
+type_ignore_ty _Ta35_TypeIgnore(int lineno, PyArena *arena);
 
 PyObject* Ta35AST_mod2obj(mod_ty t);
 mod_ty Ta35AST_obj2mod(PyObject* ast, PyArena* arena, int mode);

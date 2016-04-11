@@ -1,7 +1,7 @@
 from distutils.core import setup, Extension
 
 _ast35 = Extension(
-    'typed_ast._ast35',
+    '_ast35',
     include_dirs = ['ast35/Include'],
     sources = [
         'ast35/Parser/acceler.c',
@@ -14,7 +14,8 @@ _ast35 = Extension(
         'ast35/Parser/tokenizer.c',
         'ast35/Python/ast.c',
         'ast35/Python/graminit.c',
-        'ast35/Python/Python-ast.c'
+        'ast35/Python/Python-ast.c',
+        'ast35/Custom/typed_ast.c'
     ])
 
 

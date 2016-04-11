@@ -31,7 +31,11 @@
                || c == '_'\
                || (c >= 128))
 
+#if PY_MINOR_VERSION >= 4
 extern char *PyOS_Readline(FILE *, FILE *, const char *);
+#else
+extern char *PyOS_Readline(FILE *, FILE *, char *);
+#endif
 /* Return malloc'ed string including trailing \n;
    empty malloc'ed string for EOF;
    NULL if interrupted */
@@ -105,9 +109,15 @@ const char *_Ta35Parser_TokenNames[] = {
     "OP",
     "AWAIT",
     "ASYNC",
+    "TYPE_IGNORE",
+    "TYPE_COMMENT",
     "<ERRORTOKEN>",
     "<N_TOKENS>"
 };
+
+/* Spaces in this constant are treated as "zero or more spaces or tabs" when
+   tokenizing. */
+static const char* type_comment_prefix = "# type: ";
 
 
 /* Create and initialize a new tok_state structure */
@@ -1461,10 +1471,54 @@ tok_get(struct tok_state *tok, char **p_start, char **p_end)
     /* Set start of current token */
     tok->start = tok->cur - 1;
 
-    /* Skip comment */
-    if (c == '#')
+    /* Skip comment, unless it's a type comment */
+    if (c == '#') {
+        const char *prefix, *p, *type_start;
+
         while (c != EOF && c != '\n')
             c = tok_nextc(tok);
+
+        p = tok->start;
+        prefix = type_comment_prefix;
+        while (*prefix && p < tok->cur) {
+            if (*prefix == ' ') {
+                while (*p == ' ' || *p == '\t')
+                    p++;
+            } else if (*prefix == *p) {
+                p++;
+            } else {
+                break;
+            }
+
+            prefix++;
+        }
+
+        /* This is a type comment if we matched all of type_comment_prefix. */
+        if (!*prefix) {
+            int is_type_ignore = 1;
+            tok_backup(tok, c);  /* don't eat the newline or EOF */
+
+            type_start = p;
+
+            is_type_ignore = tok->cur >= p + 6 && memcmp(p, "ignore", 6) == 0;
+            p += 6;
+            while (is_type_ignore && p < tok->cur) {
+              if (*p == '#')
+                  break;
+              is_type_ignore = is_type_ignore && (*p == ' ' || *p == '\t');
+              p++;
+            }
+
+            if (is_type_ignore) {
+                return TYPE_IGNORE;
+            } else {
+                *p_start = (char *) type_start;  /* after type_comment_prefix */
+                *p_end = tok->cur;
+                return TYPE_COMMENT;
+            }
+        }
+    }
+
 
     /* Check for EOF and errors now */
     if (c == EOF) {
@@ -1828,7 +1882,9 @@ Ta35Tokenizer_FindEncodingFilename(int fd, PyObject *filename)
     char *p_start =NULL , *p_end =NULL , *encoding = NULL;
 
 #ifndef PGEN
+#if PY_MINOR_VERSION >= 4
     fd = _Py_dup(fd);
+#endif
 #else
     fd = dup(fd);
 #endif

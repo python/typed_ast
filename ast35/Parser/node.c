@@ -4,6 +4,11 @@
 #include "node.h"
 #include "errcode.h"
 
+#if PY_MINOR_VERSION < 3
+#define _Py_SIZE_ROUND_UP(n, a) (((size_t)(n) + \
+        (size_t)((a) - 1)) & ~(size_t)((a) - 1))
+#endif
+
 node *
 Ta35Node_New(int type)
 {
