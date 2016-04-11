@@ -62,7 +62,7 @@ extern "C" {
 #define ATEQUAL		50
 #define RARROW          51
 #define ELLIPSIS        52
-/* Don't forget to update the table _PyParser_TokenNames in tokenizer.c! */
+/* Don't forget to update the table _Ta35Parser_TokenNames in tokenizer.c! */
 #define OP		53
 #define AWAIT		54
 #define ASYNC		55
@@ -78,10 +78,10 @@ extern "C" {
 #define ISEOF(x)		((x) == ENDMARKER)
 
 
-PyAPI_DATA(const char *) _PyParser_TokenNames[]; /* Token names */
-PyAPI_FUNC(int) PyToken_OneChar(int);
-PyAPI_FUNC(int) PyToken_TwoChars(int, int);
-PyAPI_FUNC(int) PyToken_ThreeChars(int, int, int);
+PyAPI_DATA(const char *) _Ta35Parser_TokenNames[]; /* Token names */
+PyAPI_FUNC(int) Ta35Token_OneChar(int);
+PyAPI_FUNC(int) Ta35Token_TwoChars(int, int);
+PyAPI_FUNC(int) Ta35Token_ThreeChars(int, int, int);
 
 #ifdef __cplusplus
 }

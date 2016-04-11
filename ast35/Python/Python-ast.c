@@ -7252,7 +7252,7 @@ static struct PyModuleDef _astmodule = {
   PyModuleDef_HEAD_INIT, "_ast"
 };
 PyMODINIT_FUNC
-PyInit__ast(void)
+Ta35Init__ast(void)
 {
     PyObject *m, *d;
     if (!init_types()) return NULL;
@@ -7449,7 +7449,7 @@ PyInit__ast(void)
 }
 
 
-PyObject* PyAST_mod2obj(mod_ty t)
+PyObject* Ta35AST_mod2obj(mod_ty t)
 {
     if (!init_types())
         return NULL;
@@ -7457,7 +7457,7 @@ PyObject* PyAST_mod2obj(mod_ty t)
 }
 
 /* mode is 0 for "exec", 1 for "eval" and 2 for "single" input */
-mod_ty PyAST_obj2mod(PyObject* ast, PyArena* arena, int mode)
+mod_ty Ta35AST_obj2mod(PyObject* ast, PyArena* arena, int mode)
 {
     mod_ty res;
     PyObject *req_type[3];
@@ -7487,7 +7487,7 @@ mod_ty PyAST_obj2mod(PyObject* ast, PyArena* arena, int mode)
         return res;
 }
 
-int PyAST_Check(PyObject* obj)
+int Ta35AST_Check(PyObject* obj)
 {
     if (!init_types())
         return -1;
