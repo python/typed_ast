@@ -1,5 +1,5 @@
-#ifndef Py_PARSER_H
-#define Py_PARSER_H
+#ifndef Ta35_PARSER_H
+#define Ta35_PARSER_H
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -39,4 +39,4 @@ void PyGrammar_AddAccelerators(grammar *g);
 #ifdef __cplusplus
 }
 #endif
-#endif /* !Py_PARSER_H */
+#endif /* !Ta35_PARSER_H */

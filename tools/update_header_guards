@@ -1,0 +1,12 @@
+#!/bin/bash -eux
+
+# usage: ./update_header_guards VERSION_NUMBER
+
+PROJ_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )/.."
+
+# only works on OS X due to silly sed incompatibility
+FOLDER="ast$1"
+PATTERN='s/Py\([A-Z_]*_H\( \*\/\)\{0,1\}\)$/'
+PATTERN+="Ta$1"
+PATTERN+='\1/'
+find "$FOLDER" -type f -name '*.h' | xargs -n 1 sed -i '' "$PATTERN"

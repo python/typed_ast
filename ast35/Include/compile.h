@@ -1,5 +1,5 @@
-#ifndef Py_COMPILE_H
-#define Py_COMPILE_H
+#ifndef Ta35_COMPILE_H
+#define Ta35_COMPILE_H
 
 #ifndef Py_LIMITED_API
 #include "code.h"
@@ -70,4 +70,4 @@ PyAPI_FUNC(int) PyCompile_OpcodeStackEffect(int opcode, int oparg);
 #define Py_file_input 257
 #define Py_eval_input 258
 
-#endif /* !Py_COMPILE_H */
+#endif /* !Ta35_COMPILE_H */
