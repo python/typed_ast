@@ -1,16 +1,16 @@
 # Typed AST Module
-This module is a fork of CPython 3.5's AST module with the ability to parse 
-[PEP 484](https://www.python.org/dev/peps/pep-0484/) type comments.  The primary
-goals of this module are correctness and speed.  This project is still a work in
-progress, but is being actively developed.
+This module is a fork of the CPython 2.7 and 3.5 `ast` modules with the ability
+to parse [PEP 484](https://www.python.org/dev/peps/pep-0484/) type comments.
+The primary goals of this module are correctness and speed.  This project is
+still a work in progress, but is being actively developed.
+
+These extension modules are intended to run on Python 3.
 
 ### Current Caveats for Use
 - This project currently works on Python 3.3 - 3.5.  Python 3.2 is likely to be
   supported, depending on difficulty.  There are currently no plans to run on
   Python 2.7.
 - Type comments in invalid locations produce syntax errors.
-- The matching of type comments is space sensitive.  They will only be matched
-  if they begin with exactly `# type: `, including the space after the colon.
 
 ## Development Notes
 ### General Notes
@@ -41,8 +41,17 @@ progress, but is being actively developed.
 - [x] allow type ignores to be followed by a comment
 - [ ] prevent type comments in incorrect locations from causing syntax errors
 - [ ] find a better way to compile pgen
-- [ ] check compatibility with older Python versions
+- [x] parse Python 2.7 ASTs
+- [ ] ast35: ensure compatibility with older Python versions
  - [x] Python 3.4 (*works on 3.4.4*)
  - [x] Python 3.3 (*works on 3.3.6*)
  - [ ] Python 3.2
-- [ ] parse Python 2.7 ASTs
+- [ ] ast27: ensure compatibility with older Python versions
+ - [ ] Python 3.4
+ - [ ] Python 3.3
+ - [ ] Python 3.2
+[ ] refactor out shared code
+	[ ] common functions in typed_ast.c
+	[ ] type_ignore array resizing functions in parsetok.c
+	[ ] type comment parsing code in tokenizer.c
+	[ ] func_type_input parsing in ast.c
