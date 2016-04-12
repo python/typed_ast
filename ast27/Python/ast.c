@@ -2582,16 +2582,17 @@ alias_for_import_name(struct compiling *c, const node *n, int store)
                 int i;
                 size_t len;
                 char *s;
+                PyObject *uni;
 
                 len = 0;
                 for (i = 0; i < NCH(n); i += 2)
                     /* length of string plus one for the dot */
                     len += strlen(STR(CHILD(n, i))) + 1;
                 len--; /* the last name doesn't have a dot */
-                str = PyUnicode_FromStringAndSize(NULL, len);
+                str = PyBytes_FromStringAndSize(NULL, len);
                 if (!str)
                     return NULL;
-                s = _PyUnicode_AsString(str);
+                s = PyBytes_AS_STRING(str);
                 if (!s)
                     return NULL;
                 for (i = 0; i < NCH(n); i += 2) {
@@ -2602,14 +2603,27 @@ alias_for_import_name(struct compiling *c, const node *n, int store)
                 }
                 --s;
                 *s = '\0';
+                uni = PyUnicode_DecodeUTF8(PyBytes_AS_STRING(str),
+                                           PyBytes_GET_SIZE(str),
+                                           NULL);
+                Py_DECREF(str);
+                if (!uni)
+                    return NULL;
+                str = uni;
                 PyUnicode_InternInPlace(&str);
-                PyArena_AddPyObject(c->c_arena, str);
+                if (PyArena_AddPyObject(c->c_arena, str) < 0) {
+                    Py_DECREF(str);
+                    return NULL;
+                }
                 return alias(str, NULL, c->c_arena);
             }
             break;
         case STAR:
             str = PyUnicode_InternFromString("*");
-            PyArena_AddPyObject(c->c_arena, str);
+            if (PyArena_AddPyObject(c->c_arena, str) < 0) {
+                Py_DECREF(str);
+                return NULL;
+            }
             return alias(str, NULL, c->c_arena);
         default:
             PyErr_Format(PyExc_SystemError,
