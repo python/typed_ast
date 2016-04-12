@@ -85,3 +85,6 @@
 #define testlist1 338
 #define encoding_decl 339
 #define yield_expr 340
+#define func_type_input 341
+#define func_type 342
+#define typelist 343

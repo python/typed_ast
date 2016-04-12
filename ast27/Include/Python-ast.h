@@ -33,13 +33,17 @@ typedef struct _keyword *keyword_ty;
 
 typedef struct _alias *alias_ty;
 
+typedef struct _type_ignore *type_ignore_ty;
 
-enum _mod_kind {Module_kind=1, Interactive_kind=2, Expression_kind=3, Suite_kind=4};
+
+enum _mod_kind {Module_kind=1, Interactive_kind=2, Expression_kind=3, FunctionType_kind=4,
+                 Suite_kind=5};
 struct _mod {
         enum _mod_kind kind;
         union {
                 struct {
                         asdl_seq *body;
+                        asdl_seq *type_ignores;
                 } Module;
                 
                 struct {
@@ -49,6 +53,11 @@ struct _mod {
                 struct {
                         expr_ty body;
                 } Expression;
+                
+                struct {
+                        asdl_seq *argtypes;
+                        expr_ty returns;
+                } FunctionType;
                 
                 struct {
                         asdl_seq *body;
@@ -70,6 +79,7 @@ struct _stmt {
                         arguments_ty args;
                         asdl_seq *body;
                         asdl_seq *decorator_list;
+                        string type_comment;
                 } FunctionDef;
                 
                 struct {
@@ -90,6 +100,7 @@ struct _stmt {
                 struct {
                         asdl_seq *targets;
                         expr_ty value;
+                        string type_comment;
                 } Assign;
                 
                 struct {
@@ -109,6 +120,7 @@ struct _stmt {
                         expr_ty iter;
                         asdl_seq *body;
                         asdl_seq *orelse;
+                        string type_comment;
                 } For;
                 
                 struct {
@@ -127,6 +139,7 @@ struct _stmt {
                         expr_ty context_expr;
                         expr_ty optional_vars;
                         asdl_seq *body;
+                        string type_comment;
                 } With;
                 
                 struct {
@@ -366,18 +379,32 @@ struct _alias {
         identifier asname;
 };
 
+enum _type_ignore_kind {TypeIgnore_kind=1};
+struct _type_ignore {
+        enum _type_ignore_kind kind;
+        union {
+                struct {
+                        int lineno;
+                } TypeIgnore;
+                
+        } v;
+};
 
-#define Module(a0, a1) _Ta27_Module(a0, a1)
-mod_ty _Ta27_Module(asdl_seq * body, PyArena *arena);
+
+#define Module(a0, a1, a2) _Ta27_Module(a0, a1, a2)
+mod_ty _Ta27_Module(asdl_seq * body, asdl_seq * type_ignores, PyArena *arena);
 #define Interactive(a0, a1) _Ta27_Interactive(a0, a1)
 mod_ty _Ta27_Interactive(asdl_seq * body, PyArena *arena);
 #define Expression(a0, a1) _Ta27_Expression(a0, a1)
 mod_ty _Ta27_Expression(expr_ty body, PyArena *arena);
+#define FunctionType(a0, a1, a2) _Ta27_FunctionType(a0, a1, a2)
+mod_ty _Ta27_FunctionType(asdl_seq * argtypes, expr_ty returns, PyArena *arena);
 #define Suite(a0, a1) _Ta27_Suite(a0, a1)
 mod_ty _Ta27_Suite(asdl_seq * body, PyArena *arena);
-#define FunctionDef(a0, a1, a2, a3, a4, a5, a6) _Ta27_FunctionDef(a0, a1, a2, a3, a4, a5, a6)
+#define FunctionDef(a0, a1, a2, a3, a4, a5, a6, a7) _Ta27_FunctionDef(a0, a1, a2, a3, a4, a5, a6, a7)
 stmt_ty _Ta27_FunctionDef(identifier name, arguments_ty args, asdl_seq * body, asdl_seq *
-                          decorator_list, int lineno, int col_offset, PyArena *arena);
+                          decorator_list, string type_comment, int lineno, int col_offset, PyArena
+                          *arena);
 #define ClassDef(a0, a1, a2, a3, a4, a5, a6) _Ta27_ClassDef(a0, a1, a2, a3, a4, a5, a6)
 stmt_ty _Ta27_ClassDef(identifier name, asdl_seq * bases, asdl_seq * body, asdl_seq *
                        decorator_list, int lineno, int col_offset, PyArena *arena);
@@ -385,26 +412,27 @@ stmt_ty _Ta27_ClassDef(identifier name, asdl_seq * bases, asdl_seq * body, asdl_
 stmt_ty _Ta27_Return(expr_ty value, int lineno, int col_offset, PyArena *arena);
 #define Delete(a0, a1, a2, a3) _Ta27_Delete(a0, a1, a2, a3)
 stmt_ty _Ta27_Delete(asdl_seq * targets, int lineno, int col_offset, PyArena *arena);
-#define Assign(a0, a1, a2, a3, a4) _Ta27_Assign(a0, a1, a2, a3, a4)
-stmt_ty _Ta27_Assign(asdl_seq * targets, expr_ty value, int lineno, int col_offset, PyArena *arena);
+#define Assign(a0, a1, a2, a3, a4, a5) _Ta27_Assign(a0, a1, a2, a3, a4, a5)
+stmt_ty _Ta27_Assign(asdl_seq * targets, expr_ty value, string type_comment, int lineno, int
+                     col_offset, PyArena *arena);
 #define AugAssign(a0, a1, a2, a3, a4, a5) _Ta27_AugAssign(a0, a1, a2, a3, a4, a5)
 stmt_ty _Ta27_AugAssign(expr_ty target, operator_ty op, expr_ty value, int lineno, int col_offset,
                         PyArena *arena);
 #define Print(a0, a1, a2, a3, a4, a5) _Ta27_Print(a0, a1, a2, a3, a4, a5)
 stmt_ty _Ta27_Print(expr_ty dest, asdl_seq * values, bool nl, int lineno, int col_offset, PyArena
                     *arena);
-#define For(a0, a1, a2, a3, a4, a5, a6) _Ta27_For(a0, a1, a2, a3, a4, a5, a6)
-stmt_ty _Ta27_For(expr_ty target, expr_ty iter, asdl_seq * body, asdl_seq * orelse, int lineno, int
-                  col_offset, PyArena *arena);
+#define For(a0, a1, a2, a3, a4, a5, a6, a7) _Ta27_For(a0, a1, a2, a3, a4, a5, a6, a7)
+stmt_ty _Ta27_For(expr_ty target, expr_ty iter, asdl_seq * body, asdl_seq * orelse, string
+                  type_comment, int lineno, int col_offset, PyArena *arena);
 #define While(a0, a1, a2, a3, a4, a5) _Ta27_While(a0, a1, a2, a3, a4, a5)
 stmt_ty _Ta27_While(expr_ty test, asdl_seq * body, asdl_seq * orelse, int lineno, int col_offset,
                     PyArena *arena);
 #define If(a0, a1, a2, a3, a4, a5) _Ta27_If(a0, a1, a2, a3, a4, a5)
 stmt_ty _Ta27_If(expr_ty test, asdl_seq * body, asdl_seq * orelse, int lineno, int col_offset,
                  PyArena *arena);
-#define With(a0, a1, a2, a3, a4, a5) _Ta27_With(a0, a1, a2, a3, a4, a5)
-stmt_ty _Ta27_With(expr_ty context_expr, expr_ty optional_vars, asdl_seq * body, int lineno, int
-                   col_offset, PyArena *arena);
+#define With(a0, a1, a2, a3, a4, a5, a6) _Ta27_With(a0, a1, a2, a3, a4, a5, a6)
+stmt_ty _Ta27_With(expr_ty context_expr, expr_ty optional_vars, asdl_seq * body, string
+                   type_comment, int lineno, int col_offset, PyArena *arena);
 #define Raise(a0, a1, a2, a3, a4, a5) _Ta27_Raise(a0, a1, a2, a3, a4, a5)
 stmt_ty _Ta27_Raise(expr_ty type, expr_ty inst, expr_ty tback, int lineno, int col_offset, PyArena
                     *arena);
@@ -510,6 +538,8 @@ arguments_ty _Ta27_arguments(asdl_seq * args, identifier vararg, identifier kwar
 keyword_ty _Ta27_keyword(identifier arg, expr_ty value, PyArena *arena);
 #define alias(a0, a1, a2) _Ta27_alias(a0, a1, a2)
 alias_ty _Ta27_alias(identifier name, identifier asname, PyArena *arena);
+#define TypeIgnore(a0, a1) _Ta27_TypeIgnore(a0, a1)
+type_ignore_ty _Ta27_TypeIgnore(int lineno, PyArena *arena);
 
 PyObject* Ta27AST_mod2obj(mod_ty t);
 mod_ty Ta27AST_obj2mod(PyObject* ast, PyArena* arena, int mode);

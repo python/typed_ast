@@ -62,8 +62,11 @@ extern "C" {
 #define AT              50	
 /* Don't forget to update the table _Ta27Parser_TokenNames in tokenizer.c! */
 #define OP		51
-#define ERRORTOKEN	52
-#define N_TOKENS	53
+#define RARROW          52
+#define TYPE_IGNORE	53
+#define TYPE_COMMENT	54
+#define ERRORTOKEN	55
+#define N_TOKENS	56
 
 /* Special definitions for cooperation with parser */
 

@@ -88,9 +88,16 @@ char *_Ta27Parser_TokenNames[] = {
     "AT",
     /* This table must match the #defines in token.h! */
     "OP",
+    "RARROW",
+    "TYPE_IGNORE",
+    "TYPE_COMMENT",
     "<ERRORTOKEN>",
     "<N_TOKENS>"
 };
+
+/* Spaces in this constant are treated as "zero or more spaces or tabs" when
+   tokenizing. */
+static const char* type_comment_prefix = "# type: ";
 
 /* Create and initialize a new tok_state structure */
 
@@ -1114,6 +1121,7 @@ Ta27Token_TwoChars(int c1, int c2)
     case '-':
         switch (c2) {
         case '=':               return MINEQUAL;
+        case '>':               return RARROW;
         }
         break;
     case '*':
@@ -1329,7 +1337,7 @@ tok_get(register struct tok_state *tok, char **p_start, char **p_end)
     /* Set start of current token */
     tok->start = tok->cur - 1;
 
-    /* Skip comment, while looking for tab-setting magic */
+    /* Skip comment, while looking for tab-setting magic and type comments */
     if (c == '#') {
         static char *tabforms[] = {
             "tab-width:",                       /* Emacs */
@@ -1363,6 +1371,49 @@ tok_get(register struct tok_state *tok, char **p_start, char **p_end)
         }
         while (c != EOF && c != '\n')
             c = tok_nextc(tok);
+
+        /* check for type comment */
+        const char *prefix, *p, *type_start;
+        p = tok->start;
+        prefix = type_comment_prefix;
+        while (*prefix && p < tok->cur) {
+            if (*prefix == ' ') {
+                while (*p == ' ' || *p == '\t')
+                    p++;
+            } else if (*prefix == *p) {
+                p++;
+            } else {
+                break;
+            }
+
+            prefix++;
+        }
+
+        /* This is a type comment if we matched all of type_comment_prefix. */
+        if (!*prefix) {
+            int is_type_ignore = 1;
+            tok_backup(tok, c);  /* don't eat the newline or EOF */
+
+            type_start = p;
+
+            is_type_ignore = tok->cur >= p + 6 && memcmp(p, "ignore", 6) == 0;
+            p += 6;
+            while (is_type_ignore && p < tok->cur) {
+              if (*p == '#')
+                  break;
+              is_type_ignore = is_type_ignore && (*p == ' ' || *p == '\t');
+              p++;
+            }
+
+            if (is_type_ignore) {
+                return TYPE_IGNORE;
+            } else {
+                *p_start = (char *) type_start;  /* after type_comment_prefix */
+                *p_end = tok->cur;
+                return TYPE_COMMENT;
+            }
+        }
+
     }
 
     /* Check for EOF and errors now */
