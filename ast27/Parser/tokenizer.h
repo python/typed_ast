@@ -1,5 +1,5 @@
-#ifndef Py_TOKENIZER_H
-#define Py_TOKENIZER_H
+#ifndef Ta27_TOKENIZER_H
+#define Ta27_TOKENIZER_H
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -68,4 +68,4 @@ extern char * PyTokenizer_RestoreEncoding(struct tok_state* tok,
 #ifdef __cplusplus
 }
 #endif
-#endif /* !Py_TOKENIZER_H */
+#endif /* !Ta27_TOKENIZER_H */

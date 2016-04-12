@@ -1,8 +1,8 @@
 
 /* Parse tree node interface */
 
-#ifndef Py_NODE_H
-#define Py_NODE_H
+#ifndef Ta27_NODE_H
+#define Ta27_NODE_H
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -38,4 +38,4 @@ PyAPI_FUNC(void) PyNode_ListTree(node *);
 #ifdef __cplusplus
 }
 #endif
-#endif /* !Py_NODE_H */
+#endif /* !Ta27_NODE_H */

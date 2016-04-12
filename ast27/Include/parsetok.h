@@ -1,8 +1,8 @@
 
 /* Parser-tokenizer link interface */
 
-#ifndef Py_PARSETOK_H
-#define Py_PARSETOK_H
+#ifndef Ta27_PARSETOK_H
+#define Ta27_PARSETOK_H
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -70,4 +70,4 @@ PyAPI_FUNC(void) PyParser_SetError(perrdetail *);
 #ifdef __cplusplus
 }
 #endif
-#endif /* !Py_PARSETOK_H */
+#endif /* !Ta27_PARSETOK_H */

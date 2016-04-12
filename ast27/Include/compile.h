@@ -1,6 +1,6 @@
 
-#ifndef Py_COMPILE_H
-#define Py_COMPILE_H
+#ifndef Ta27_COMPILE_H
+#define Ta27_COMPILE_H
 
 #include "code.h"
 
@@ -15,4 +15,4 @@ PyAPI_FUNC(PyFutureFeatures *) PyFuture_FromAST(struct _mod *, const char *);
 #ifdef __cplusplus
 }
 #endif
-#endif /* !Py_COMPILE_H */
+#endif /* !Ta27_COMPILE_H */

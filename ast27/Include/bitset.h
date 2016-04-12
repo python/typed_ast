@@ -1,6 +1,6 @@
 
-#ifndef Py_BITSET_H
-#define Py_BITSET_H
+#ifndef Ta27_BITSET_H
+#define Ta27_BITSET_H
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -29,4 +29,4 @@ void mergebitset(bitset bs1, bitset bs2, int nbits);
 #ifdef __cplusplus
 }
 #endif
-#endif /* !Py_BITSET_H */
+#endif /* !Ta27_BITSET_H */
