@@ -69,12 +69,12 @@ s_pop(register stack *s)
 /* PARSER CREATION */
 
 parser_state *
-PyParser_New(grammar *g, int start)
+Ta27Parser_New(grammar *g, int start)
 {
     parser_state *ps;
 
     if (!g->g_accel)
-        PyGrammar_AddAccelerators(g);
+        Ta27Grammar_AddAccelerators(g);
     ps = (parser_state *)PyMem_MALLOC(sizeof(parser_state));
     if (ps == NULL)
         return NULL;
@@ -82,22 +82,22 @@ PyParser_New(grammar *g, int start)
 #ifdef PY_PARSER_REQUIRES_FUTURE_KEYWORD
     ps->p_flags = 0;
 #endif
-    ps->p_tree = PyNode_New(start);
+    ps->p_tree = Ta27Node_New(start);
     if (ps->p_tree == NULL) {
         PyMem_FREE(ps);
         return NULL;
     }
     s_reset(&ps->p_stack);
-    (void) s_push(&ps->p_stack, PyGrammar_FindDFA(g, start), ps->p_tree);
+    (void) s_push(&ps->p_stack, Ta27Grammar_FindDFA(g, start), ps->p_tree);
     return ps;
 }
 
 void
-PyParser_Delete(parser_state *ps)
+Ta27Parser_Delete(parser_state *ps)
 {
     /* NB If you want to save the parse tree,
        you must set p_tree to NULL before calling delparser! */
-    PyNode_Free(ps->p_tree);
+    Ta27Node_Free(ps->p_tree);
     PyMem_FREE(ps);
 }
 
@@ -109,7 +109,7 @@ shift(register stack *s, int type, char *str, int newstate, int lineno, int col_
 {
     int err;
     assert(!s_empty(s));
-    err = PyNode_AddChild(s->s_top->s_parent, type, str, lineno, col_offset);
+    err = Ta27Node_AddChild(s->s_top->s_parent, type, str, lineno, col_offset);
     if (err)
         return err;
     s->s_top->s_state = newstate;
@@ -123,7 +123,7 @@ push(register stack *s, int type, dfa *d, int newstate, int lineno, int col_offs
     register node *n;
     n = s->s_top->s_parent;
     assert(!s_empty(s));
-    err = PyNode_AddChild(n, type, (char *)NULL, lineno, col_offset);
+    err = Ta27Node_AddChild(n, type, (char *)NULL, lineno, col_offset);
     if (err)
         return err;
     s->s_top->s_state = newstate;
@@ -217,13 +217,13 @@ future_hack(parser_state *ps)
 #endif /* future keyword */
 
 int
-PyParser_AddToken(register parser_state *ps, register int type, char *str,
+Ta27Parser_AddToken(register parser_state *ps, register int type, char *str,
                   int lineno, int col_offset, int *expected_ret)
 {
     register int ilabel;
     int err;
 
-    D(printf("Token %s/'%s' ... ", _PyParser_TokenNames[type], str));
+    D(printf("Token %s/'%s' ... ", _Ta27Parser_TokenNames[type], str));
 
     /* Find out which label this token is */
     ilabel = classify(ps, type, str);
@@ -247,7 +247,7 @@ PyParser_AddToken(register parser_state *ps, register int type, char *str,
                     /* Push non-terminal */
                     int nt = (x >> 8) + NT_OFFSET;
                     int arrow = x & ((1<<7)-1);
-                    dfa *d1 = PyGrammar_FindDFA(
+                    dfa *d1 = Ta27Grammar_FindDFA(
                         ps->p_grammar, nt);
                     if ((err = push(&ps->p_stack, nt, d1,
                         arrow, lineno, col_offset)) > 0) {
@@ -337,7 +337,7 @@ dumptree(grammar *g, node *n)
         label l;
         l.lb_type = TYPE(n);
         l.lb_str = STR(n);
-        printf("%s", PyGrammar_LabelRepr(&l));
+        printf("%s", Ta27Grammar_LabelRepr(&l));
         if (ISNONTERMINAL(TYPE(n))) {
             printf("(");
             for (i = 0; i < NCH(n); i++) {
@@ -362,7 +362,7 @@ showtree(grammar *g, node *n)
             showtree(g, CHILD(n, i));
     }
     else if (ISTERMINAL(TYPE(n))) {
-        printf("%s", _PyParser_TokenNames[TYPE(n)]);
+        printf("%s", _Ta27Parser_TokenNames[TYPE(n)]);
         if (TYPE(n) == NUMBER || TYPE(n) == NAME)
             printf("(%s)", STR(n));
         printf(" ");

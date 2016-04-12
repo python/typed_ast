@@ -60,7 +60,7 @@ extern "C" {
 #define DOUBLESLASH	48
 #define DOUBLESLASHEQUAL 49
 #define AT              50	
-/* Don't forget to update the table _PyParser_TokenNames in tokenizer.c! */
+/* Don't forget to update the table _Ta27Parser_TokenNames in tokenizer.c! */
 #define OP		51
 #define ERRORTOKEN	52
 #define N_TOKENS	53
@@ -74,10 +74,10 @@ extern "C" {
 #define ISEOF(x)		((x) == ENDMARKER)
 
 
-PyAPI_DATA(char *) _PyParser_TokenNames[]; /* Token names */
-PyAPI_FUNC(int) PyToken_OneChar(int);
-PyAPI_FUNC(int) PyToken_TwoChars(int, int);
-PyAPI_FUNC(int) PyToken_ThreeChars(int, int, int);
+PyAPI_DATA(char *) _Ta27Parser_TokenNames[]; /* Token names */
+PyAPI_FUNC(int) Ta27Token_OneChar(int);
+PyAPI_FUNC(int) Ta27Token_TwoChars(int, int);
+PyAPI_FUNC(int) Ta27Token_ThreeChars(int, int, int);
 
 #ifdef __cplusplus
 }

@@ -6649,14 +6649,14 @@ PyInit__ast27(void)
 }
 
 
-PyObject* PyAST_mod2obj(mod_ty t)
+PyObject* Ta27AST_mod2obj(mod_ty t)
 {
     init_types();
     return ast2obj_mod(t);
 }
 
 /* mode is 0 for "exec", 1 for "eval" and 2 for "single" input */
-mod_ty PyAST_obj2mod(PyObject* ast, PyArena* arena, int mode)
+mod_ty Ta27AST_obj2mod(PyObject* ast, PyArena* arena, int mode)
 {
     mod_ty res;
     PyObject *req_type[3];
@@ -6689,7 +6689,7 @@ mod_ty PyAST_obj2mod(PyObject* ast, PyArena* arena, int mode)
         return res;
 }
 
-int PyAST_Check(PyObject* obj)
+int Ta27AST_Check(PyObject* obj)
 {
     init_types();
     return PyObject_IsInstance(obj, (PyObject*)&AST_type);

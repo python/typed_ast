@@ -16,11 +16,11 @@ typedef struct _node {
     struct _node	*n_child;
 } node;
 
-PyAPI_FUNC(node *) PyNode_New(int type);
-PyAPI_FUNC(int) PyNode_AddChild(node *n, int type,
+PyAPI_FUNC(node *) Ta27Node_New(int type);
+PyAPI_FUNC(int) Ta27Node_AddChild(node *n, int type,
                                       char *str, int lineno, int col_offset);
-PyAPI_FUNC(void) PyNode_Free(node *n);
-PyAPI_FUNC(Py_ssize_t) _PyNode_SizeOf(node *n);
+PyAPI_FUNC(void) Ta27Node_Free(node *n);
+PyAPI_FUNC(Py_ssize_t) _Ta27Node_SizeOf(node *n);
 
 /* Node access functions */
 #define NCH(n)		((n)->n_nchildren)

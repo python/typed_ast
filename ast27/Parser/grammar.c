@@ -108,7 +108,7 @@ addlabel(labellist *ll, int type, char *str)
     lb->lb_str = strdup(str);
     if (Py_DebugFlag)
         printf("Label @ %8p, %d: %s\n", ll, ll->ll_nlabels,
-               PyGrammar_LabelRepr(lb));
+               Ta27Grammar_LabelRepr(lb));
     return lb - ll->ll_label;
 }
 
@@ -151,7 +151,7 @@ translabel(grammar *g, label *lb)
     int i;
 
     if (Py_DebugFlag)
-        printf("Translating label %s ...\n", PyGrammar_LabelRepr(lb));
+        printf("Translating label %s ...\n", Ta27Grammar_LabelRepr(lb));
 
     if (lb->lb_type == NAME) {
         for (i = 0; i < g->g_ndfas; i++) {
@@ -168,7 +168,7 @@ translabel(grammar *g, label *lb)
             }
         }
         for (i = 0; i < (int)N_TOKENS; i++) {
-            if (strcmp(lb->lb_str, _PyParser_TokenNames[i]) == 0) {
+            if (strcmp(lb->lb_str, _Ta27Parser_TokenNames[i]) == 0) {
                 if (Py_DebugFlag)
                     printf("Label %s is terminal %d.\n",
                         lb->lb_str, i);
@@ -209,7 +209,7 @@ translabel(grammar *g, label *lb)
             lb->lb_str = dest;
         }
         else if (lb->lb_str[2] == lb->lb_str[0]) {
-            int type = (int) PyToken_OneChar(lb->lb_str[1]);
+            int type = (int) Ta27Token_OneChar(lb->lb_str[1]);
             if (type != OP) {
                 lb->lb_type = type;
                 free(lb->lb_str);
@@ -220,7 +220,7 @@ translabel(grammar *g, label *lb)
                     lb->lb_str);
         }
         else if (lb->lb_str[2] && lb->lb_str[3] == lb->lb_str[0]) {
-            int type = (int) PyToken_TwoChars(lb->lb_str[1],
+            int type = (int) Ta27Token_TwoChars(lb->lb_str[1],
                                        lb->lb_str[2]);
             if (type != OP) {
                 lb->lb_type = type;
@@ -232,7 +232,7 @@ translabel(grammar *g, label *lb)
                     lb->lb_str);
         }
         else if (lb->lb_str[2] && lb->lb_str[3] && lb->lb_str[4] == lb->lb_str[0]) {
-            int type = (int) PyToken_ThreeChars(lb->lb_str[1],
+            int type = (int) Ta27Token_ThreeChars(lb->lb_str[1],
                                                 lb->lb_str[2],
                                                 lb->lb_str[3]);
             if (type != OP) {
@@ -250,5 +250,5 @@ translabel(grammar *g, label *lb)
     }
     else
         printf("Can't translate label '%s'\n",
-               PyGrammar_LabelRepr(lb));
+               Ta27Grammar_LabelRepr(lb));
 }

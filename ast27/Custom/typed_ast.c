@@ -8,7 +8,7 @@
 #include "parsetok.h"
 #include "errcode.h"
 
-extern grammar _PyParser_Grammar; /* from graminit.c */
+extern grammar _Ta27Parser_Grammar; /* from graminit.c */
 
 // from Python/bltinmodule.c
 static const char *
@@ -210,8 +210,8 @@ string_object_to_c_ast(const char *s, PyObject *filename, int start,
     perrdetail err;
     int iflags = PARSER_FLAGS(flags);
 
-    node *n = PyParser_ParseStringObject(s, filename,
-                                         &_PyParser_Grammar, start, &err,
+    node *n = Ta27Parser_ParseStringObject(s, filename,
+                                         &_Ta27Parser_Grammar, start, &err,
                                          &iflags);
     if (flags == NULL) {
         localflags.cf_flags = 0;
@@ -219,8 +219,8 @@ string_object_to_c_ast(const char *s, PyObject *filename, int start,
     }
     if (n) {
         flags->cf_flags |= iflags & PyCF_MASK;
-        mod = PyAST_FromNode(n, flags, PyUnicode_AsUTF8(filename), arena);
-        PyNode_Free(n);
+        mod = Ta27AST_FromNode(n, flags, PyUnicode_AsUTF8(filename), arena);
+        Ta27Node_Free(n);
     }
     else {
         err_input(&err);
@@ -246,7 +246,7 @@ string_object_to_py_ast(const char *str, PyObject *filename, int start,
         return NULL;
     }
 
-    PyObject *result = PyAST_mod2obj(mod);
+    PyObject *result = Ta27AST_mod2obj(mod);
     PyArena_Free(arena);
     return result;
 }

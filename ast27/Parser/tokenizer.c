@@ -34,7 +34,7 @@ static void tok_backup(struct tok_state *tok, int c);
 
 /* Token names */
 
-char *_PyParser_TokenNames[] = {
+char *_Ta27Parser_TokenNames[] = {
     "ENDMARKER",
     "NAME",
     "NUMBER",
@@ -167,7 +167,7 @@ static char *
 error_ret(struct tok_state *tok) /* XXX */
 {
     tok->decoding_erred = 1;
-    if (tok->fp != NULL && tok->buf != NULL) /* see PyTokenizer_Free */
+    if (tok->fp != NULL && tok->buf != NULL) /* see Ta27Tokenizer_Free */
         PyMem_FREE(tok->buf);
     tok->buf = tok->cur = tok->end = tok->inp = tok->start = NULL;
     tok->done = E_DECODE;
@@ -756,14 +756,14 @@ decode_str(const char *input, int single, struct tok_state *tok)
 /* Set up tokenizer for string */
 
 struct tok_state *
-PyTokenizer_FromString(const char *str, int exec_input)
+Ta27Tokenizer_FromString(const char *str, int exec_input)
 {
     struct tok_state *tok = tok_new();
     if (tok == NULL)
         return NULL;
     str = (char *)decode_str(str, exec_input, tok);
     if (str == NULL) {
-        PyTokenizer_Free(tok);
+        Ta27Tokenizer_Free(tok);
         return NULL;
     }
 
@@ -774,7 +774,7 @@ PyTokenizer_FromString(const char *str, int exec_input)
 
 /* adapted from Python 3.5.1 */
 struct tok_state *
-PyTokenizer_FromUTF8(const char *str, int exec_input)
+Ta27Tokenizer_FromUTF8(const char *str, int exec_input)
 {
     struct tok_state *tok = tok_new();
     if (tok == NULL)
@@ -783,7 +783,7 @@ PyTokenizer_FromUTF8(const char *str, int exec_input)
     tok->input = str = translate_newlines(str, exec_input, tok);
 #endif
     if (str == NULL) {
-        PyTokenizer_Free(tok);
+        Ta27Tokenizer_Free(tok);
         return NULL;
     }
     tok->decoding_state = 1;
@@ -800,13 +800,13 @@ PyTokenizer_FromUTF8(const char *str, int exec_input)
 /* Set up tokenizer for file */
 
 struct tok_state *
-PyTokenizer_FromFile(FILE *fp, char *ps1, char *ps2)
+Ta27Tokenizer_FromFile(FILE *fp, char *ps1, char *ps2)
 {
     struct tok_state *tok = tok_new();
     if (tok == NULL)
         return NULL;
     if ((tok->buf = (char *)PyMem_MALLOC(BUFSIZ)) == NULL) {
-        PyTokenizer_Free(tok);
+        Ta27Tokenizer_Free(tok);
         return NULL;
     }
     tok->cur = tok->inp = tok->buf;
@@ -821,7 +821,7 @@ PyTokenizer_FromFile(FILE *fp, char *ps1, char *ps2)
 /* Free a tok_state structure */
 
 void
-PyTokenizer_Free(struct tok_state *tok)
+Ta27Tokenizer_Free(struct tok_state *tok)
 {
     if (tok->encoding != NULL)
         PyMem_FREE(tok->encoding);
@@ -1047,7 +1047,7 @@ tok_backup(register struct tok_state *tok, register int c)
 /* Return the token corresponding to a single character */
 
 int
-PyToken_OneChar(int c)
+Ta27Token_OneChar(int c)
 {
     switch (c) {
     case '(':           return LPAR;
@@ -1080,7 +1080,7 @@ PyToken_OneChar(int c)
 
 
 int
-PyToken_TwoChars(int c1, int c2)
+Ta27Token_TwoChars(int c1, int c2)
 {
     switch (c1) {
     case '=':
@@ -1153,7 +1153,7 @@ PyToken_TwoChars(int c1, int c2)
 }
 
 int
-PyToken_ThreeChars(int c1, int c2, int c3)
+Ta27Token_ThreeChars(int c1, int c2, int c3)
 {
     switch (c1) {
     case '<':
@@ -1635,7 +1635,7 @@ tok_get(register struct tok_state *tok, char **p_start, char **p_end)
     /* Check for two-character token */
     {
         int c2 = tok_nextc(tok);
-        int token = PyToken_TwoChars(c, c2);
+        int token = Ta27Token_TwoChars(c, c2);
 #ifndef PGEN
         if (token == NOTEQUAL && c == '<') {
             if (PyErr_WarnExplicit(PyExc_DeprecationWarning,
@@ -1648,7 +1648,7 @@ tok_get(register struct tok_state *tok, char **p_start, char **p_end)
 #endif
         if (token != OP) {
             int c3 = tok_nextc(tok);
-            int token3 = PyToken_ThreeChars(c, c2, c3);
+            int token3 = Ta27Token_ThreeChars(c, c2, c3);
             if (token3 != OP) {
                 token = token3;
             } else {
@@ -1678,11 +1678,11 @@ tok_get(register struct tok_state *tok, char **p_start, char **p_end)
     /* Punctuation character */
     *p_start = tok->start;
     *p_end = tok->cur;
-    return PyToken_OneChar(c);
+    return Ta27Token_OneChar(c);
 }
 
 int
-PyTokenizer_Get(struct tok_state *tok, char **p_start, char **p_end)
+Ta27Tokenizer_Get(struct tok_state *tok, char **p_start, char **p_end)
 {
     int result = tok_get(tok, p_start, p_end);
     if (tok->decoding_erred) {
@@ -1698,7 +1698,7 @@ PyTokenizer_Get(struct tok_state *tok, char **p_start, char **p_end)
 
 #if defined(PGEN) || !defined(Py_USING_UNICODE)
 char*
-PyTokenizer_RestoreEncoding(struct tok_state* tok, int len, int* offset)
+Ta27Tokenizer_RestoreEncoding(struct tok_state* tok, int len, int* offset)
 {
     return NULL;
 }
@@ -1718,7 +1718,7 @@ dec_utf8(const char *enc, const char *text, size_t len) {
     return ret;
 }
 char *
-PyTokenizer_RestoreEncoding(struct tok_state* tok, int len, int *offset)
+Ta27Tokenizer_RestoreEncoding(struct tok_state* tok, int len, int *offset)
 {
     char *text = NULL;
     if (tok->encoding) {
@@ -1759,7 +1759,7 @@ PyTokenizer_RestoreEncoding(struct tok_state* tok, int len, int *offset)
 void
 tok_dump(int type, char *start, char *end)
 {
-    printf("%s", _PyParser_TokenNames[type]);
+    printf("%s", _Ta27Parser_TokenNames[type]);
     if (type == NAME || type == NUMBER || type == STRING || type == OP)
         printf("(%.*s)", (int)(end - start), start);
 }

@@ -1,6 +1,6 @@
 /*
  * This file includes functions to transform a concrete syntax tree (CST) to
- * an abstract syntax tree (AST).  The main function is PyAST_FromNode().
+ * an abstract syntax tree (AST).  The main function is Ta27AST_FromNode().
  *
  */
 #include "Python.h"
@@ -217,7 +217,7 @@ num_stmts(const node *n)
 */
 
 mod_ty
-PyAST_FromNode(const node *n, PyCompilerFlags *flags, const char *filename,
+Ta27AST_FromNode(const node *n, PyCompilerFlags *flags, const char *filename,
                PyArena *arena)
 {
     int i, j, k, num;
@@ -321,7 +321,7 @@ PyAST_FromNode(const node *n, PyCompilerFlags *flags, const char *filename,
             }
         default:
             PyErr_Format(PyExc_SystemError,
-                         "invalid node %d for PyAST_FromNode", TYPE(n));
+                         "invalid node %d for Ta27AST_FromNode", TYPE(n));
             goto error;
     }
  error:
