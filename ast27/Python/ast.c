@@ -42,7 +42,7 @@ static PyObject *parsestr(struct compiling *, const node *n, const char *);
 static PyObject *parsestrplus(struct compiling *, const node *n);
 
 static int Py_Py3kWarningFlag = 1;
-static int Py_UnicodeFlag = 1;
+static int Py_UnicodeFlag = 0;
 
 #ifndef LINENO
 #define LINENO(n)       ((n)->n_lineno)
@@ -3661,11 +3661,12 @@ parsestr(struct compiling *c, const node *n, const char *s)
                         return v;
 #endif
                 } else {
-                        return PyUnicode_FromStringAndSize(s, len);
+                  return PyBytes_FromStringAndSize(s, len);
                 }
         }
 
-        return PyUnicode_DecodeUnicodeEscape(s, len, NULL);
+        return PyBytes_DecodeEscape(s, len, NULL, 1,
+                                    need_encoding ? c->c_encoding : NULL);
 }
 
 /* Build a Python string object out of a STRING atom.  This takes care of
@@ -3685,8 +3686,8 @@ parsestrplus(struct compiling *c, const node *n)
                         s = parsestr(c, n, STR(CHILD(n, i)));
                         if (s == NULL)
                                 goto onError;
-                        if (PyUnicode_Check(v) && PyUnicode_Check(s)) {
-                                PyUnicode_AppendAndDel(&v, s);
+                        if (PyBytes_Check(v) && PyBytes_Check(s)) {
+                                PyBytes_ConcatAndDel(&v, s);
                                 if (v == NULL)
                                     goto onError;
                         }
