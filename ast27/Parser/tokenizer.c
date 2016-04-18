@@ -1406,6 +1406,11 @@ tok_get(register struct tok_state *tok, char **p_start, char **p_end)
             }
 
             if (is_type_ignore) {
+                /* If this type ignore is the only thing on the line, consume the newline also. */
+                if (blankline) {
+                    tok_nextc(tok);
+                    tok->atbol = 1;
+                }
                 return TYPE_IGNORE;
             } else {
                 *p_start = (char *) type_start;  /* after type_comment_prefix */
