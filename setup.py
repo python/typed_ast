@@ -14,6 +14,7 @@ _ast27 = Extension(
         'ast27/Parser/tokenizer.c',
         'ast27/Python/ast.c',
         'ast27/Python/graminit.c',
+        'ast27/Python/mystrtoul.c',
         'ast27/Python/Python-ast.c',
         'ast27/Custom/typed_ast.c'
     ])

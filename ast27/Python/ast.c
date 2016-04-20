@@ -44,6 +44,8 @@ static PyObject *parsestrplus(struct compiling *, const node *n);
 static int Py_Py3kWarningFlag = 1;
 static int Py_UnicodeFlag = 0;
 
+extern long Ta27OS_strtol(char *str, char **ptr, int base);
+
 #ifndef LINENO
 #define LINENO(n)       ((n)->n_lineno)
 #endif
@@ -3465,7 +3467,7 @@ parsenumber(struct compiling *c, const char *s)
 #endif
         if (*end == 'l' || *end == 'L')
                 return PyLong_FromString((char *)s, (char **)0, 0);
-        x = PyOS_strtol((char *)s, (char **)&end, 0);
+        x = Ta27OS_strtol((char *)s, (char **)&end, 0);
         if (*end == '\0') {
                 if (errno != 0)
                         return PyLong_FromString((char *)s, (char **)0, 0);
