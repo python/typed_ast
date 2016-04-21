@@ -47,11 +47,11 @@ These extension modules are intended to run on Python 3.
  - [x] Python 3.3 (*works on 3.3.6*)
  - [ ] Python 3.2
 - [ ] ast27: ensure compatibility with older Python versions
- - [ ] Python 3.4
- - [ ] Python 3.3
+ - [x] Python 3.4
+ - [x] Python 3.3
  - [ ] Python 3.2
-[ ] refactor out shared code
-	[ ] common functions in typed_ast.c
-	[ ] type_ignore array resizing functions in parsetok.c
-	[ ] type comment parsing code in tokenizer.c
-	[ ] func_type_input parsing in ast.c
+- [ ] refactor out shared code
+	- [ ] common functions in typed\_ast.c
+	- [ ] type\_ignore array resizing functions in parsetok.c
+	- [ ] type comment parsing code in tokenizer.c
+	- [ ] func\_type\_input parsing in ast.c

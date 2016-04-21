@@ -19,7 +19,11 @@
 #include "pydebug.h"
 #endif /* PGEN */
 
+#if PY_MINOR_VERSION >= 4
 extern char *PyOS_Readline(FILE *, FILE *, const char *);
+#else
+extern char *PyOS_Readline(FILE *, FILE *, char *);
+#endif
 /* Return malloc'ed string including trailing \n;
    empty malloc'ed string for EOF;
    NULL if interrupted */
