@@ -41,7 +41,7 @@ static PyObject *parsenumber(struct compiling *, const char *);
 static PyObject *parsestr(struct compiling *, const node *n, const char *);
 static PyObject *parsestrplus(struct compiling *, const node *n);
 
-static int Py_Py3kWarningFlag = 1;
+static int Py_Py3kWarningFlag = 0;
 static int Py_UnicodeFlag = 0;
 
 extern long Ta27OS_strtol(char *str, char **ptr, int base);
