@@ -3465,8 +3465,18 @@ parsenumber(struct compiling *c, const char *s)
 #ifndef WITHOUT_COMPLEX
         imflag = *end == 'j' || *end == 'J';
 #endif
-        if (*end == 'l' || *end == 'L')
-                return PyLong_FromString((char *)s, (char **)0, 0);
+        if (*end == 'l' || *end == 'L') {
+                /* Make a copy without the trailing 'L' */
+                size_t len = end - s  + 1;
+                char *copy = malloc(len);
+                if (copy == NULL)
+                        return PyErr_NoMemory();
+                memcpy(copy, s, len);
+                copy[len - 1] = '\0';
+                PyObject *result = PyLong_FromString(copy, (char **)0, 0);
+                free(copy);
+                return result;
+        }
         x = Ta27OS_strtol((char *)s, (char **)&end, 0);
         if (*end == '\0') {
                 if (errno != 0)
