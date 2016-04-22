@@ -2,6 +2,13 @@ from typed_ast import ast27
 from typed_ast import ast35
 
 def py2to3(ast):
+    """Converts a typed Python 2.7 ast to a typed Python 3.5 ast.  The returned
+        ast is a valid Python 3 ast with one exception:
+
+        - `arg` objects may contain Tuple objects instead of just identifiers
+           in the case of Python 2 function definitions/lambdas that use the tuple
+           unpacking syntax.
+    """
     return _AST2To3().visit(ast)
 
 def _copy_attributes(new_value, old_value):
@@ -157,9 +164,13 @@ class _AST2To3(ast27.NodeTransformer):
 
     def visit_arguments(self, n):
         def convert_arg(arg):
-            if not isinstance(arg, ast27.Name):
+            if isinstance(arg, ast27.Name):
+                v = arg.id
+            elif isinstance(arg, ast27.Tuple):
+                v = self.visit(arg)
+            else:
                 raise RuntimeError("'{}' is not a valid argument.".format(ast27.dump(arg)))
-            return ast35.arg(arg.id, None, lineno=arg.lineno, col_offset=arg.col_offset)
+            return ast35.arg(v, None, lineno=arg.lineno, col_offset=arg.col_offset)
 
         args = [convert_arg(arg) for arg in n.args]
 
