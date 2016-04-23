@@ -326,12 +326,13 @@ parsetok(struct tok_state *tok, grammar *g, int start, perrdetail *err_ret,
             /* Put type_ignore nodes in the ENDMARKER of file_input. */
             int num;
             node *ch;
+            size_t i;
 
             num = NCH(n);
             ch = CHILD(n, num - 1);
             REQ(ch, ENDMARKER);
 
-            for (size_t i = 0; i < type_ignores.num_items; i++) {
+            for (i = 0; i < type_ignores.num_items; i++) {
                 Ta35Node_AddChild(ch, TYPE_IGNORE, NULL, type_ignores.items[i], 0);
             }
         }
