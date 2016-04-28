@@ -16,8 +16,24 @@ _ast27 = Extension(
         'ast27/Python/graminit.c',
         'ast27/Python/mystrtoul.c',
         'ast27/Python/Python-ast.c',
-        'ast27/Custom/typed_ast.c'
+        'ast27/Custom/typed_ast.c',
+    ],
+    depends = [
+        'ast27/Include/asdl.h',
+        'ast27/Include/ast.h',
+        'ast27/Include/bitset.h',
+        'ast27/Include/compile.h',
+        'ast27/Include/errcode.h',
+        'ast27/Include/graminit.h',
+        'ast27/Include/grammar.h',
+        'ast27/Include/node.h',
+        'ast27/Include/parsetok.h',
+        'ast27/Include/Python-ast.h',
+        'ast27/Include/token.h',
+        'ast27/Parser/parser.h',
+        'ast27/Parser/tokenizer.h',
     ])
+
 
 _ast35 = Extension(
     '_ast35',
@@ -34,7 +50,22 @@ _ast35 = Extension(
         'ast35/Python/ast.c',
         'ast35/Python/graminit.c',
         'ast35/Python/Python-ast.c',
-        'ast35/Custom/typed_ast.c'
+        'ast35/Custom/typed_ast.c',
+    ],
+    depends = [
+        'ast35/Include/asdl.h',
+        'ast35/Include/ast.h',
+        'ast35/Include/bitset.h',
+        'ast35/Include/compile.h',
+        'ast35/Include/errcode.h',
+        'ast35/Include/graminit.h',
+        'ast35/Include/grammar.h',
+        'ast35/Include/node.h',
+        'ast35/Include/parsetok.h',
+        'ast35/Include/Python-ast.h',
+        'ast35/Include/token.h',
+        'ast35/Parser/parser.h',
+        'ast35/Parser/tokenizer.h',
     ])
 
 long_description = """
@@ -44,7 +75,7 @@ comments.  The primary goals of this package are correctness and speed.
 """.strip()
 
 setup (name = 'typed-ast',
-       version = '0.5',
+       version = '0.5.1',
        description = 'fork of Python 2 and 3 ast modules with type comment support',
        long_description = long_description,
        author = 'David Fisher',
