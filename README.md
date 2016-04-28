@@ -1,15 +1,10 @@
-# Typed AST Module
-This module is a fork of the CPython 2.7 and 3.5 `ast` modules with the ability
+# Typed AST Package
+This package is a fork of the CPython 2.7 and 3.5 `ast` modules with the ability
 to parse [PEP 484](https://www.python.org/dev/peps/pep-0484/) type comments.
-The primary goals of this module are correctness and speed.  This project is
-still a work in progress, but is being actively developed.
-
-These extension modules are intended to run on Python 3.
+The primary goals of this package are correctness and speed.  This package is
+compatible with Python 3.3 - 3.5.
 
 ### Current Caveats for Use
-- This project currently works on Python 3.3 - 3.5.  Python 3.2 is likely to be
-  supported, depending on difficulty.  There are currently no plans to run on
-  Python 2.7.
 - Type comments in invalid locations produce syntax errors.
 
 ## Development Notes
@@ -42,14 +37,12 @@ These extension modules are intended to run on Python 3.
 - [ ] prevent type comments in incorrect locations from causing syntax errors
 - [ ] find a better way to compile pgen
 - [x] parse Python 2.7 ASTs
-- [ ] ast35: ensure compatibility with older Python versions
+- [x] ast35: ensure compatibility with older Python versions
  - [x] Python 3.4 (*works on 3.4.4*)
  - [x] Python 3.3 (*works on 3.3.6*)
- - [ ] Python 3.2
-- [ ] ast27: ensure compatibility with older Python versions
+- [x] ast27: ensure compatibility with older Python versions
  - [x] Python 3.4
  - [x] Python 3.3
- - [ ] Python 3.2
 - [ ] refactor out shared code
 	- [ ] common functions in typed\_ast.c
 	- [ ] type\_ignore array resizing functions in parsetok.c
