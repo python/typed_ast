@@ -100,7 +100,10 @@ err_input(perrdetail *err)
             msg = "unexpected unindent";
         else {
             errtype = PyExc_SyntaxError;
-            msg = "invalid syntax";
+            if (err->token == TYPE_COMMENT)
+              msg = "misplaced type annotation";
+            else
+              msg = "invalid syntax";
         }
         break;
     case E_TOKEN:
