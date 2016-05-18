@@ -3,11 +3,20 @@ from typed_ast import ast35
 
 def py2to3(ast):
     """Converts a typed Python 2.7 ast to a typed Python 3.5 ast.  The returned
-        ast is a valid Python 3 ast with one exception:
+        ast is a valid Python 3 ast with two exceptions:
 
         - `arg` objects may contain Tuple objects instead of just identifiers
            in the case of Python 2 function definitions/lambdas that use the tuple
            unpacking syntax.
+        - `Raise` objects will have a `traceback` attribute added if the 3
+           argument version of the Python 2 raise is used.
+
+
+    Strange and Rare Uncovered Edge Cases:
+        - Raise: if the second argument to a raise statement is a tuple, its
+          contents are unpacked as arguments to the exception constructor.  This
+          case is handled correctly if it's a literal tuple, but not if it's any
+          other sort of tuple expression.
     """
     return _AST2To3().visit(ast)
 
@@ -111,7 +120,7 @@ class _AST2To3(ast27.NodeTransformer):
         if n.type is not None:
             e = self.visit(n.type)
 
-            if n.inst is not None:
+            if n.inst is not None and not (isinstance(n.inst, ast27.Name) and n.inst.id == "None"):
                 inst = self.visit(n.inst)
                 if isinstance(inst, ast35.Tuple):
                     args = inst.elts
@@ -119,12 +128,10 @@ class _AST2To3(ast27.NodeTransformer):
                     args = [inst]
                 e = ast35.Call(e, args, [], lineno=e.lineno, col_offset=-1)
 
-                if n.tback is not None:
-                    e = ast35.Call(ast35.Attribute(e, "with_traceback", ast35.Load(), lineno=e.lineno, col_offset=-1),
-                                   [self.visit(n.tback)],
-                                   [],
-                                   lineno=e.lineno, col_offset=-1)
-        return ast35.Raise(e, None)
+        ret = ast35.Raise(e, None)
+        if n.tback is not None:
+            ret.traceback = self.visit(n.tback)
+        return ret
 
     def visit_Exec(self, n):
         return ast35.Expr(ast35.Call(ast35.Name("exec", ast35.Load(), lineno=n.lineno, col_offset=-1),
