@@ -25,9 +25,9 @@ decorators: decorator+
 decorated: decorators (classdef | funcdef)
 funcdef: 'def' NAME parameters ':' [TYPE_COMMENT] suite
 parameters: '(' [varargslist] ')'
-varargslist: ((fpdef ['=' test] ',')*
-              ('*' NAME [',' '**' NAME] | '**' NAME) |
-              fpdef ['=' test] (',' fpdef ['=' test])* [','])
+varargslist: ((fpdef ['=' test] ',' [TYPE_COMMENT])*
+              ('*' NAME [',' [TYPE_COMMENT]  '**' NAME] [TYPE_COMMENT] | '**' NAME [TYPE_COMMENT]) |
+              fpdef ['=' test] (',' [TYPE_COMMENT] fpdef ['=' test])* [','] [TYPE_COMMENT])
 fpdef: NAME | '(' fplist ')'
 fplist: fpdef (',' fpdef)* [',']
 

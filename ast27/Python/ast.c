@@ -732,17 +732,18 @@ static arguments_ty
 ast_for_arguments(struct compiling *c, const node *n)
 {
     /* parameters: '(' [varargslist] ')'
-       varargslist: (fpdef ['=' test] ',')* ('*' NAME [',' '**' NAME]
-            | '**' NAME) | fpdef ['=' test] (',' fpdef ['=' test])* [',']
+       varargslist: ((fpdef ['=' test] ',' [TYPE_COMMENT])*
+                     ('*' NAME [',' [TYPE_COMMENT]  '**' NAME] [TYPE_COMMENT] | '**' NAME [TYPE_COMMENT]) |
+                     fpdef ['=' test] (',' [TYPE_COMMENT] fpdef ['=' test])* [','] [TYPE_COMMENT])
     */
-    int i, j, k, n_args = 0, n_defaults = 0, found_default = 0;
-    asdl_seq *args, *defaults;
+    int i, j, k, l, n_args = 0, n_all_args = 0, n_defaults = 0, found_default = 0;
+    asdl_seq *args, *defaults, *type_comments = NULL;
     identifier vararg = NULL, kwarg = NULL;
     node *ch;
 
     if (TYPE(n) == parameters) {
         if (NCH(n) == 2) /* () as argument list */
-            return arguments(NULL, NULL, NULL, NULL, c->c_arena);
+            return arguments(NULL, NULL, NULL, NULL, NULL, c->c_arena);
         n = CHILD(n, 1);
     }
     REQ(n, varargslist);
@@ -754,7 +755,10 @@ ast_for_arguments(struct compiling *c, const node *n)
             n_args++;
         if (TYPE(ch) == EQUAL)
             n_defaults++;
+        if (TYPE(ch) == STAR || TYPE(ch) == DOUBLESTAR)
+            n_all_args++;
     }
+    n_all_args += n_args;
     args = (n_args ? asdl_seq_new(n_args, c->c_arena) : NULL);
     if (!args && n_args)
         return NULL;
@@ -768,6 +772,7 @@ ast_for_arguments(struct compiling *c, const node *n)
     i = 0;
     j = 0;  /* index for defaults */
     k = 0;  /* index for args */
+    l = 0;  /* index for type comments */
     while (i < NCH(n)) {
         ch = CHILD(n, i);
         switch (TYPE(ch)) {
@@ -834,7 +839,7 @@ ast_for_arguments(struct compiling *c, const node *n)
                     asdl_seq_SET(args, k++, name);
 
                 }
-                i += 2; /* the name and the comma */
+                i += 1 + (TYPE(CHILD(n, i + 1)) == COMMA); /* the name and the comma, if present */
                 if (parenthesized && Py_Py3kWarningFlag &&
                     !ast_warn(c, ch, "parenthesized argument names "
                               "are invalid in 3.x"))
@@ -848,7 +853,7 @@ ast_for_arguments(struct compiling *c, const node *n)
                 vararg = NEW_IDENTIFIER(CHILD(n, i+1));
                 if (!vararg)
                     return NULL;
-                i += 3;
+                i += 2 + (TYPE(CHILD(n, i + 2)) == COMMA);
                 break;
             case DOUBLESTAR:
                 if (!forbidden_check(c, CHILD(n, i+1), STR(CHILD(n, i+1))))
@@ -856,7 +861,24 @@ ast_for_arguments(struct compiling *c, const node *n)
                 kwarg = NEW_IDENTIFIER(CHILD(n, i+1));
                 if (!kwarg)
                     return NULL;
-                i += 3;
+                i += 2 + (TYPE(CHILD(n, i + 2)) == COMMA);
+                break;
+            case TYPE_COMMENT:
+                assert(l < k + !!vararg + !!kwarg);
+
+                if (!type_comments) {
+                    /* lazily allocate the type_comments seq for perf reasons */
+                    type_comments = asdl_seq_new(n_all_args, c->c_arena);
+                    if (!type_comments)
+                        return NULL;
+                }
+
+                while (l < k + !!vararg + !!kwarg - 1) {
+                    asdl_seq_SET(type_comments, l++, NULL);
+                }
+
+                asdl_seq_SET(type_comments, l++, NEW_TYPE_COMMENT(ch));
+                i += 1;
                 break;
             default:
                 PyErr_Format(PyExc_SystemError,
@@ -866,7 +888,13 @@ ast_for_arguments(struct compiling *c, const node *n)
         }
     }
 
-    return arguments(args, vararg, kwarg, defaults, c->c_arena);
+    if (type_comments) {
+        while (l < n_all_args) {
+            asdl_seq_SET(type_comments, l++, NULL);
+        }
+    }
+
+    return arguments(args, vararg, kwarg, defaults, type_comments, c->c_arena);
 }
 
 static expr_ty
@@ -1038,7 +1066,7 @@ ast_for_lambdef(struct compiling *c, const node *n)
     expr_ty expression;
 
     if (NCH(n) == 3) {
-        args = arguments(NULL, NULL, NULL, NULL, c->c_arena);
+        args = arguments(NULL, NULL, NULL, NULL, NULL, c->c_arena);
         if (!args)
             return NULL;
         expression = ast_for_expr(c, CHILD(n, 2));
