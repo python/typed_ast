@@ -170,24 +170,34 @@ class _AST2To3(ast27.NodeTransformer):
         return ast35.Index(ast35.Ellipsis(lineno=-1, col_offset=-1))
 
     def visit_arguments(self, n):
-        def convert_arg(arg):
+        def convert_arg(arg, annotation):
             if isinstance(arg, ast27.Name):
                 v = arg.id
             elif isinstance(arg, ast27.Tuple):
                 v = self.visit(arg)
             else:
                 raise RuntimeError("'{}' is not a valid argument.".format(ast27.dump(arg)))
-            return ast35.arg(v, None, lineno=arg.lineno, col_offset=arg.col_offset)
+            return ast35.arg(v, annotation, lineno=arg.lineno, col_offset=arg.col_offset)
 
-        args = [convert_arg(arg) for arg in n.args]
+        def get_type_comment(i):
+            if i < len(n.type_comments):
+                return ast35.Str(n.type_comments[i])
+            else:
+                return None
+
+        args = [convert_arg(arg, get_type_comment(i)) for i, arg in enumerate(n.args)]
 
         vararg = None
         if n.vararg is not None:
-            vararg = ast35.arg(n.vararg, None, lineno=-1, col_offset=-1)
+            vararg = ast35.arg(n.vararg,
+                               get_type_comment(len(args) + 1),
+                               lineno=-1, col_offset=-1)
 
         kwarg = None
         if n.kwarg is not None:
-            kwarg = ast35.arg(n.kwarg, None, lineno=-1, col_offset=-1)
+            kwarg = ast35.arg(n.kwarg,
+                              get_type_comment(len(args) + 1 + (0 if n.vararg is None else 1)),
+                              lineno=-1, col_offset=-1)
 
         defaults = self.visit(n.defaults)
 

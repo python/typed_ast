@@ -376,6 +376,7 @@ static char *arguments_fields[]={
         "vararg",
         "kwarg",
         "defaults",
+        "type_comments",
 };
 static PyTypeObject *keyword_type;
 static PyObject* ast2obj_keyword(void*);
@@ -963,7 +964,7 @@ static int init_types(void)
         ExceptHandler_type = make_type("ExceptHandler", excepthandler_type, ExceptHandler_fields,
                                        3);
         if (!ExceptHandler_type) return 0;
-        arguments_type = make_type("arguments", &AST_type, arguments_fields, 4);
+        arguments_type = make_type("arguments", &AST_type, arguments_fields, 5);
         if (!arguments_type) return 0;
         keyword_type = make_type("keyword", &AST_type, keyword_fields, 2);
         if (!keyword_type) return 0;
@@ -2090,7 +2091,8 @@ ExceptHandler(expr_ty type, expr_ty name, asdl_seq * body, int lineno, int col_o
 }
 
 arguments_ty
-arguments(asdl_seq * args, identifier vararg, identifier kwarg, asdl_seq * defaults, PyArena *arena)
+arguments(asdl_seq * args, identifier vararg, identifier kwarg, asdl_seq * defaults, asdl_seq *
+          type_comments, PyArena *arena)
 {
         arguments_ty p;
         p = (arguments_ty)PyArena_Malloc(arena, sizeof(*p));
@@ -2100,6 +2102,7 @@ arguments(asdl_seq * args, identifier vararg, identifier kwarg, asdl_seq * defau
         p->vararg = vararg;
         p->kwarg = kwarg;
         p->defaults = defaults;
+        p->type_comments = type_comments;
         return p;
 }
 
@@ -3302,6 +3305,11 @@ ast2obj_arguments(void* _o)
         value = ast2obj_list(o->defaults, ast2obj_expr);
         if (!value) goto failed;
         if (PyObject_SetAttrString(result, "defaults", value) == -1)
+                goto failed;
+        Py_DECREF(value);
+        value = ast2obj_list(o->type_comments, ast2obj_string);
+        if (!value) goto failed;
+        if (PyObject_SetAttrString(result, "type_comments", value) == -1)
                 goto failed;
         Py_DECREF(value);
         return result;
@@ -6617,6 +6625,7 @@ obj2ast_arguments(PyObject* obj, arguments_ty* out, PyArena* arena)
         identifier vararg;
         identifier kwarg;
         asdl_seq* defaults;
+        asdl_seq* type_comments;
 
         if (PyObject_HasAttrString(obj, "args")) {
                 int res;
@@ -6690,7 +6699,32 @@ obj2ast_arguments(PyObject* obj, arguments_ty* out, PyArena* arena)
                 PyErr_SetString(PyExc_TypeError, "required field \"defaults\" missing from arguments");
                 return 1;
         }
-        *out = arguments(args, vararg, kwarg, defaults, arena);
+        if (PyObject_HasAttrString(obj, "type_comments")) {
+                int res;
+                Py_ssize_t len;
+                Py_ssize_t i;
+                tmp = PyObject_GetAttrString(obj, "type_comments");
+                if (tmp == NULL) goto failed;
+                if (!PyList_Check(tmp)) {
+                        PyErr_Format(PyExc_TypeError, "arguments field \"type_comments\" must be a list, not a %.200s", tmp->ob_type->tp_name);
+                        goto failed;
+                }
+                len = PyList_GET_SIZE(tmp);
+                type_comments = asdl_seq_new(len, arena);
+                if (type_comments == NULL) goto failed;
+                for (i = 0; i < len; i++) {
+                        string value;
+                        res = obj2ast_string(PyList_GET_ITEM(tmp, i), &value, arena);
+                        if (res != 0) goto failed;
+                        asdl_seq_SET(type_comments, i, value);
+                }
+                Py_XDECREF(tmp);
+                tmp = NULL;
+        } else {
+                PyErr_SetString(PyExc_TypeError, "required field \"type_comments\" missing from arguments");
+                return 1;
+        }
+        *out = arguments(args, vararg, kwarg, defaults, type_comments, arena);
         return 0;
 failed:
         Py_XDECREF(tmp);

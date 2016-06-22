@@ -367,6 +367,7 @@ struct _arguments {
         identifier vararg;
         identifier kwarg;
         asdl_seq *defaults;
+        asdl_seq *type_comments;
 };
 
 struct _keyword {
@@ -531,9 +532,9 @@ comprehension_ty _Ta27_comprehension(expr_ty target, expr_ty iter, asdl_seq * if
 #define ExceptHandler(a0, a1, a2, a3, a4, a5) _Ta27_ExceptHandler(a0, a1, a2, a3, a4, a5)
 excepthandler_ty _Ta27_ExceptHandler(expr_ty type, expr_ty name, asdl_seq * body, int lineno, int
                                      col_offset, PyArena *arena);
-#define arguments(a0, a1, a2, a3, a4) _Ta27_arguments(a0, a1, a2, a3, a4)
+#define arguments(a0, a1, a2, a3, a4, a5) _Ta27_arguments(a0, a1, a2, a3, a4, a5)
 arguments_ty _Ta27_arguments(asdl_seq * args, identifier vararg, identifier kwarg, asdl_seq *
-                             defaults, PyArena *arena);
+                             defaults, asdl_seq * type_comments, PyArena *arena);
 #define keyword(a0, a1, a2) _Ta27_keyword(a0, a1, a2)
 keyword_ty _Ta27_keyword(identifier arg, expr_ty value, PyArena *arena);
 #define alias(a0, a1, a2) _Ta27_alias(a0, a1, a2)

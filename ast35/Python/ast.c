@@ -1247,6 +1247,22 @@ ast_for_arg(struct compiling *c, const node *n)
     return ret;
 }
 
+static int
+set_arg_comment_annotation(struct compiling *c, arg_ty arg, node *tc)
+{
+    if (arg->annotation) {
+        ast_error(c, tc,
+                "annotated arg has associated type comment");
+        return 0;
+    }
+
+    arg->annotation = Str(NEW_TYPE_COMMENT(tc), LINENO(tc), tc->n_col_offset, c->c_arena);
+    if (!arg->annotation)
+        return 0;
+
+    return 1;
+}
+
 /* returns -1 if failed to handle keyword only arguments
    returns new position to keep processing if successful
                (',' tfpdef ['=' test])*
@@ -1304,7 +1320,15 @@ handle_keywordonly_args(struct compiling *c, const node *n, int start,
                 if (!arg)
                     goto error;
                 asdl_seq_SET(kwonlyargs, j++, arg);
-                i += 2; /* the name and the comma */
+                i += 1; /* the name */
+                if (TYPE(CHILD(n, i)) == COMMA)
+                    i += 1; /* the comma, if present */
+                break;
+            case TYPE_COMMENT:
+                /* arg will be equal to the last argument processed */
+                if (!set_arg_comment_annotation(c, arg, ch))
+                    return -1;
+                i += 1;
                 break;
             case DOUBLESTAR:
                 return i;
@@ -1435,10 +1459,12 @@ ast_for_arguments(struct compiling *c, const node *n)
                 if (!arg)
                     return NULL;
                 asdl_seq_SET(posargs, k++, arg);
-                i += 2; /* the name and the comma */
+                i += 1; /* the name */
+                if (TYPE(CHILD(n, i)) == COMMA)
+                    i += 1; /* the comma, if present */
                 break;
             case STAR:
-                if (i+1 >= NCH(n)) {
+                if (i+1 >= NCH(n) || TYPE(CHILD(n, i+1)) == TYPE_COMMENT) {
                     ast_error(c, CHILD(n, i),
                         "named arguments must follow bare *");
                     return NULL;
@@ -1447,6 +1473,13 @@ ast_for_arguments(struct compiling *c, const node *n)
                 if (TYPE(ch) == COMMA) {
                     int res = 0;
                     i += 2; /* now follows keyword only arguments */
+
+                    if (TYPE(CHILD(n, i)) == TYPE_COMMENT) {
+                        ast_error(c, CHILD(n, i),
+                                "bare * has associated type comment");
+                        return NULL;
+                    }
+
                     res = handle_keywordonly_args(c, n, i,
                                                   kwonlyargs, kwdefaults);
                     if (res == -1) return NULL;
@@ -1457,7 +1490,17 @@ ast_for_arguments(struct compiling *c, const node *n)
                     if (!vararg)
                         return NULL;
 
-                    i += 3;
+                i += 2; /* the star and the name */
+                if (TYPE(CHILD(n, i)) == COMMA)
+                    i += 1; /* the comma, if present */
+
+                    if (TYPE(CHILD(n, i)) == TYPE_COMMENT) {
+                        if (!set_arg_comment_annotation(c, vararg, CHILD(n, i)))
+                            return NULL;
+
+                        i += 1;
+                    }
+
                     if (i < NCH(n) && (TYPE(CHILD(n, i)) == tfpdef
                                     || TYPE(CHILD(n, i)) == vfpdef)) {
                         int res = 0;
@@ -1474,7 +1517,21 @@ ast_for_arguments(struct compiling *c, const node *n)
                 kwarg = ast_for_arg(c, ch);
                 if (!kwarg)
                     return NULL;
-                i += 3;
+                i += 2; /* the double star and the name */
+                if (TYPE(CHILD(n, i)) == COMMA)
+                    i += 1; /* the comma, if present */
+                break;
+            case TYPE_COMMENT:
+                assert(i);
+
+                if (kwarg)
+                    arg = kwarg;
+
+                /* arg will be equal to the last argument processed */
+                if (!set_arg_comment_annotation(c, arg, ch))
+                    return NULL;
+
+                i += 1;
                 break;
             default:
                 PyErr_Format(PyExc_SystemError,

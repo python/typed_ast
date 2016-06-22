@@ -30,9 +30,10 @@ async_funcdef: ASYNC funcdef
 funcdef: 'def' NAME parameters ['->' test] ':' [TYPE_COMMENT] suite
 
 parameters: '(' [typedargslist] ')'
-typedargslist: (tfpdef ['=' test] (',' tfpdef ['=' test])* [','
-       ['*' [tfpdef] (',' tfpdef ['=' test])* [',' '**' tfpdef] | '**' tfpdef]]
-     |  '*' [tfpdef] (',' tfpdef ['=' test])* [',' '**' tfpdef] | '**' tfpdef)
+typedargslist: (tfpdef ['=' test] (',' [TYPE_COMMENT] tfpdef ['=' test])* [',' [TYPE_COMMENT]
+       ['*' [tfpdef] (',' [TYPE_COMMENT] tfpdef ['=' test])* [',' [TYPE_COMMENT] '**' tfpdef] | '**' tfpdef]] [TYPE_COMMENT]
+     |  '*' [tfpdef] (',' [TYPE_COMMENT] tfpdef ['=' test])* [',' [TYPE_COMMENT] '**' tfpdef] [TYPE_COMMENT]
+     | '**' tfpdef [TYPE_COMMENT])
 tfpdef: NAME [':' test]
 varargslist: (vfpdef ['=' test] (',' vfpdef ['=' test])* [','
        ['*' [vfpdef] (',' vfpdef ['=' test])* [',' '**' vfpdef] | '**' vfpdef]]

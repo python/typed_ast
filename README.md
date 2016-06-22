@@ -6,6 +6,8 @@ compatible with Python 3.3 - 3.5.
 
 ### Current Caveats for Use
 - Type comments in invalid locations produce syntax errors.
+- When using per-argument function comment annotations, the type comments must
+  come after the argument-separating comma.
 
 ## Development Notes
 ### General Notes
