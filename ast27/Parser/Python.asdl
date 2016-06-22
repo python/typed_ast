@@ -106,9 +106,9 @@ module Python version "$Revision$"
 	                attributes (int lineno, int col_offset)
 
 	-- type_comments is used to support the per-argument type comment syntax.
-  -- It is either an empty list or a list with length equal to the number of
-  -- args (including varargs and kwargs, if present) and with members set to the
-  -- string of each arg's type comment, if present, or None otherwise.
+	-- It is either an empty list or a list with length equal to the number of
+	-- args (including varargs and kwargs, if present) and with members set to the
+	-- string of each arg's type comment, if present, or None otherwise.
 	arguments = (expr* args, identifier? vararg, 
 		     identifier? kwarg, expr* defaults, string* type_comments)
 
