@@ -196,7 +196,7 @@ class _AST2To3(ast27.NodeTransformer):
         kwarg = None
         if n.kwarg is not None:
             kwarg = ast35.arg(n.kwarg,
-                              get_type_comment(len(args) + 1 + (1 if n.vararg is not None else 0)),
+                              get_type_comment(len(args) + 1 + (0 if n.vararg is None else 1)),
                               lineno=-1, col_offset=-1)
 
         defaults = self.visit(n.defaults)

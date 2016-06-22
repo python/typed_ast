@@ -765,6 +765,12 @@ ast_for_arguments(struct compiling *c, const node *n)
     defaults = (n_defaults ? asdl_seq_new(n_defaults, c->c_arena) : NULL);
     if (!defaults && n_defaults)
         return NULL;
+    /* type_comments will be lazily initialized if needed.  If there are no
+       per-argument type comments, it will remain NULL.  Otherwise, it will be
+       an asdl_seq with length equal to the number of args (including varargs
+       and kwargs, if present) and with members set to the string of each arg's
+       type comment, if present, or NULL otherwise.
+     */
 
     /* fpdef: NAME | '(' fplist ')'
        fplist: fpdef (',' fpdef)* [',']
@@ -839,7 +845,9 @@ ast_for_arguments(struct compiling *c, const node *n)
                     asdl_seq_SET(args, k++, name);
 
                 }
-                i += 1 + (TYPE(CHILD(n, i + 1)) == COMMA); /* the name and the comma, if present */
+                i += 1; /* the name */
+                if (TYPE(CHILD(n, i)) == COMMA)
+                    i += 1; /* the comma, if present */
                 if (parenthesized && Py_Py3kWarningFlag &&
                     !ast_warn(c, ch, "parenthesized argument names "
                               "are invalid in 3.x"))
@@ -853,7 +861,9 @@ ast_for_arguments(struct compiling *c, const node *n)
                 vararg = NEW_IDENTIFIER(CHILD(n, i+1));
                 if (!vararg)
                     return NULL;
-                i += 2 + (TYPE(CHILD(n, i + 2)) == COMMA);
+                i += 2; /* the star and the name */
+                if (TYPE(CHILD(n, i)) == COMMA)
+                    i += 1; /* the comma, if present */
                 break;
             case DOUBLESTAR:
                 if (!forbidden_check(c, CHILD(n, i+1), STR(CHILD(n, i+1))))
@@ -861,7 +871,9 @@ ast_for_arguments(struct compiling *c, const node *n)
                 kwarg = NEW_IDENTIFIER(CHILD(n, i+1));
                 if (!kwarg)
                     return NULL;
-                i += 2 + (TYPE(CHILD(n, i + 2)) == COMMA);
+                i += 2; /* the double star and the name */
+                if (TYPE(CHILD(n, i)) == COMMA)
+                    i += 1; /* the comma, if present */
                 break;
             case TYPE_COMMENT:
                 assert(l < k + !!vararg + !!kwarg);
