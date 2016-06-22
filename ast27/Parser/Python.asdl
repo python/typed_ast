@@ -105,7 +105,10 @@ module Python version "$Revision$"
 	excepthandler = ExceptHandler(expr? type, expr? name, stmt* body)
 	                attributes (int lineno, int col_offset)
 
-	-- the type comments are used only in the multiline type comment syntax
+	-- type_comments is used to support the per-argument type comment syntax.
+  -- It is either an empty list or a list with length equal to the number of
+  -- args (including varargs and kwargs, if present) and with members set to the
+  -- string of each arg's type comment, if present, or None otherwise.
 	arguments = (expr* args, identifier? vararg, 
 		     identifier? kwarg, expr* defaults, string* type_comments)
 
