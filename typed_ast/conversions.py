@@ -180,10 +180,9 @@ class _AST2To3(ast27.NodeTransformer):
             return ast35.arg(v, annotation, lineno=arg.lineno, col_offset=arg.col_offset)
 
         def get_type_comment(i):
-            if i < len(n.type_comments):
+            if i < len(n.type_comments) and n.type_comments[i] is not None:
                 return ast35.Str(n.type_comments[i])
-            else:
-                return None
+            return None
 
         args = [convert_arg(arg, get_type_comment(i)) for i, arg in enumerate(n.args)]
 
