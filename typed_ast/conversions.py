@@ -29,8 +29,6 @@ def _copy_attributes(new_value, old_value):
 
 class _AST2To3(ast27.NodeTransformer):
     # note: None, True, and False are *not* translated into NameConstants.
-    # note: Negative numeric literals are not converted to use unary -
-
     def __init__(self):
         pass
 
@@ -212,3 +210,13 @@ class _AST2To3(ast27.NodeTransformer):
             return ast35.Bytes(s.s)
         else:
             return ast35.Str(s.s)
+
+    def visit_Num(self, n):
+        new = self.generic_visit(n)
+        if new.n < 0:
+            # Python 3 uses a unary - operator for negative literals.
+            new.n = -new.n
+            return ast35.UnaryOp(op=ast35.USub(),
+                                 operand=new)
+        else:
+            return new
