@@ -217,6 +217,6 @@ class _AST2To3(ast27.NodeTransformer):
             # Python 3 uses a unary - operator for negative literals.
             new.n = -new.n
             return ast35.UnaryOp(op=ast35.USub(),
-                                 operand=new)
+                                 operand=_copy_attributes(new, n))
         else:
             return new
