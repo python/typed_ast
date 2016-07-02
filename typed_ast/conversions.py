@@ -132,8 +132,15 @@ class _AST2To3(ast27.NodeTransformer):
         return ret
 
     def visit_Exec(self, n):
+        new_globals = self.maybe_visit(n.globals)
+        if new_globals is None:
+            new_globals = ast35.Name("None", ast35.Load(), lineno=-1, col_offset=-1)
+        new_locals = self.maybe_visit(n.locals)
+        if new_locals is None:
+            new_locals = ast35.Name("None", ast35.Load(), lineno=-1, col_offset=-1)
+
         return ast35.Expr(ast35.Call(ast35.Name("exec", ast35.Load(), lineno=n.lineno, col_offset=-1),
-                                     [self.visit(n.body), self.maybe_visit(n.globals), self.maybe_visit(n.locals)],
+                                     [self.visit(n.body), new_globals, new_locals],
                                      [],
                                      lineno=n.lineno, col_offset=-1))
 
