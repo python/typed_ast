@@ -117,8 +117,20 @@ const char *_Ta35Parser_TokenNames[] = {
 
 /* Spaces in this constant are treated as "zero or more spaces or tabs" when
    tokenizing. */
-static const char* type_comment_prefix = "# type: ";
+struct type_comment_prefix {
+    const char* pattern;
+    struct type_comment_prefix* next;
+} *type_comment_prefixes = NULL;
 
+/* For changing the way we treat type comments */
+void
+tokenizer_register_type_comment_prefix(const char* pattern)
+{
+    struct type_comment_prefix* prefix = malloc(sizeof(struct type_comment_prefix));
+    prefix->pattern = pattern;
+    prefix->next = type_comment_prefixes;
+    type_comment_prefixes = prefix;
+}
 
 /* Create and initialize a new tok_state structure */
 
@@ -1473,32 +1485,36 @@ tok_get(struct tok_state *tok, char **p_start, char **p_end)
 
     /* Skip comment, unless it's a type comment */
     if (c == '#') {
-        const char *prefix, *p, *type_start;
-
         while (c != EOF && c != '\n')
             c = tok_nextc(tok);
 
-        p = tok->start;
-        prefix = type_comment_prefix;
-        while (*prefix && p < tok->cur) {
-            if (*prefix == ' ') {
-                while (*p == ' ' || *p == '\t')
+        struct type_comment_prefix* prefix = type_comment_prefixes;
+        const char *p = NULL;
+        while (prefix) {
+            p = tok->start;
+            const char *pattern = prefix->pattern;
+            while (*pattern && p < tok->cur) {
+                if (*pattern == ' ') {
+                    while (*p == ' ' || *p == '\t')
+                        p++;
+                } else if (*pattern == *p) {
                     p++;
-            } else if (*prefix == *p) {
-                p++;
-            } else {
-                break;
+                } else {
+                    break;
+                }
+                pattern++;
             }
-
-            prefix++;
+            if (!*pattern)
+                break;
+            prefix = prefix->next;
         }
 
         /* This is a type comment if we matched all of type_comment_prefix. */
-        if (!*prefix) {
+        if (prefix) {
             int is_type_ignore = 1;
             tok_backup(tok, c);  /* don't eat the newline or EOF */
 
-            type_start = p;
+            const char *type_start = p;
 
             is_type_ignore = tok->cur >= p + 6 && memcmp(p, "ignore", 6) == 0;
             p += 6;

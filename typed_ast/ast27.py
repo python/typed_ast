@@ -37,6 +37,13 @@ def parse(source, filename='<unknown>', mode='exec'):
     return _ast27.parse(source, filename, mode)
 
 
+def register_type_comment_prefix(prefix):
+    """
+    Register a keyword to scan for in comments, for things like: # type: ignore
+    """
+    return _ast27.register_type_comment_prefix(prefix)
+
+
 def literal_eval(node_or_string):
     """
     Safely evaluate an expression node or a string containing a Python

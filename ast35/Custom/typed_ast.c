@@ -9,6 +9,7 @@
 #include "errcode.h"
 
 extern grammar _Ta35Parser_Grammar; /* from graminit.c */
+extern void tokenizer_register_type_comment_prefix(const char* pattern); /* from tokenizer.c */
 
 // from Python/bltinmodule.c
 static const char *
@@ -319,4 +320,14 @@ ast35_parse(PyObject *self, PyObject *args)
         return_value = ast35_parse_impl(source, filename, mode);
 
     return return_value;
+}
+
+PyObject *
+ast35_register_type_comment_prefix(PyObject *self, PyObject *args)
+{
+    const char* prefix;
+    if (!PyArg_ParseTuple(args, "s", &prefix))
+        return NULL;
+    tokenizer_register_type_comment_prefix(prefix);
+    return Py_None;
 }

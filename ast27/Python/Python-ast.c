@@ -6850,9 +6850,13 @@ failed:
 }
 
 
+PyObject *ast27_register_type_comment_prefix(PyObject *self, PyObject *args);
 PyObject *ast27_parse(PyObject *self, PyObject *args);
 static PyMethodDef ast27_methods[] = {
-        {"parse",  ast27_parse, METH_VARARGS, "Parse string into typed AST."},
+        {"parse", ast27_parse,
+         METH_VARARGS, "Parse string into typed AST."},
+        {"register_type_comment_prefix", ast27_register_type_comment_prefix,
+         METH_VARARGS, "Register a prefix to treat as a typecomment."},
         {NULL, NULL, 0, NULL}
 };
 static struct PyModuleDef _astmodule27 = {
