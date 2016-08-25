@@ -82,7 +82,7 @@ comments.  The primary goals of this package are correctness and speed.
 """.strip()
 
 setup (name = 'typed-ast',
-       version = '0.5.5',
+       version = '0.5.6',
        description = 'fork of Python 2 and 3 ast modules with type comment support',
        long_description = long_description,
        author = 'David Fisher',
