@@ -334,6 +334,11 @@ validate_stmt(stmt_ty stmt)
     case Delete_kind:
         return validate_assignlist(stmt->v.Delete.targets, Del);
     case Assign_kind:
+        if (!stmt->v.Assign.value && !stmt->v.Assign.type_comment) {
+            PyErr_SetString(PyExc_TypeError,
+                            "Assignment should at least have type or value");
+            return 0;
+        }
         return validate_assignlist(stmt->v.Assign.targets, Store) &&
                validate_expr(stmt->v.Assign.value, Load) &&
                (!stmt->v.Assign.type_comment ||
@@ -3048,14 +3053,14 @@ ast_for_expr_stmt(struct compiling *c, const node *n)
             return NULL;
         }
         if (NCH(ann) == 2) {
-            expr3 = NameConstant(Py_None, LINENO(n), n->n_col_offset, c->c_arena);
+            expr3 = NULL;
         }
         else {
             ch = CHILD(ann, 3);
             expr3 = ast_for_expr(c, ch);
-        }
-        if (!expr3) {
-            return NULL;
+            if (!expr3) {
+                return NULL;
+            }
         }
         asdl_seq_SET(targets, 0, expr1);
         return Assign(targets, expr3, type_comment,

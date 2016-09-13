@@ -1373,11 +1373,6 @@ Assign(asdl_seq * targets, expr_ty value, expr_ty type_comment, int lineno, int
        col_offset, PyArena *arena)
 {
     stmt_ty p;
-    if (!value) {
-        PyErr_SetString(PyExc_ValueError,
-                        "field value is required for Assign");
-        return NULL;
-    }
     p = (stmt_ty)PyArena_Malloc(arena, sizeof(*p));
     if (!p)
         return NULL;
@@ -4579,7 +4574,7 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
             PyErr_SetString(PyExc_TypeError, "required field \"targets\" missing from Assign");
             return 1;
         }
-        if (_PyObject_HasAttrId(obj, &PyId_value)) {
+        if (exists_not_none(obj, &PyId_value)) {
             int res;
             tmp = _PyObject_GetAttrId(obj, &PyId_value);
             if (tmp == NULL) goto failed;
@@ -4587,8 +4582,7 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
             if (res != 0) goto failed;
             Py_CLEAR(tmp);
         } else {
-            PyErr_SetString(PyExc_TypeError, "required field \"value\" missing from Assign");
-            return 1;
+            value = NULL;
         }
         if (exists_not_none(obj, &PyId_type_comment)) {
             int res;
