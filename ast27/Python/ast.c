@@ -1499,6 +1499,9 @@ ast_for_atom(struct compiling *c, const node *n)
     }
     case STRING: {
         PyObject *str = parsestrplus(c, n);
+        const char *s = STR(CHILD(n, 0));
+        int quote = Py_CHARMASK(*s);
+        int has_b = 0;
         if (!str) {
 #ifdef Py_USING_UNICODE
             if (PyErr_ExceptionMatches(PyExc_UnicodeError)){
@@ -1523,7 +1526,10 @@ ast_for_atom(struct compiling *c, const node *n)
             return NULL;
         }
         PyArena_AddPyObject(c->c_arena, str);
-        return Str(str, LINENO(n), n->n_col_offset, c->c_arena);
+        if (quote == 'b' || quote == 'B') {
+            has_b = 1;
+        }
+        return Str(str, has_b, LINENO(n), n->n_col_offset, c->c_arena);
     }
     case NUMBER: {
         PyObject *pynum = parsenumber(c, STR(ch));
