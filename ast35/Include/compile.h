@@ -6,6 +6,6 @@
 #define Py_single_input 256
 #define Py_file_input 257
 #define Py_eval_input 258
-#define Py_func_type_input 341
+#define Py_func_type_input 342
 
 #endif /* !Ta35_COMPILE_H */
