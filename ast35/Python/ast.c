@@ -3063,7 +3063,7 @@ ast_for_expr_stmt(struct compiling *c, const node *n)
             }
         }
         asdl_seq_SET(targets, 0, expr1);
-        return Assign(targets, expr3, type_comment,
+        return Assign(targets, expr3, type_comment, 1,
                       LINENO(n), n->n_col_offset, c->c_arena);
     }
     else {
@@ -3115,7 +3115,8 @@ ast_for_expr_stmt(struct compiling *c, const node *n)
         }
         else
             type_comment = NULL;
-        return Assign(targets, expression, type_comment, LINENO(n), n->n_col_offset, c->c_arena);
+        return Assign(targets, expression, type_comment, 0,
+                      LINENO(n), n->n_col_offset, c->c_arena);
     }
 }
 

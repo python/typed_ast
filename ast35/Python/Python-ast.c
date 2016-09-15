@@ -85,10 +85,12 @@ static char *Delete_fields[]={
     "targets",
 };
 static PyTypeObject *Assign_type;
+_Py_IDENTIFIER(new_syntax);
 static char *Assign_fields[]={
     "targets",
     "value",
     "type_comment",
+    "new_syntax",
 };
 static PyTypeObject *AugAssign_type;
 _Py_IDENTIFIER(target);
@@ -862,7 +864,7 @@ static int init_types(void)
     if (!Return_type) return 0;
     Delete_type = make_type("Delete", stmt_type, Delete_fields, 1);
     if (!Delete_type) return 0;
-    Assign_type = make_type("Assign", stmt_type, Assign_fields, 3);
+    Assign_type = make_type("Assign", stmt_type, Assign_fields, 4);
     if (!Assign_type) return 0;
     AugAssign_type = make_type("AugAssign", stmt_type, AugAssign_fields, 3);
     if (!AugAssign_type) return 0;
@@ -1369,8 +1371,8 @@ Delete(asdl_seq * targets, int lineno, int col_offset, PyArena *arena)
 }
 
 stmt_ty
-Assign(asdl_seq * targets, expr_ty value, expr_ty type_comment, int lineno, int
-       col_offset, PyArena *arena)
+Assign(asdl_seq * targets, expr_ty value, expr_ty type_comment, int new_syntax,
+       int lineno, int col_offset, PyArena *arena)
 {
     stmt_ty p;
     p = (stmt_ty)PyArena_Malloc(arena, sizeof(*p));
@@ -1380,6 +1382,7 @@ Assign(asdl_seq * targets, expr_ty value, expr_ty type_comment, int lineno, int
     p->v.Assign.targets = targets;
     p->v.Assign.value = value;
     p->v.Assign.type_comment = type_comment;
+    p->v.Assign.new_syntax = new_syntax;
     p->lineno = lineno;
     p->col_offset = col_offset;
     return p;
@@ -2722,6 +2725,11 @@ ast2obj_stmt(void* _o)
         value = ast2obj_expr(o->v.Assign.type_comment);
         if (!value) goto failed;
         if (_PyObject_SetAttrId(result, &PyId_type_comment, value) == -1)
+            goto failed;
+        Py_DECREF(value);
+        value = ast2obj_int(o->v.Assign.new_syntax);
+        if (!value) goto failed;
+        if (_PyObject_SetAttrId(result, &PyId_new_syntax, value) == -1)
             goto failed;
         Py_DECREF(value);
         break;
@@ -4549,6 +4557,7 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
         asdl_seq* targets;
         expr_ty value;
         expr_ty type_comment;
+        int new_syntax;
 
         if (_PyObject_HasAttrId(obj, &PyId_targets)) {
             int res;
@@ -4594,7 +4603,18 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
         } else {
             type_comment = NULL;
         }
-        *out = Assign(targets, value, type_comment, lineno, col_offset, arena);
+        if (exists_not_none(obj, &PyId_new_syntax)) {
+            int res;
+            tmp = _PyObject_GetAttrId(obj, &PyId_new_syntax);
+            if (tmp == NULL) goto failed;
+            res = obj2ast_int(tmp, &new_syntax, arena);
+            if (res != 0) goto failed;
+            Py_CLEAR(tmp);
+        } else {
+            new_syntax = 0;
+        }
+        *out = Assign(targets, value, type_comment, new_syntax, lineno,
+                      col_offset, arena);
         if (*out == NULL) goto failed;
         return 0;
     }
