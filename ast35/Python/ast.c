@@ -3107,11 +3107,8 @@ ast_for_expr_stmt(struct compiling *c, const node *n)
             return NULL;
         if (has_type_comment) {
             chc = CHILD(n, nch_minus_type);
-            type_comment = Str(NEW_TYPE_COMMENT(chc), LINENO(chc), chc->n_col_offset, c->c_arena);
-            if (expression->kind == NameConstant_kind &&
-                expression->v.NameConstant.value == Py_None) {
-                expression = NULL;
-            }
+            type_comment = Str(NEW_TYPE_COMMENT(chc),
+                               LINENO(chc), chc->n_col_offset, c->c_arena);
         }
         else
             type_comment = NULL;
