@@ -286,6 +286,7 @@ struct _expr {
                 
                 struct {
                         string s;
+                        int has_b;
                 } Str;
                 
                 struct {
@@ -503,8 +504,8 @@ expr_ty _Ta27_Call(expr_ty func, asdl_seq * args, asdl_seq * keywords, expr_ty s
 expr_ty _Ta27_Repr(expr_ty value, int lineno, int col_offset, PyArena *arena);
 #define Num(a0, a1, a2, a3) _Ta27_Num(a0, a1, a2, a3)
 expr_ty _Ta27_Num(object n, int lineno, int col_offset, PyArena *arena);
-#define Str(a0, a1, a2, a3) _Ta27_Str(a0, a1, a2, a3)
-expr_ty _Ta27_Str(string s, int lineno, int col_offset, PyArena *arena);
+#define Str(a0, a1, a2, a3, a4) _Ta27_Str(a0, a1, a2, a3, a4)
+expr_ty _Ta27_Str(string s, int has_b, int lineno, int col_offset, PyArena *arena);
 #define Attribute(a0, a1, a2, a3, a4, a5) _Ta27_Attribute(a0, a1, a2, a3, a4, a5)
 expr_ty _Ta27_Attribute(expr_ty value, identifier attr, expr_context_ty ctx, int lineno, int
                         col_offset, PyArena *arena);
