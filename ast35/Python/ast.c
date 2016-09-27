@@ -334,8 +334,21 @@ validate_stmt(stmt_ty stmt)
     case Delete_kind:
         return validate_assignlist(stmt->v.Delete.targets, Del);
     case Assign_kind:
+        if (!stmt->v.Assign.value && !stmt->v.Assign.annotation) {
+            PyErr_SetString(PyExc_TypeError,
+                            "Assignment should at least have type or value");
+            return 0;
+        }
+        if (stmt->v.Assign.type_comment && stmt->v.Assign.annotation) {
+            PyErr_SetString(PyExc_TypeError,
+                            "Assignment can't have both annotation and type comment");
+            return 0;
+        }
         return validate_assignlist(stmt->v.Assign.targets, Store) &&
-            validate_expr(stmt->v.Assign.value, Load);
+               (!stmt->v.Assign.value ||
+                validate_expr(stmt->v.Assign.value, Load)) &&
+               (!stmt->v.Assign.annotation ||
+                validate_expr(stmt->v.Assign.annotation, Load));
     case AugAssign_kind:
         return validate_expr(stmt->v.AugAssign.target, Store) &&
             validate_expr(stmt->v.AugAssign.value, Load);
@@ -2999,6 +3012,66 @@ ast_for_expr_stmt(struct compiling *c, const node *n)
 
         return AugAssign(expr1, newoperator, expr2, LINENO(n), n->n_col_offset, c->c_arena);
     }
+    else if (TYPE(CHILD(n, 1)) == annassign) {
+        expr_ty expr1, annotation, expr3;
+        node *ch = CHILD(n, 0);
+        node *ann = CHILD(n, 1);
+        asdl_seq *targets = _Py_asdl_seq_new(1, c->c_arena);
+        if (!targets)
+            return NULL;
+
+        expr1 = ast_for_testlist(c, ch);
+        if (!expr1) {
+            return NULL;
+        }
+        switch (expr1->kind) {
+            case Name_kind:
+                if (forbidden_name(c, expr1->v.Name.id, n, 0)) {
+                    return NULL;
+                }
+                expr1->v.Name.ctx = Store;
+                break;
+            case Attribute_kind:
+                if (forbidden_name(c, expr1->v.Attribute.attr, n, 1)) {
+                    return NULL;
+                }
+                expr1->v.Attribute.ctx = Store;
+                break;
+            case Subscript_kind:
+                expr1->v.Subscript.ctx = Store;
+                break;
+            case List_kind:
+                ast_error(c, ch,
+                          "only single target (not list) can be annotated");
+                return NULL;
+            case Tuple_kind:
+                ast_error(c, ch,
+                          "only single target (not tuple) can be annotated");
+                return NULL;
+            default:
+                ast_error(c, ch,
+                          "illegal target for annotation");
+                return NULL;
+        }
+        ch = CHILD(ann, 1);
+        annotation = ast_for_expr(c, ch);
+        if (!annotation) {
+            return NULL;
+        }
+        if (NCH(ann) == 2) {
+            expr3 = NULL;
+        }
+        else {
+            ch = CHILD(ann, 3);
+            expr3 = ast_for_expr(c, ch);
+            if (!expr3) {
+                return NULL;
+            }
+        }
+        asdl_seq_SET(targets, 0, expr1);
+        return Assign(targets, expr3, NULL, annotation,
+                      LINENO(n), n->n_col_offset, c->c_arena);
+    }
     else {
         int i, nch_minus_type, has_type_comment;
         asdl_seq *targets;
@@ -3043,7 +3116,8 @@ ast_for_expr_stmt(struct compiling *c, const node *n)
             type_comment = NEW_TYPE_COMMENT(CHILD(n, nch_minus_type));
         else
             type_comment = NULL;
-        return Assign(targets, expression, type_comment, LINENO(n), n->n_col_offset, c->c_arena);
+        return Assign(targets, expression, type_comment, NULL,
+                      LINENO(n), n->n_col_offset, c->c_arena);
     }
 }
 
