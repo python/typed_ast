@@ -7,8 +7,6 @@ try:
 except ImportError:
     from distutils.core import setup, Extension
 
-import typed_ast
-
 _ast27 = Extension(
     '_ast27',
     include_dirs = ['ast27/Include'],
@@ -84,7 +82,7 @@ comments.  The primary goals of this package are correctness and speed.
 """.strip()
 
 setup (name = 'typed-ast',
-       version = typed_ast.__version__,
+       version = '0.6.0',
        description = 'fork of Python 2 and 3 ast modules with type comment support',
        long_description = long_description,
        author = 'David Fisher',
