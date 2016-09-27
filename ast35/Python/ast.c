@@ -334,15 +334,21 @@ validate_stmt(stmt_ty stmt)
     case Delete_kind:
         return validate_assignlist(stmt->v.Delete.targets, Del);
     case Assign_kind:
-        if (!stmt->v.Assign.value && !stmt->v.Assign.type_comment) {
+        if (!stmt->v.Assign.value && !stmt->v.Assign.annotation) {
             PyErr_SetString(PyExc_TypeError,
                             "Assignment should at least have type or value");
             return 0;
         }
+        if (stmt->v.Assign.type_comment && stmt->v.Assign.annotation) {
+            PyErr_SetString(PyExc_TypeError,
+                            "Assignment can't have annotaion and type comment");
+            return 0;
+        }
         return validate_assignlist(stmt->v.Assign.targets, Store) &&
-               validate_expr(stmt->v.Assign.value, Load) &&
-               (!stmt->v.Assign.type_comment ||
-                validate_expr(stmt->v.Assign.type_comment, Load));
+               (!stmt->v.Assign.value ||
+                validate_expr(stmt->v.Assign.value, Load)) &&
+               (!stmt->v.Assign.annotation ||
+                validate_expr(stmt->v.Assign.annotation, Load));
     case AugAssign_kind:
         return validate_expr(stmt->v.AugAssign.target, Store) &&
             validate_expr(stmt->v.AugAssign.value, Load);
@@ -3007,7 +3013,7 @@ ast_for_expr_stmt(struct compiling *c, const node *n)
         return AugAssign(expr1, newoperator, expr2, LINENO(n), n->n_col_offset, c->c_arena);
     }
     else if (TYPE(CHILD(n, 1)) == annassign) {
-        expr_ty expr1, type_comment, expr3;
+        expr_ty expr1, annotation, expr3;
         node *ch = CHILD(n, 0);
         node *ann = CHILD(n, 1);
         asdl_seq *targets = _Py_asdl_seq_new(1, c->c_arena);
@@ -3048,8 +3054,8 @@ ast_for_expr_stmt(struct compiling *c, const node *n)
                 return NULL;
         }
         ch = CHILD(ann, 1);
-        type_comment = ast_for_expr(c, ch);
-        if (!type_comment) {
+        annotation = ast_for_expr(c, ch);
+        if (!annotation) {
             return NULL;
         }
         if (NCH(ann) == 2) {
@@ -3063,14 +3069,15 @@ ast_for_expr_stmt(struct compiling *c, const node *n)
             }
         }
         asdl_seq_SET(targets, 0, expr1);
-        return Assign(targets, expr3, type_comment, 1,
+        return Assign(targets, expr3, NULL, annotation,
                       LINENO(n), n->n_col_offset, c->c_arena);
     }
     else {
         int i, nch_minus_type, has_type_comment;
         asdl_seq *targets;
-        node *value, *chc;
-        expr_ty expression, type_comment;
+        node *value;
+        expr_ty expression;
+        string type_comment;
 
         /* a normal assignment */
         REQ(CHILD(n, 1), EQUAL);
@@ -3105,14 +3112,11 @@ ast_for_expr_stmt(struct compiling *c, const node *n)
             expression = ast_for_expr(c, value);
         if (!expression)
             return NULL;
-        if (has_type_comment) {
-            chc = CHILD(n, nch_minus_type);
-            type_comment = Str(NEW_TYPE_COMMENT(chc),
-                               LINENO(chc), chc->n_col_offset, c->c_arena);
-        }
+        if (has_type_comment)
+            type_comment = NEW_TYPE_COMMENT(CHILD(n, nch_minus_type));
         else
             type_comment = NULL;
-        return Assign(targets, expression, type_comment, 0,
+        return Assign(targets, expression, type_comment, NULL,
                       LINENO(n), n->n_col_offset, c->c_arena);
     }
 }

@@ -118,8 +118,8 @@ struct _stmt {
         struct {
             asdl_seq *targets;
             expr_ty value;
-            expr_ty type_comment;
-            int new_syntax;
+            string type_comment;
+            expr_ty annotation;
         } Assign;
         
         struct {
@@ -470,8 +470,8 @@ stmt_ty _Ta35_Return(expr_ty value, int lineno, int col_offset, PyArena *arena);
 stmt_ty _Ta35_Delete(asdl_seq * targets, int lineno, int col_offset, PyArena
                      *arena);
 #define Assign(a0, a1, a2, a3, a4, a5, a6) _Ta35_Assign(a0, a1, a2, a3, a4, a5, a6)
-stmt_ty _Ta35_Assign(asdl_seq * targets, expr_ty value, expr_ty type_comment,
-                     int new_syntax, int lineno, int col_offset, PyArena
+stmt_ty _Ta35_Assign(asdl_seq * targets, expr_ty value, string type_comment,
+                     expr_ty annotation, int lineno, int col_offset, PyArena
                      *arena);
 #define AugAssign(a0, a1, a2, a3, a4, a5) _Ta35_AugAssign(a0, a1, a2, a3, a4, a5)
 stmt_ty _Ta35_AugAssign(expr_ty target, operator_ty op, expr_ty value, int

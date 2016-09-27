@@ -85,12 +85,12 @@ static char *Delete_fields[]={
     "targets",
 };
 static PyTypeObject *Assign_type;
-_Py_IDENTIFIER(new_syntax);
+_Py_IDENTIFIER(annotation);
 static char *Assign_fields[]={
     "targets",
     "value",
     "type_comment",
-    "new_syntax",
+    "annotation",
 };
 static PyTypeObject *AugAssign_type;
 _Py_IDENTIFIER(target);
@@ -466,7 +466,6 @@ static char *arg_attributes[] = {
     "col_offset",
 };
 _Py_IDENTIFIER(arg);
-_Py_IDENTIFIER(annotation);
 static char *arg_fields[]={
     "arg",
     "annotation",
@@ -1371,8 +1370,8 @@ Delete(asdl_seq * targets, int lineno, int col_offset, PyArena *arena)
 }
 
 stmt_ty
-Assign(asdl_seq * targets, expr_ty value, expr_ty type_comment, int new_syntax,
-       int lineno, int col_offset, PyArena *arena)
+Assign(asdl_seq * targets, expr_ty value, string type_comment, expr_ty
+       annotation, int lineno, int col_offset, PyArena *arena)
 {
     stmt_ty p;
     p = (stmt_ty)PyArena_Malloc(arena, sizeof(*p));
@@ -1382,7 +1381,7 @@ Assign(asdl_seq * targets, expr_ty value, expr_ty type_comment, int new_syntax,
     p->v.Assign.targets = targets;
     p->v.Assign.value = value;
     p->v.Assign.type_comment = type_comment;
-    p->v.Assign.new_syntax = new_syntax;
+    p->v.Assign.annotation = annotation;
     p->lineno = lineno;
     p->col_offset = col_offset;
     return p;
@@ -2722,14 +2721,14 @@ ast2obj_stmt(void* _o)
         if (_PyObject_SetAttrId(result, &PyId_value, value) == -1)
             goto failed;
         Py_DECREF(value);
-        value = ast2obj_expr(o->v.Assign.type_comment);
+        value = ast2obj_string(o->v.Assign.type_comment);
         if (!value) goto failed;
         if (_PyObject_SetAttrId(result, &PyId_type_comment, value) == -1)
             goto failed;
         Py_DECREF(value);
-        value = ast2obj_int(o->v.Assign.new_syntax);
+        value = ast2obj_expr(o->v.Assign.annotation);
         if (!value) goto failed;
-        if (_PyObject_SetAttrId(result, &PyId_new_syntax, value) == -1)
+        if (_PyObject_SetAttrId(result, &PyId_annotation, value) == -1)
             goto failed;
         Py_DECREF(value);
         break;
@@ -4556,8 +4555,8 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
     if (isinstance) {
         asdl_seq* targets;
         expr_ty value;
-        expr_ty type_comment;
-        int new_syntax;
+        string type_comment;
+        expr_ty annotation;
 
         if (_PyObject_HasAttrId(obj, &PyId_targets)) {
             int res;
@@ -4597,23 +4596,23 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
             int res;
             tmp = _PyObject_GetAttrId(obj, &PyId_type_comment);
             if (tmp == NULL) goto failed;
-            res = obj2ast_expr(tmp, &type_comment, arena);
+            res = obj2ast_string(tmp, &type_comment, arena);
             if (res != 0) goto failed;
             Py_CLEAR(tmp);
         } else {
             type_comment = NULL;
         }
-        if (exists_not_none(obj, &PyId_new_syntax)) {
+        if (exists_not_none(obj, &PyId_annotation)) {
             int res;
-            tmp = _PyObject_GetAttrId(obj, &PyId_new_syntax);
+            tmp = _PyObject_GetAttrId(obj, &PyId_annotation);
             if (tmp == NULL) goto failed;
-            res = obj2ast_int(tmp, &new_syntax, arena);
+            res = obj2ast_expr(tmp, &annotation, arena);
             if (res != 0) goto failed;
             Py_CLEAR(tmp);
         } else {
-            new_syntax = 0;
+            annotation = NULL;
         }
-        *out = Assign(targets, value, type_comment, new_syntax, lineno,
+        *out = Assign(targets, value, type_comment, annotation, lineno,
                       col_offset, arena);
         if (*out == NULL) goto failed;
         return 0;
