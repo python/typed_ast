@@ -341,7 +341,7 @@ validate_stmt(stmt_ty stmt)
         }
         if (stmt->v.Assign.type_comment && stmt->v.Assign.annotation) {
             PyErr_SetString(PyExc_TypeError,
-                            "Assignment can't have annotation and type comment");
+                            "Assignment can't have both annotation and type comment");
             return 0;
         }
         return validate_assignlist(stmt->v.Assign.targets, Store) &&
