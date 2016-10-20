@@ -2154,7 +2154,6 @@ ast_for_atom(struct compiling *c, const node *n)
        | '...' | 'None' | 'True' | 'False'
     */
     node *ch = CHILD(n, 0);
-    int bytesmode = 0;
 
     switch (TYPE(ch)) {
     case NAME: {
@@ -4376,13 +4375,8 @@ fstring_find_literal(const char **str, const char *end, int raw,
     assert(*str == end || **str == '{' || **str == '}');
 done:
     if (literal_start != literal_end) {
-        if (raw)
-            *literal = PyUnicode_DecodeUTF8Stateful(literal_start,
-                                                    literal_end-literal_start,
-                                                    NULL, NULL);
-        else
-            *literal = decode_unicode_with_escapes(c, literal_start,
-                                                   literal_end-literal_start);
+        *literal = decode_unicode(c, literal_start, literal_end-literal_start,
+                                  raw, c->c_encoding);
         if (!*literal)
             return -1;
     }
@@ -5035,6 +5029,7 @@ parsestr(struct compiling *c, const node *n, int *bytesmode, int *rawmode,
     const char *s = STR(n);
     int quote = Py_CHARMASK(*s);
     int fmode = 0;
+    int need_encoding;
     *bytesmode = 0;
     *rawmode = 0;
     *result = NULL;
@@ -5107,7 +5102,7 @@ parsestr(struct compiling *c, const node *n, int *bytesmode, int *rawmode,
     /* Avoid invoking escape decoding routines if possible. */
     *rawmode = *rawmode || strchr(s, '\\') == NULL;
     if (*bytesmode) {
-        /* Disallow non-ASCII characters. */
+        /* Disallow non-ASCII characters (but not escapes) */
         const char *ch;
         for (ch = s; *ch; ch++) {
             if (Py_CHARMASK(*ch) >= 0x80) {
@@ -5116,15 +5111,28 @@ parsestr(struct compiling *c, const node *n, int *bytesmode, int *rawmode,
                 return -1;
             }
         }
-        if (*rawmode)
+    }
+    need_encoding = (!*bytesmode && c->c_encoding != NULL &&
+                     strcmp(c->c_encoding, "utf-8") != 0);
+    if (rawmode || strchr(s, '\\') == NULL) {
+        if (need_encoding) {
+            PyObject *u = PyUnicode_DecodeUTF8(s, len, NULL);
+            if (u == NULL || !*bytesmode) {
+                *result = u;
+            } else {
+                *result = PyUnicode_AsEncodedString(u, c->c_encoding, NULL);
+                Py_DECREF(u);
+            }
+        } else if (*bytesmode) {
             *result = PyBytes_FromStringAndSize(s, len);
-        else
-            *result = PyBytes_DecodeEscape(s, len, NULL, /* ignored */ 0, NULL);
+        } else if (strcmp(c->c_encoding, "utf-8") == 0) {
+            *result = PyUnicode_FromStringAndSize(s, len);
+        } else {
+            *result = PyUnicode_DecodeLatin1(s, len, NULL);
+        }
     } else {
-        if (*rawmode)
-            *result = PyUnicode_DecodeUTF8Stateful(s, len, NULL, NULL);
-        else
-            *result = decode_unicode_with_escapes(c, s, len);
+        *result = PyBytes_DecodeEscape(s, len, NULL, 1,
+                                       need_encoding ? c->c_encoding : NULL);
     }
     return *result == NULL ? -1 : 0;
 }
