@@ -4269,7 +4269,7 @@ fstring_compile_expr(const char *expr_start, const char *expr_end,
        Which is unfortunate, but such is life. */
 
     /* If the substring is all whitespace, it's an error.  We need to catch
-       this here, and not when we call PyParser_ASTFromString, because turning
+       this here, and not when we call Ta35Parser_ASTFromString, because turning
        the expression '' in to '()' would go from being invalid to valid. */
     /* Note that this code says an empty string is all whitespace.  That's
        important.  There's a test for it: f'{}'. */
@@ -4304,8 +4304,8 @@ fstring_compile_expr(const char *expr_start, const char *expr_end,
     str[len+2] = 0;
 
     cf.cf_flags = PyCF_ONLY_AST;
-    mod = PyParser_ASTFromString(str, "<fstring>",
-                                 Py_eval_input, &cf, c->c_arena);
+    mod = Ta35Parser_ASTFromString(str, "<fstring>", Py_eval_input, &cf,
+                                   c->c_arena);
     PyMem_RawFree(str);
     if (!mod)
         return NULL;

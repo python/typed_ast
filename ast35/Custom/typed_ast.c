@@ -242,6 +242,20 @@ string_object_to_c_ast(const char *s, PyObject *filename, int start,
     return mod;
 }
 
+// copy of PyParser_ASTFromString in Python/pythonrun.c
+mod_ty
+Ta35Parser_ASTFromString(const char *s, const char *filename_str, int start,
+                         PyCompilerFlags *flags, PyArena *arena) {
+    PyObject *filename;
+    mod_ty mod;
+    filename = PyUnicode_DecodeFSDefault(filename_str);
+    if (filename == NULL)
+        return NULL;
+    mod = string_object_to_c_ast(s, filename, start, flags, arena);
+    Py_DECREF(filename);
+    return mod;
+}
+
 // adapted from Py_CompileStringObject in Python/pythonrun.c
 static PyObject *
 string_object_to_py_ast(const char *str, PyObject *filename, int start,
