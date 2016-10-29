@@ -2205,7 +2205,7 @@ ast_for_atom(struct compiling *c, const node *n)
     }
     case NUMBER: {
         const char *s = STR(ch);
-        int underscores = strchr(s, '_') != NULL;
+        int contains_underscores = strchr(s, '_') != NULL;
         PyObject *pynum = parsenumber(c, s);
         if (!pynum)
             return NULL;
@@ -2214,7 +2214,7 @@ ast_for_atom(struct compiling *c, const node *n)
             Py_DECREF(pynum);
             return NULL;
         }
-        return Num(pynum, underscores, LINENO(n),
+        return Num(pynum, contains_underscores, LINENO(n),
                    n->n_col_offset, c->c_arena);
     }
     case ELLIPSIS: /* Ellipsis */

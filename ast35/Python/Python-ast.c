@@ -293,10 +293,10 @@ static char *Call_fields[]={
 };
 static PyTypeObject *Num_type;
 _Py_IDENTIFIER(n);
-_Py_IDENTIFIER(underscores);
+_Py_IDENTIFIER(contains_underscores);
 static char *Num_fields[]={
     "n",
-    "underscores",
+    "contains_underscores",
 };
 static PyTypeObject *Str_type;
 _Py_IDENTIFIER(s);
@@ -2079,7 +2079,8 @@ Call(expr_ty func, asdl_seq * args, asdl_seq * keywords, int lineno, int
 }
 
 expr_ty
-Num(object n, int underscores, int lineno, int col_offset, PyArena *arena)
+Num(object n, int contains_underscores, int lineno, int col_offset, PyArena
+    *arena)
 {
     expr_ty p;
     if (!n) {
@@ -2092,7 +2093,7 @@ Num(object n, int underscores, int lineno, int col_offset, PyArena *arena)
         return NULL;
     p->kind = Num_kind;
     p->v.Num.n = n;
-    p->v.Num.underscores = underscores;
+    p->v.Num.contains_underscores = contains_underscores;
     p->lineno = lineno;
     p->col_offset = col_offset;
     return p;
@@ -3270,9 +3271,10 @@ ast2obj_expr(void* _o)
         if (_PyObject_SetAttrId(result, &PyId_n, value) == -1)
             goto failed;
         Py_DECREF(value);
-        value = ast2obj_int(o->v.Num.underscores);
+        value = ast2obj_int(o->v.Num.contains_underscores);
         if (!value) goto failed;
-        if (_PyObject_SetAttrId(result, &PyId_underscores, value) == -1)
+        if (_PyObject_SetAttrId(result, &PyId_contains_underscores, value) ==
+            -1)
             goto failed;
         Py_DECREF(value);
         break;
@@ -6275,7 +6277,7 @@ obj2ast_expr(PyObject* obj, expr_ty* out, PyArena* arena)
     }
     if (isinstance) {
         object n;
-        int underscores;
+        int contains_underscores;
 
         if (_PyObject_HasAttrId(obj, &PyId_n)) {
             int res;
@@ -6288,17 +6290,17 @@ obj2ast_expr(PyObject* obj, expr_ty* out, PyArena* arena)
             PyErr_SetString(PyExc_TypeError, "required field \"n\" missing from Num");
             return 1;
         }
-        if (exists_not_none(obj, &PyId_underscores)) {
+        if (exists_not_none(obj, &PyId_contains_underscores)) {
             int res;
-            tmp = _PyObject_GetAttrId(obj, &PyId_underscores);
+            tmp = _PyObject_GetAttrId(obj, &PyId_contains_underscores);
             if (tmp == NULL) goto failed;
-            res = obj2ast_int(tmp, &underscores, arena);
+            res = obj2ast_int(tmp, &contains_underscores, arena);
             if (res != 0) goto failed;
             Py_CLEAR(tmp);
         } else {
-            underscores = 0;
+            contains_underscores = 0;
         }
-        *out = Num(n, underscores, lineno, col_offset, arena);
+        *out = Num(n, contains_underscores, lineno, col_offset, arena);
         if (*out == NULL) goto failed;
         return 0;
     }
