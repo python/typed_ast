@@ -70,8 +70,8 @@ module Python
          -- x < 4 < 3 and (x < 4) < 3
          | Compare(expr left, cmpop* ops, expr* comparators)
          | Call(expr func, expr* args, keyword* keywords)
-         -- the field contains_underscores is not a part of standard Python ASDL
-         -- and exists here to signal that a newer Python version feature was used
+         -- contains_underscores is not part of standard Python ASDL
+         -- and exists here to signal that a Python 3.6 feature was used
          | Num(object n, int? contains_underscores) -- a number as a PyObject.
          | Str(string s) -- need to specify raw, unicode, etc?
          | Bytes(bytes s)
