@@ -304,6 +304,7 @@ struct _expr {
         
         struct {
             object n;
+            int contains_underscores;
         } Num;
         
         struct {
@@ -570,8 +571,9 @@ expr_ty _Ta35_Compare(expr_ty left, asdl_int_seq * ops, asdl_seq * comparators,
 #define Call(a0, a1, a2, a3, a4, a5) _Ta35_Call(a0, a1, a2, a3, a4, a5)
 expr_ty _Ta35_Call(expr_ty func, asdl_seq * args, asdl_seq * keywords, int
                    lineno, int col_offset, PyArena *arena);
-#define Num(a0, a1, a2, a3) _Ta35_Num(a0, a1, a2, a3)
-expr_ty _Ta35_Num(object n, int lineno, int col_offset, PyArena *arena);
+#define Num(a0, a1, a2, a3, a4) _Ta35_Num(a0, a1, a2, a3, a4)
+expr_ty _Ta35_Num(object n, int contains_underscores, int lineno, int
+                  col_offset, PyArena *arena);
 #define Str(a0, a1, a2, a3) _Ta35_Str(a0, a1, a2, a3)
 expr_ty _Ta35_Str(string s, int lineno, int col_offset, PyArena *arena);
 #define Bytes(a0, a1, a2, a3) _Ta35_Bytes(a0, a1, a2, a3)

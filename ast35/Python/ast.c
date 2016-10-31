@@ -2204,7 +2204,9 @@ ast_for_atom(struct compiling *c, const node *n)
             return Str(str, LINENO(n), n->n_col_offset, c->c_arena);
     }
     case NUMBER: {
-        PyObject *pynum = parsenumber(c, STR(ch));
+        const char *s = STR(ch);
+        int contains_underscores = strchr(s, '_') != NULL;
+        PyObject *pynum = parsenumber(c, s);
         if (!pynum)
             return NULL;
 
@@ -2212,7 +2214,8 @@ ast_for_atom(struct compiling *c, const node *n)
             Py_DECREF(pynum);
             return NULL;
         }
-        return Num(pynum, LINENO(n), n->n_col_offset, c->c_arena);
+        return Num(pynum, contains_underscores, LINENO(n),
+                   n->n_col_offset, c->c_arena);
     }
     case ELLIPSIS: /* Ellipsis */
         return Ellipsis(LINENO(n), n->n_col_offset, c->c_arena);
@@ -4124,7 +4127,7 @@ ast_for_stmt(struct compiling *c, const node *n)
 }
 
 static PyObject *
-parsenumber(struct compiling *c, const char *s)
+parsenumber_raw(struct compiling *c, const char *s)
 {
     const char *end;
     long x;
@@ -4164,6 +4167,31 @@ parsenumber(struct compiling *c, const char *s)
             return NULL;
         return PyFloat_FromDouble(dx);
     }
+}
+
+static PyObject *
+parsenumber(struct compiling *c, const char *s)
+{
+    char *dup, *end;
+    PyObject *res = NULL;
+
+    assert(s != NULL);
+
+    if (strchr(s, '_') == NULL) {
+        return parsenumber_raw(c, s);
+    }
+    /* Create a duplicate without underscores. */
+    dup = PyMem_Malloc(strlen(s) + 1);
+    end = dup;
+    for (; *s; s++) {
+        if (*s != '_') {
+            *end++ = *s;
+        }
+    }
+    *end = '\0';
+    res = parsenumber_raw(c, dup);
+    PyMem_Free(dup);
+    return res;
 }
 
 static PyObject *

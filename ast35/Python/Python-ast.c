@@ -293,8 +293,10 @@ static char *Call_fields[]={
 };
 static PyTypeObject *Num_type;
 _Py_IDENTIFIER(n);
+_Py_IDENTIFIER(contains_underscores);
 static char *Num_fields[]={
     "n",
+    "contains_underscores",
 };
 static PyTypeObject *Str_type;
 _Py_IDENTIFIER(s);
@@ -937,7 +939,7 @@ static int init_types(void)
     if (!Compare_type) return 0;
     Call_type = make_type("Call", expr_type, Call_fields, 3);
     if (!Call_type) return 0;
-    Num_type = make_type("Num", expr_type, Num_fields, 1);
+    Num_type = make_type("Num", expr_type, Num_fields, 2);
     if (!Num_type) return 0;
     Str_type = make_type("Str", expr_type, Str_fields, 1);
     if (!Str_type) return 0;
@@ -2077,7 +2079,8 @@ Call(expr_ty func, asdl_seq * args, asdl_seq * keywords, int lineno, int
 }
 
 expr_ty
-Num(object n, int lineno, int col_offset, PyArena *arena)
+Num(object n, int contains_underscores, int lineno, int col_offset, PyArena
+    *arena)
 {
     expr_ty p;
     if (!n) {
@@ -2090,6 +2093,7 @@ Num(object n, int lineno, int col_offset, PyArena *arena)
         return NULL;
     p->kind = Num_kind;
     p->v.Num.n = n;
+    p->v.Num.contains_underscores = contains_underscores;
     p->lineno = lineno;
     p->col_offset = col_offset;
     return p;
@@ -3265,6 +3269,12 @@ ast2obj_expr(void* _o)
         value = ast2obj_object(o->v.Num.n);
         if (!value) goto failed;
         if (_PyObject_SetAttrId(result, &PyId_n, value) == -1)
+            goto failed;
+        Py_DECREF(value);
+        value = ast2obj_int(o->v.Num.contains_underscores);
+        if (!value) goto failed;
+        if (_PyObject_SetAttrId(result, &PyId_contains_underscores, value) ==
+            -1)
             goto failed;
         Py_DECREF(value);
         break;
@@ -6267,6 +6277,7 @@ obj2ast_expr(PyObject* obj, expr_ty* out, PyArena* arena)
     }
     if (isinstance) {
         object n;
+        int contains_underscores;
 
         if (_PyObject_HasAttrId(obj, &PyId_n)) {
             int res;
@@ -6279,7 +6290,17 @@ obj2ast_expr(PyObject* obj, expr_ty* out, PyArena* arena)
             PyErr_SetString(PyExc_TypeError, "required field \"n\" missing from Num");
             return 1;
         }
-        *out = Num(n, lineno, col_offset, arena);
+        if (exists_not_none(obj, &PyId_contains_underscores)) {
+            int res;
+            tmp = _PyObject_GetAttrId(obj, &PyId_contains_underscores);
+            if (tmp == NULL) goto failed;
+            res = obj2ast_int(tmp, &contains_underscores, arena);
+            if (res != 0) goto failed;
+            Py_CLEAR(tmp);
+        } else {
+            contains_underscores = 0;
+        }
+        *out = Num(n, contains_underscores, lineno, col_offset, arena);
         if (*out == NULL) goto failed;
         return 0;
     }
