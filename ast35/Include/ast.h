@@ -4,13 +4,13 @@
 extern "C" {
 #endif
 
-PyAPI_FUNC(int) Ta35AST_Validate(mod_ty);
-PyAPI_FUNC(mod_ty) Ta35AST_FromNode(
+int Ta35AST_Validate(mod_ty);
+mod_ty Ta35AST_FromNode(
     const node *n,
     PyCompilerFlags *flags,
     const char *filename,       /* decoded from the filesystem encoding */
     PyArena *arena);
-PyAPI_FUNC(mod_ty) Ta35AST_FromNodeObject(
+mod_ty Ta35AST_FromNodeObject(
     const node *n,
     PyCompilerFlags *flags,
     PyObject *filename,

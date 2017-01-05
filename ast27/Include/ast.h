@@ -4,7 +4,7 @@
 extern "C" {
 #endif
 
-PyAPI_FUNC(mod_ty) Ta27AST_FromNode(const node *, PyCompilerFlags *flags,
+mod_ty Ta27AST_FromNode(const node *, PyCompilerFlags *flags,
 				  const char *, PyArena *);
 
 #ifdef __cplusplus

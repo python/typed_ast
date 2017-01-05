@@ -9,7 +9,7 @@
 #include "token.h"
 #include "grammar.h"
 
-extern int Py_DebugFlag;
+PyAPI_DATA(int) Py_DebugFlag;
 
 grammar *
 newgrammar(int start)

@@ -33,30 +33,30 @@ typedef struct {
 #define PyPARSE_IGNORE_COOKIE 0x0010
 
 
-PyAPI_FUNC(node *) Ta27Parser_ParseString(const char *, grammar *, int,
-                                              perrdetail *);
-PyAPI_FUNC(node *) Ta27Parser_ParseFile (FILE *, const char *, grammar *, int,
-                                             char *, char *, perrdetail *);
+node *Ta27Parser_ParseString(const char *, grammar *, int,
+                             perrdetail *);
+node *Ta27Parser_ParseFile (FILE *, const char *, grammar *, int,
+                            char *, char *, perrdetail *);
 
-PyAPI_FUNC(node *) Ta27Parser_ParseStringFlags(const char *, grammar *, int,
-                                              perrdetail *, int);
-PyAPI_FUNC(node *) Ta27Parser_ParseFileFlags(FILE *, const char *, grammar *,
-						 int, char *, char *,
-						 perrdetail *, int);
-PyAPI_FUNC(node *) Ta27Parser_ParseFileFlagsEx(FILE *, const char *, grammar *,
-						 int, char *, char *,
-						 perrdetail *, int *);
+node *Ta27Parser_ParseStringFlags(const char *, grammar *, int,
+                                  perrdetail *, int);
+node *Ta27Parser_ParseFileFlags(FILE *, const char *, grammar *,
+       			 int, char *, char *,
+       			 perrdetail *, int);
+node *Ta27Parser_ParseFileFlagsEx(FILE *, const char *, grammar *,
+       			 int, char *, char *,
+       			 perrdetail *, int *);
 
-PyAPI_FUNC(node *) Ta27Parser_ParseStringFlagsFilename(const char *,
-					      const char *,
-					      grammar *, int,
-                                              perrdetail *, int);
-PyAPI_FUNC(node *) Ta27Parser_ParseStringFlagsFilenameEx(const char *,
+node *Ta27Parser_ParseStringFlagsFilename(const char *,
+       		      const char *,
+       		      grammar *, int,
+                perrdetail *, int);
+node *Ta27Parser_ParseStringFlagsFilenameEx(const char *,
 					      const char *,
 					      grammar *, int,
                                               perrdetail *, int *);
 
-PyAPI_FUNC(node *) Ta27Parser_ParseStringObject(
+node *Ta27Parser_ParseStringObject(
     const char *s,
     PyObject *filename,
     grammar *g,

@@ -476,7 +476,7 @@ static PyMethodDef ast_type_methods[] = {
 };
 
 static PyTypeObject AST_type = {
-    PyVarObject_HEAD_INIT(&PyType_Type, 0)
+    PyVarObject_HEAD_INIT(NULL, 0)
     "_ast27.AST",
     sizeof(PyObject),
     0,

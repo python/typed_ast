@@ -724,7 +724,7 @@ static PyGetSetDef ast_type_getsets[] = {
 };
 
 static PyTypeObject AST_type = {
-    PyVarObject_HEAD_INIT(&PyType_Type, 0)
+    PyVarObject_HEAD_INIT(NULL, 0)
     "_ast35.AST",
     sizeof(AST_object),
     0,
