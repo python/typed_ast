@@ -84,19 +84,20 @@ comments.  The primary goals of this package are correctness and speed.
 """.strip()
 
 setup (name = 'typed-ast',
-       version = '0.6.1',
+       version = '0.6.2',
        description = 'fork of Python 2 and 3 ast modules with type comment support',
        long_description = long_description,
        author = 'David Fisher',
        author_email = 'ddfisher@dropbox.com',
        url = 'https://github.com/dropbox/typed_ast',
        license='Apache License 2.0',
-       platforms = ['POSIX'],
+       platforms = ['POSIX', 'Windows'],
        classifiers = [
-           'Development Status :: 3 - Alpha',
+           'Development Status :: 4 - Beta',
            'Environment :: Console',
            'Intended Audience :: Developers',
            'Operating System :: POSIX',
+           'Operating System :: Microsoft',
            'Programming Language :: Python :: 3.3',
            'Programming Language :: Python :: 3.4',
            'Programming Language :: Python :: 3.5',
