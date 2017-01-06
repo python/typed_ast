@@ -34,7 +34,8 @@
 #if PY_MINOR_VERSION >= 4
 PyAPI_FUNC(char *) PyOS_Readline(FILE *, FILE *, const char *);
 #else
-PyAPY_FUNC(char *) PyOS_Readline(FILE *, FILE *, char *);
+// Python 3.3 doesn't have PyAPI_FUNC, but it's not supported on Windows anyway.
+char *PyOS_Readline(FILE *, FILE *, char *);
 #endif
 /* Return malloc'ed string including trailing \n;
    empty malloc'ed string for EOF;
