@@ -15,6 +15,12 @@ mod_ty Ta35AST_FromNodeObject(
     PyCompilerFlags *flags,
     PyObject *filename,
     PyArena *arena);
+PyAPI_FUNC(mod_ty) Ta35Parser_ASTFromString(
+    const char *s,
+    const char *filename_str,
+    int start,
+    PyCompilerFlags *flags,
+    PyArena *arena);
 
 #ifdef __cplusplus
 }
