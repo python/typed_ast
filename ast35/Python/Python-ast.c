@@ -7590,8 +7590,12 @@ obj2ast_type_ignore(PyObject* obj, type_ignore_ty* out, PyArena* arena)
 
 
 PyObject *ast35_parse(PyObject *self, PyObject *args);
+PyObject *ast35_register_type_comment_prefix(PyObject *self, PyObject *args);
 static PyMethodDef ast35_methods[] = {
-    {"_parse",  ast35_parse, METH_VARARGS, "Parse string into typed AST."},
+    {"_parse", ast35_parse,
+     METH_VARARGS, "Parse string into typed AST."},
+    {"register_type_comment_prefix", ast35_register_type_comment_prefix,
+     METH_VARARGS, "Register a prefix to treat as a typecomment."},
     {NULL, NULL, 0, NULL}
 };
 static struct PyModuleDef _astmodule35 = {
