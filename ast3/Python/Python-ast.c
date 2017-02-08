@@ -613,8 +613,8 @@ static PyGetSetDef ast_type_getsets[] = {
 };
 
 static PyTypeObject AST_type = {
-    PyVarObject_HEAD_INIT(&PyType_Type, 0)
-    "_ast.AST",
+    PyVarObject_HEAD_INIT(NULL, 0)
+    "_ast3.AST",
     sizeof(AST_object),
     0,
     (destructor)ast_dealloc, /* tp_dealloc */
@@ -670,7 +670,7 @@ static PyTypeObject* make_type(char *type, PyTypeObject* base, char**fields, int
         PyTuple_SET_ITEM(fnames, i, field);
     }
     result = PyObject_CallFunction((PyObject*)&PyType_Type, "s(O){sOss}",
-                    type, base, "_fields", fnames, "__module__", "_ast");
+                    type, base, "_fields", fnames, "__module__", "_ast3");
     Py_DECREF(fnames);
     return (PyTypeObject*)result;
 }
@@ -7840,15 +7840,15 @@ failed:
 }
 
 
-static struct PyModuleDef _astmodule = {
-  PyModuleDef_HEAD_INIT, "_ast"
+static struct PyModuleDef _astmodule3 = {
+  PyModuleDef_HEAD_INIT, "_ast3"
 };
 PyMODINIT_FUNC
-PyInit__ast(void)
+PyInit__ast3(void)
 {
     PyObject *m, *d;
     if (!init_types()) return NULL;
-    m = PyModule_Create(&_astmodule);
+    m = PyModule_Create(&_astmodule3);
     if (!m) return NULL;
     d = PyModule_GetDict(m);
     if (PyDict_SetItemString(d, "AST", (PyObject*)&AST_type) < 0) return NULL;

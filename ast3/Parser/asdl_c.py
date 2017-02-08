@@ -269,9 +269,9 @@ class PrototypeVisitor(EmitVisitor):
         margs = "a0"
         for i in range(1, len(args)+1):
             margs += ", a%d" % i
-        self.emit("#define %s(%s) _Py_%s(%s)" % (name, margs, name, margs), 0,
+        self.emit("#define %s(%s) _Ta3_%s(%s)" % (name, margs, name, margs), 0,
                 reflow=False)
-        self.emit("%s _Py_%s(%s);" % (ctype, name, argstr), False)
+        self.emit("%s _Ta3_%s(%s);" % (ctype, name, argstr), False)
 
     def visitProduct(self, prod, name):
         self.emit_function(name, get_c_type(name),
@@ -517,9 +517,9 @@ class Obj2ModVisitor(PickleVisitor):
             self.emit("}", depth+1)
             self.emit("len = PyList_GET_SIZE(tmp);", depth+1)
             if self.isSimpleType(field):
-                self.emit("%s = _Py_asdl_int_seq_new(len, arena);" % field.name, depth+1)
+                self.emit("%s = _Ta3_asdl_int_seq_new(len, arena);" % field.name, depth+1)
             else:
-                self.emit("%s = _Py_asdl_seq_new(len, arena);" % field.name, depth+1)
+                self.emit("%s = _Ta3_asdl_seq_new(len, arena);" % field.name, depth+1)
             self.emit("if (%s == NULL) goto failed;" % field.name, depth+1)
             self.emit("for (i = 0; i < len; i++) {", depth+1)
             self.emit("%s value;" % ctype, depth+2)
@@ -731,8 +731,8 @@ static PyGetSetDef ast_type_getsets[] = {
 };
 
 static PyTypeObject AST_type = {
-    PyVarObject_HEAD_INIT(&PyType_Type, 0)
-    "_ast.AST",
+    PyVarObject_HEAD_INIT(NULL, 0)
+    "_ast3.AST",
     sizeof(AST_object),
     0,
     (destructor)ast_dealloc, /* tp_dealloc */
@@ -788,7 +788,7 @@ static PyTypeObject* make_type(char *type, PyTypeObject* base, char**fields, int
         PyTuple_SET_ITEM(fnames, i, field);
     }
     result = PyObject_CallFunction((PyObject*)&PyType_Type, "s(O){sOss}",
-                    type, base, "_fields", fnames, "__module__", "_ast");
+                    type, base, "_fields", fnames, "__module__", "_ast3");
     Py_DECREF(fnames);
     return (PyTypeObject*)result;
 }
@@ -1021,15 +1021,15 @@ static int exists_not_none(PyObject *obj, _Py_Identifier *id)
 class ASTModuleVisitor(PickleVisitor):
 
     def visitModule(self, mod):
-        self.emit("static struct PyModuleDef _astmodule = {", 0)
-        self.emit('  PyModuleDef_HEAD_INIT, "_ast"', 0)
+        self.emit("static struct PyModuleDef _astmodule3 = {", 0)
+        self.emit('  PyModuleDef_HEAD_INIT, "_ast3"', 0)
         self.emit("};", 0)
         self.emit("PyMODINIT_FUNC", 0)
-        self.emit("PyInit__ast(void)", 0)
+        self.emit("PyInit__ast3(void)", 0)
         self.emit("{", 0)
         self.emit("PyObject *m, *d;", 1)
         self.emit("if (!init_types()) return NULL;", 1)
-        self.emit('m = PyModule_Create(&_astmodule);', 1)
+        self.emit('m = PyModule_Create(&_astmodule3);', 1)
         self.emit("if (!m) return NULL;", 1)
         self.emit("d = PyModule_GetDict(m);", 1)
         self.emit('if (PyDict_SetItemString(d, "AST", (PyObject*)&AST_type) < 0) return NULL;', 1)
@@ -1211,7 +1211,7 @@ class ObjVisitor(PickleVisitor):
 class PartingShots(StaticVisitor):
 
     CODE = """
-PyObject* PyAST_mod2obj(mod_ty t)
+PyObject* Ta3AST_mod2obj(mod_ty t)
 {
     if (!init_types())
         return NULL;
@@ -1219,7 +1219,7 @@ PyObject* PyAST_mod2obj(mod_ty t)
 }
 
 /* mode is 0 for "exec", 1 for "eval" and 2 for "single" input */
-mod_ty PyAST_obj2mod(PyObject* ast, PyArena* arena, int mode)
+mod_ty Ta3AST_obj2mod(PyObject* ast, PyArena* arena, int mode)
 {
     mod_ty res;
     PyObject *req_type[3];
@@ -1249,7 +1249,7 @@ mod_ty PyAST_obj2mod(PyObject* ast, PyArena* arena, int mode)
         return res;
 }
 
-int PyAST_Check(PyObject* obj)
+int Ta3AST_Check(PyObject* obj)
 {
     if (!init_types())
         return -1;
@@ -1289,9 +1289,9 @@ def main(srcfile, dump_module=False):
                             PrototypeVisitor(f),
                             )
         c.visit(mod)
-        f.write("PyObject* PyAST_mod2obj(mod_ty t);\n")
-        f.write("mod_ty PyAST_obj2mod(PyObject* ast, PyArena* arena, int mode);\n")
-        f.write("int PyAST_Check(PyObject* obj);\n")
+        f.write("PyObject* Ta3AST_mod2obj(mod_ty t);\n")
+        f.write("mod_ty Ta3AST_obj2mod(PyObject* ast, PyArena* arena, int mode);\n")
+        f.write("int Ta3AST_Check(PyObject* obj);\n")
         f.close()
 
     if SRC_DIR:
