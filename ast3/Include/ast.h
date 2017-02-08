@@ -1,5 +1,5 @@
-#ifndef Py_AST_H
-#define Py_AST_H
+#ifndef Ta3_AST_H
+#define Ta3_AST_H
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -19,4 +19,4 @@ PyAPI_FUNC(mod_ty) PyAST_FromNodeObject(
 #ifdef __cplusplus
 }
 #endif
-#endif /* !Py_AST_H */
+#endif /* !Ta3_AST_H */

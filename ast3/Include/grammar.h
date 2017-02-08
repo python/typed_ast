@@ -1,8 +1,8 @@
 
 /* Grammar interface */
 
-#ifndef Py_GRAMMAR_H
-#define Py_GRAMMAR_H
+#ifndef Ta3_GRAMMAR_H
+#define Ta3_GRAMMAR_H
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -91,4 +91,4 @@ void printnonterminals(grammar *g, FILE *fp);
 #ifdef __cplusplus
 }
 #endif
-#endif /* !Py_GRAMMAR_H */
+#endif /* !Ta3_GRAMMAR_H */
