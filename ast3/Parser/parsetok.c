@@ -17,31 +17,31 @@ static int initerr(perrdetail *err_ret, PyObject * filename);
 
 /* Parse input coming from a string.  Return error code, print some errors. */
 node *
-PyParser_ParseString(const char *s, grammar *g, int start, perrdetail *err_ret)
+Ta3Parser_ParseString(const char *s, grammar *g, int start, perrdetail *err_ret)
 {
-    return PyParser_ParseStringFlagsFilename(s, NULL, g, start, err_ret, 0);
+    return Ta3Parser_ParseStringFlagsFilename(s, NULL, g, start, err_ret, 0);
 }
 
 node *
-PyParser_ParseStringFlags(const char *s, grammar *g, int start,
+Ta3Parser_ParseStringFlags(const char *s, grammar *g, int start,
                           perrdetail *err_ret, int flags)
 {
-    return PyParser_ParseStringFlagsFilename(s, NULL,
+    return Ta3Parser_ParseStringFlagsFilename(s, NULL,
                                              g, start, err_ret, flags);
 }
 
 node *
-PyParser_ParseStringFlagsFilename(const char *s, const char *filename,
+Ta3Parser_ParseStringFlagsFilename(const char *s, const char *filename,
                           grammar *g, int start,
                           perrdetail *err_ret, int flags)
 {
     int iflags = flags;
-    return PyParser_ParseStringFlagsFilenameEx(s, filename, g, start,
+    return Ta3Parser_ParseStringFlagsFilenameEx(s, filename, g, start,
                                                err_ret, &iflags);
 }
 
 node *
-PyParser_ParseStringObject(const char *s, PyObject *filename,
+Ta3Parser_ParseStringObject(const char *s, PyObject *filename,
                            grammar *g, int start,
                            perrdetail *err_ret, int *flags)
 {
@@ -52,9 +52,9 @@ PyParser_ParseStringObject(const char *s, PyObject *filename,
         return NULL;
 
     if (*flags & PyPARSE_IGNORE_COOKIE)
-        tok = PyTokenizer_FromUTF8(s, exec_input);
+        tok = Ta3Tokenizer_FromUTF8(s, exec_input);
     else
-        tok = PyTokenizer_FromString(s, exec_input);
+        tok = Ta3Tokenizer_FromString(s, exec_input);
     if (tok == NULL) {
         err_ret->error = PyErr_Occurred() ? E_DECODE : E_NOMEM;
         return NULL;
@@ -68,7 +68,7 @@ PyParser_ParseStringObject(const char *s, PyObject *filename,
 }
 
 node *
-PyParser_ParseStringFlagsFilenameEx(const char *s, const char *filename_str,
+Ta3Parser_ParseStringFlagsFilenameEx(const char *s, const char *filename_str,
                           grammar *g, int start,
                           perrdetail *err_ret, int *flags)
 {
@@ -83,7 +83,7 @@ PyParser_ParseStringFlagsFilenameEx(const char *s, const char *filename_str,
         }
     }
 #endif
-    n = PyParser_ParseStringObject(s, filename, g, start, err_ret, flags);
+    n = Ta3Parser_ParseStringObject(s, filename, g, start, err_ret, flags);
 #ifndef PGEN
     Py_XDECREF(filename);
 #endif
@@ -93,27 +93,27 @@ PyParser_ParseStringFlagsFilenameEx(const char *s, const char *filename_str,
 /* Parse input coming from a file.  Return error code, print some errors. */
 
 node *
-PyParser_ParseFile(FILE *fp, const char *filename, grammar *g, int start,
+Ta3Parser_ParseFile(FILE *fp, const char *filename, grammar *g, int start,
                    const char *ps1, const char *ps2,
                    perrdetail *err_ret)
 {
-    return PyParser_ParseFileFlags(fp, filename, NULL,
+    return Ta3Parser_ParseFileFlags(fp, filename, NULL,
                                    g, start, ps1, ps2, err_ret, 0);
 }
 
 node *
-PyParser_ParseFileFlags(FILE *fp, const char *filename, const char *enc,
+Ta3Parser_ParseFileFlags(FILE *fp, const char *filename, const char *enc,
                         grammar *g, int start,
                         const char *ps1, const char *ps2,
                         perrdetail *err_ret, int flags)
 {
     int iflags = flags;
-    return PyParser_ParseFileFlagsEx(fp, filename, enc, g, start, ps1,
+    return Ta3Parser_ParseFileFlagsEx(fp, filename, enc, g, start, ps1,
                                      ps2, err_ret, &iflags);
 }
 
 node *
-PyParser_ParseFileObject(FILE *fp, PyObject *filename,
+Ta3Parser_ParseFileObject(FILE *fp, PyObject *filename,
                          const char *enc, grammar *g, int start,
                          const char *ps1, const char *ps2,
                          perrdetail *err_ret, int *flags)
@@ -123,7 +123,7 @@ PyParser_ParseFileObject(FILE *fp, PyObject *filename,
     if (initerr(err_ret, filename) < 0)
         return NULL;
 
-    if ((tok = PyTokenizer_FromFile(fp, enc, ps1, ps2)) == NULL) {
+    if ((tok = Ta3Tokenizer_FromFile(fp, enc, ps1, ps2)) == NULL) {
         err_ret->error = E_NOMEM;
         return NULL;
     }
@@ -135,7 +135,7 @@ PyParser_ParseFileObject(FILE *fp, PyObject *filename,
 }
 
 node *
-PyParser_ParseFileFlagsEx(FILE *fp, const char *filename,
+Ta3Parser_ParseFileFlagsEx(FILE *fp, const char *filename,
                           const char *enc, grammar *g, int start,
                           const char *ps1, const char *ps2,
                           perrdetail *err_ret, int *flags)
@@ -151,7 +151,7 @@ PyParser_ParseFileFlagsEx(FILE *fp, const char *filename,
         }
     }
 #endif
-    n = PyParser_ParseFileObject(fp, fileobj, enc, g,
+    n = Ta3Parser_ParseFileObject(fp, fileobj, enc, g,
                                  start, ps1, ps2, err_ret, flags);
 #ifndef PGEN
     Py_XDECREF(fileobj);
@@ -188,9 +188,9 @@ parsetok(struct tok_state *tok, grammar *g, int start, perrdetail *err_ret,
     node *n;
     int started = 0;
 
-    if ((ps = PyParser_New(g, start)) == NULL) {
+    if ((ps = Ta3Parser_New(g, start)) == NULL) {
         err_ret->error = E_NOMEM;
-        PyTokenizer_Free(tok);
+        Ta3Tokenizer_Free(tok);
         return NULL;
     }
 #ifdef PY_PARSER_REQUIRES_FUTURE_KEYWORD
@@ -205,7 +205,7 @@ parsetok(struct tok_state *tok, grammar *g, int start, perrdetail *err_ret,
         char *str;
         int col_offset;
 
-        type = PyTokenizer_Get(tok, &a, &b);
+        type = Ta3Tokenizer_Get(tok, &a, &b);
         if (type == ERRORTOKEN) {
             err_ret->error = tok->done;
             break;
@@ -260,7 +260,7 @@ parsetok(struct tok_state *tok, grammar *g, int start, perrdetail *err_ret,
             col_offset = -1;
 
         if ((err_ret->error =
-             PyParser_AddToken(ps, (int)type, str,
+             Ta3Parser_AddToken(ps, (int)type, str,
                                tok->lineno, col_offset,
                                &(err_ret->expected))) != E_OK) {
             if (err_ret->error != E_DONE) {
@@ -293,7 +293,7 @@ parsetok(struct tok_state *tok, grammar *g, int start, perrdetail *err_ret,
 
                 if (c != '#') {
                     err_ret->error = E_BADSINGLE;
-                    PyNode_Free(n);
+                    Ta3Node_Free(n);
                     n = NULL;
                     break;
                 }
@@ -311,7 +311,7 @@ parsetok(struct tok_state *tok, grammar *g, int start, perrdetail *err_ret,
 #ifdef PY_PARSER_REQUIRES_FUTURE_KEYWORD
     *flags = ps->p_flags;
 #endif
-    PyParser_Delete(ps);
+    Ta3Parser_Delete(ps);
 
     if (n == NULL) {
         if (tok->done == E_EOF)
@@ -333,7 +333,7 @@ parsetok(struct tok_state *tok, grammar *g, int start, perrdetail *err_ret,
         /* 'nodes->n_str' uses PyObject_*, while 'tok->encoding' was
          * allocated using PyMem_
          */
-        node* r = PyNode_New(encoding_decl);
+        node* r = Ta3Node_New(encoding_decl);
         if (r)
             r->n_str = PyObject_MALLOC(strlen(tok->encoding)+1);
         if (!r || !r->n_str) {
@@ -352,7 +352,7 @@ parsetok(struct tok_state *tok, grammar *g, int start, perrdetail *err_ret,
     }
 
 done:
-    PyTokenizer_Free(tok);
+    Ta3Tokenizer_Free(tok);
 
     return n;
 }

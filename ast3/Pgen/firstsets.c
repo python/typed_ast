@@ -81,7 +81,7 @@ calcfirstset(grammar *g, dfa *d)
             sym[nsyms++] = a->a_lbl;
             type = l0[a->a_lbl].lb_type;
             if (ISNONTERMINAL(type)) {
-                d1 = PyGrammar_FindDFA(g, type);
+                d1 = Ta3Grammar_FindDFA(g, type);
                 if (d1->d_first == dummy) {
                     fprintf(stderr,
                         "Left-recursion below '%s'\n",
@@ -104,7 +104,7 @@ calcfirstset(grammar *g, dfa *d)
         printf("FIRST set for '%s': {", d->d_name);
         for (i = 0; i < nbits; i++) {
             if (testbit(result, i))
-                printf(" %s", PyGrammar_LabelRepr(&l0[i]));
+                printf(" %s", Ta3Grammar_LabelRepr(&l0[i]));
         }
         printf(" }\n");
     }

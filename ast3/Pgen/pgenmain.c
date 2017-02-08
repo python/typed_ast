@@ -99,7 +99,7 @@ getgrammar(const char *filename)
         Py_Exit(1);
     }
     g0 = meta_grammar();
-    n = PyParser_ParseFile(fp, filename, g0, g0->g_start,
+    n = Ta3Parser_ParseFile(fp, filename, g0, g0->g_start,
                   (char *)NULL, (char *)NULL, &err);
     fclose(fp);
     if (n == NULL) {
@@ -124,7 +124,7 @@ getgrammar(const char *filename)
         Py_Exit(1);
     }
     g = pgen(n);
-    PyNode_Free(n);
+    Ta3Node_Free(n);
     if (g == NULL) {
         printf("Bad grammar.\n");
         Py_Exit(1);

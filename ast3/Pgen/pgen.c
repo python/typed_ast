@@ -331,7 +331,7 @@ dumpstate(labellist *ll, nfa *nf, int istate)
         if (i > 0)
             printf("\n    ");
         printf("-> %2d  %s", ar->ar_arrow,
-            PyGrammar_LabelRepr(&ll->ll_label[ar->ar_label]));
+            Ta3Grammar_LabelRepr(&ll->ll_label[ar->ar_label]));
         ar++;
     }
     printf("\n");
@@ -532,7 +532,7 @@ printssdfa(int xx_nstates, ss_state *xx_state, int nbits,
             zz = &yy->ss_arc[iarc];
             printf("  Arc to state %d, label %s\n",
                 zz->sa_arrow,
-                PyGrammar_LabelRepr(
+                Ta3Grammar_LabelRepr(
                     &ll->ll_label[zz->sa_label]));
         }
     }
