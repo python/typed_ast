@@ -215,7 +215,8 @@ err_free(perrdetail *err)
 /* Preferred access to parser is through AST. */
 static mod_ty
 string_object_to_c_ast(const char *s, PyObject *filename, int start,
-                             PyCompilerFlags *flags, PyArena *arena)
+                             PyCompilerFlags *flags, int feature_version,
+                             PyArena *arena)
 {
     mod_ty mod;
     PyCompilerFlags localflags;
@@ -231,7 +232,7 @@ string_object_to_c_ast(const char *s, PyObject *filename, int start,
     }
     if (n) {
         flags->cf_flags |= iflags & PyCF_MASK;
-        mod = Ta3AST_FromNodeObject(n, flags, filename, arena);
+        mod = Ta3AST_FromNodeObject(n, flags, filename, feature_version, arena);
         Ta3Node_Free(n);
     }
     else {
@@ -245,14 +246,14 @@ string_object_to_c_ast(const char *s, PyObject *filename, int start,
 // adapted from Py_CompileStringObject in Python/pythonrun.c
 static PyObject *
 string_object_to_py_ast(const char *str, PyObject *filename, int start,
-                       PyCompilerFlags *flags)
+                       PyCompilerFlags *flags, int feature_version)
 {
     mod_ty mod;
     PyArena *arena = PyArena_New();
     if (arena == NULL)
         return NULL;
 
-    mod = string_object_to_c_ast(str, filename, start, flags, arena);
+    mod = string_object_to_c_ast(str, filename, start, flags, feature_version, arena);
     if (mod == NULL) {
         PyArena_Free(arena);
         return NULL;
@@ -266,7 +267,9 @@ string_object_to_py_ast(const char *str, PyObject *filename, int start,
 // adapted from builtin_compile_impl in Python/bltinmodule.c
 static PyObject *
 ast3_parse_impl(PyObject *source,
-                     PyObject *filename, const char *mode)
+                PyObject *filename,
+                const char *mode,
+                int feature_version)
 {
     PyObject *source_copy;
     const char *str;
@@ -295,7 +298,7 @@ ast3_parse_impl(PyObject *source,
     if (str == NULL)
         goto error;
 
-    result = string_object_to_py_ast(str, filename, start[compile_mode], &cf);
+    result = string_object_to_py_ast(str, filename, start[compile_mode], &cf, feature_version);
     Py_XDECREF(source_copy);
     goto finally;
 
@@ -314,9 +317,10 @@ ast3_parse(PyObject *self, PyObject *args)
     PyObject *source;
     PyObject *filename;
     const char *mode;
+    int feature_version;
 
-    if (PyArg_ParseTuple(args, "OO&s:parse", &source, PyUnicode_FSDecoder, &filename, &mode))
-        return_value = ast3_parse_impl(source, filename, mode);
+    if (PyArg_ParseTuple(args, "OO&si:parse", &source, PyUnicode_FSDecoder, &filename, &mode, &feature_version))
+        return_value = ast3_parse_impl(source, filename, mode, feature_version);
 
     return return_value;
 }

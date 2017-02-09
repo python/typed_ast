@@ -589,6 +589,7 @@ struct compiling {
     PyObject *c_filename; /* filename */
     PyObject *c_normalize; /* Normalization function from unicodedata. */
     PyObject *c_normalize_args; /* Normalization argument tuple. */
+    int c_feature_version; /* Latest minior version of Python for allowed features */
 };
 
 static asdl_seq *seq_for_testlist(struct compiling *, const node *);
@@ -770,7 +771,8 @@ num_stmts(const node *n)
 
 mod_ty
 Ta3AST_FromNodeObject(const node *n, PyCompilerFlags *flags,
-                     PyObject *filename, PyArena *arena)
+                     PyObject *filename, int feature_version,
+                     PyArena *arena)
 {
     int i, j, k, num;
     asdl_seq *stmts = NULL;
@@ -787,6 +789,7 @@ Ta3AST_FromNodeObject(const node *n, PyCompilerFlags *flags,
     c.c_filename = filename;
     c.c_normalize = NULL;
     c.c_normalize_args = NULL;
+    c.c_feature_version = feature_version;
 
     if (TYPE(n) == encoding_decl)
         n = CHILD(n, 0);
@@ -937,14 +940,14 @@ Ta3AST_FromNodeObject(const node *n, PyCompilerFlags *flags,
 
 mod_ty
 Ta3AST_FromNode(const node *n, PyCompilerFlags *flags, const char *filename_str,
-               PyArena *arena)
+               int feature_version, PyArena *arena)
 {
     mod_ty mod;
     PyObject *filename;
     filename = PyUnicode_DecodeFSDefault(filename_str);
     if (filename == NULL)
         return NULL;
-    mod = Ta3AST_FromNodeObject(n, flags, filename, arena);
+    mod = Ta3AST_FromNodeObject(n, flags, filename, feature_version, arena);
     Py_DECREF(filename);
     return mod;
 
@@ -1970,6 +1973,13 @@ ast_for_comprehension(struct compiling *c, const node *n)
             is_async = 1;
         }
 
+        /* Async comprehensions only allowed in Python 3.6 and greater */
+        if (is_async && c->c_feature_version < 6) {
+            ast_error(c, n,
+                    "Async comprehensions are only supported in Python 3.6 and greater");
+            return NULL;
+        }
+
         for_ch = CHILD(n, 1 + is_async);
         t = ast_for_exprlist(c, for_ch, Store);
         if (!t)
@@ -2257,7 +2267,15 @@ ast_for_atom(struct compiling *c, const node *n)
         return str;
     }
     case NUMBER: {
-        PyObject *pynum = parsenumber(c, STR(ch));
+        const char *s = STR(ch);
+        /* Underscores in numeric literals are only allowed in Python 3.6 or greater */
+        /* Check for underscores here rather than in parse_number so we can report a line number on error */
+        if (c->c_feature_version < 6 && strchr(s, '_') != NULL) {
+            ast_error(c, ch,
+                    "Underscores in numeric literals are only supported in Python 3.6 and greater");
+            return NULL;
+        }
+        PyObject *pynum = parsenumber(c, s);
         if (!pynum)
             return NULL;
 
@@ -3071,6 +3089,13 @@ ast_for_expr_stmt(struct compiling *c, const node *n)
         node *ch = CHILD(n, 0);
         node *deep, *ann = CHILD(n, 1);
         int simple = 1;
+
+        /* AnnAssigns are only allowed in Python 3.6 or greater */
+        if (c->c_feature_version < 6) {
+            ast_error(c, ch,
+                    "Variable annotation syntax is only supported in Python 3.6 and greater");
+            return NULL;
+        }
 
         /* we keep track of parens to qualify (x) as expression not name */
         deep = ch;
@@ -5203,6 +5228,11 @@ parsestr(struct compiling *c, const node *n, int *bytesmode, int *rawmode,
                 break;
             }
         }
+    }
+    /* fstrings are only allowed in Python 3.6 and greater */
+    if (fmode && c->c_feature_version < 6) {
+        ast_error(c, n, "Format strings are only supported in Python 3.6 and greater");
+        return -1;
     }
     if (fmode && *bytesmode) {
         PyErr_BadInternalCall();

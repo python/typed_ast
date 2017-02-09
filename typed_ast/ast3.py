@@ -17,6 +17,8 @@
       any.
     - `parse` has been augmented so it can parse function signature types when
       called with `mode=func_type`.
+    - `parse` has an additional argument `feature_version`, which disables
+      newer Python syntax features.
     - `Module` has a `type_ignores` field which contains a list of
       lines which have been `# type: ignore`d.
 
@@ -36,13 +38,20 @@
 import _ast3
 from _ast3 import *
 
+LATEST_MINOR_VERSION = 6
 
-def parse(source, filename='<unknown>', mode='exec'):
+def parse(source, filename='<unknown>', mode='exec', feature_version=LATEST_MINOR_VERSION):
     """
     Parse the source into an AST node including type comments.
     Similar to compile(source, filename, mode, PyCF_ONLY_AST).
+
+    Set feature_version to limit the syntax parsed to that minor version of
+    Python 3.  For example, feature_version=5 will prevent new syntax features
+    from Python 3.6+ from being used, such as fstrings.  Currently only
+    supported for Python 3.5+, so feature_version=4 or less are all equivalent
+    to feature_version=5.
     """
-    return _ast3._parse(source, filename, mode)
+    return _ast3._parse(source, filename, mode, feature_version)
 
 _NUM_TYPES = (int, float, complex)
 

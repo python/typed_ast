@@ -9,11 +9,13 @@ PyAPI_FUNC(mod_ty) Ta3AST_FromNode(
     const node *n,
     PyCompilerFlags *flags,
     const char *filename,       /* decoded from the filesystem encoding */
+    int feature_version,
     PyArena *arena);
 PyAPI_FUNC(mod_ty) Ta3AST_FromNodeObject(
     const node *n,
     PyCompilerFlags *flags,
     PyObject *filename,
+    int feature_version,
     PyArena *arena);
 
 #ifdef __cplusplus
