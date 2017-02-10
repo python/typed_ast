@@ -18,6 +18,15 @@
 #include "abstract.h"
 #endif /* PGEN */
 
+#ifndef Py_XSETREF
+#define Py_XSETREF(op, op2)                     \
+    do {                                        \
+        PyObject *_py_tmp = (PyObject *)(op);   \
+        (op) = (op2);                           \
+        Py_XDECREF(_py_tmp);                    \
+    } while (0)
+#endif /* Py_XSETREF */
+
 #define is_potential_identifier_start(c) (\
               (c >= 'a' && c <= 'z')\
                || (c >= 'A' && c <= 'Z')\

@@ -1001,12 +1001,12 @@ forbidden_name(struct compiling *c, identifier name, const node *n,
                int full_checks)
 {
     assert(PyUnicode_Check(name));
-    if (_PyUnicode_EqualToASCIIString(name, "__debug__")) {
+    if (PyUnicode_CompareWithASCIIString(name, "__debug__") == 0) {
         ast_error(c, n, "assignment to keyword");
         return 1;
     }
-    if (_PyUnicode_EqualToASCIIString(name, "async") ||
-        _PyUnicode_EqualToASCIIString(name, "await"))
+    if (PyUnicode_CompareWithASCIIString(name, "async") == 0 ||
+        PyUnicode_CompareWithASCIIString(name, "await") == 0)
     {
         PyObject *message = PyUnicode_FromString(
             "'async' and 'await' will become reserved keywords"
@@ -1030,7 +1030,7 @@ forbidden_name(struct compiling *c, identifier name, const node *n,
     if (full_checks) {
         const char * const *p;
         for (p = FORBIDDEN; *p; p++) {
-            if (_PyUnicode_EqualToASCIIString(name, *p)) {
+            if (PyUnicode_CompareWithASCIIString(name, *p) == 0) {
                 ast_error(c, n, "assignment to keyword");
                 return 1;
             }
@@ -4290,42 +4290,11 @@ decode_utf8(struct compiling *c, const char **sPtr, const char *end)
     return PyUnicode_DecodeUTF8(t, s - t, NULL);
 }
 
-static int
-warn_invalid_escape_sequence(struct compiling *c, const node *n,
-                             char first_invalid_escape_char)
-{
-    PyObject *msg = PyUnicode_FromFormat("invalid escape sequence \\%c",
-                                         first_invalid_escape_char);
-    if (msg == NULL) {
-        return -1;
-    }
-    if (PyErr_WarnExplicitObject(PyExc_DeprecationWarning, msg,
-                                   c->c_filename, LINENO(n),
-                                   NULL, NULL) < 0 &&
-        PyErr_ExceptionMatches(PyExc_DeprecationWarning))
-    {
-        const char *s;
-
-        /* Replace the DeprecationWarning exception with a SyntaxError
-           to get a more accurate error report */
-        PyErr_Clear();
-
-        s = PyUnicode_AsUTF8(msg);
-        if (s != NULL) {
-            ast_error(c, n, s);
-        }
-        Py_DECREF(msg);
-        return -1;
-    }
-    Py_DECREF(msg);
-    return 0;
-}
-
 static PyObject *
 decode_unicode_with_escapes(struct compiling *c, const node *n, const char *s,
                             size_t len)
 {
-    PyObject *v, *u;
+    PyObject *u;
     char *buf;
     char *p;
     const char *end;
@@ -4376,39 +4345,14 @@ decode_unicode_with_escapes(struct compiling *c, const node *n, const char *s,
     len = p - buf;
     s = buf;
 
-    const char *first_invalid_escape;
-    v = _PyUnicode_DecodeUnicodeEscape(s, len, NULL, &first_invalid_escape);
-
-    if (v != NULL && first_invalid_escape != NULL) {
-        if (warn_invalid_escape_sequence(c, n, *first_invalid_escape) < 0) {
-            /* We have not decref u before because first_invalid_escape points
-               inside u. */
-            Py_XDECREF(u);
-            Py_DECREF(v);
-            return NULL;
-        }
-    }
-    Py_XDECREF(u);
-    return v;
+    return PyUnicode_DecodeUnicodeEscape(s, len, NULL);
 }
 
 static PyObject *
 decode_bytes_with_escapes(struct compiling *c, const node *n, const char *s,
                           size_t len)
 {
-    const char *first_invalid_escape;
-    PyObject *result = _PyBytes_DecodeEscape(s, len, NULL, 0, NULL,
-                                             &first_invalid_escape);
-    if (result == NULL)
-        return NULL;
-
-    if (first_invalid_escape != NULL) {
-        if (warn_invalid_escape_sequence(c, n, *first_invalid_escape) < 0) {
-            Py_DECREF(result);
-            return NULL;
-        }
-    }
-    return result;
+    return PyBytes_DecodeEscape(s, len, NULL, 0, NULL);
 }
 
 /* Compile this expression in to an expr_ty.  Add parens around the
