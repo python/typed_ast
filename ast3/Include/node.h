@@ -16,12 +16,12 @@ typedef struct _node {
     struct _node	*n_child;
 } node;
 
-PyAPI_FUNC(node *) Ta3Node_New(int type);
-PyAPI_FUNC(int) Ta3Node_AddChild(node *n, int type,
+extern node *Ta3Node_New(int type);
+extern int Ta3Node_AddChild(node *n, int type,
                                       char *str, int lineno, int col_offset);
-PyAPI_FUNC(void) Ta3Node_Free(node *n);
+extern void Ta3Node_Free(node *n);
 #ifndef Py_LIMITED_API
-PyAPI_FUNC(Py_ssize_t) _Ta3Node_SizeOf(node *n);
+extern Py_ssize_t _Ta3Node_SizeOf(node *n);
 #endif
 
 /* Node access functions */
@@ -36,7 +36,7 @@ PyAPI_FUNC(Py_ssize_t) _Ta3Node_SizeOf(node *n);
 /* Assert that the type of a node is what we expect */
 #define REQ(n, type) assert(TYPE(n) == (type))
 
-PyAPI_FUNC(void) PyNode_ListTree(node *);
+extern void PyNode_ListTree(node *);
 
 #ifdef __cplusplus
 }
