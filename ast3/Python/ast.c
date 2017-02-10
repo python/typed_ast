@@ -11,6 +11,14 @@
 
 #include <assert.h>
 
+#if PY_MINOR_VERSION < 4
+#define PyErr_ProgramTextObject PyErr_ProgramText
+
+#define PyMem_RawMalloc PyMem_Malloc
+#define PyMem_RawRealloc PyMem_Realloc
+#define PyMem_RawFree PyMem_Free
+#endif
+
 static int validate_stmts(asdl_seq *);
 static int validate_exprs(asdl_seq *, expr_context_ty, int);
 static int validate_nonempty_seq(asdl_seq *, const char *, const char *);
@@ -1008,24 +1016,10 @@ forbidden_name(struct compiling *c, identifier name, const node *n,
     if (PyUnicode_CompareWithASCIIString(name, "async") == 0 ||
         PyUnicode_CompareWithASCIIString(name, "await") == 0)
     {
-        PyObject *message = PyUnicode_FromString(
+        ast_error(c, n,
             "'async' and 'await' will become reserved keywords"
             " in Python 3.7");
-        int ret;
-        if (message == NULL) {
-            return 1;
-        }
-        ret = PyErr_WarnExplicitObject(
-                PyExc_DeprecationWarning,
-                message,
-                c->c_filename,
-                LINENO(n),
-                NULL,
-                NULL);
-        Py_DECREF(message);
-        if (ret < 0) {
-            return 1;
-        }
+        return 1;
     }
     if (full_checks) {
         const char * const *p;
