@@ -7840,8 +7840,13 @@ failed:
 }
 
 
+PyObject *ast3_parse(PyObject *self, PyObject *args);
+static PyMethodDef ast3_methods[] = {
+    {"_parse",  ast3_parse, METH_VARARGS, "Parse string into typed AST."},
+    {NULL, NULL, 0, NULL}
+};
 static struct PyModuleDef _astmodule3 = {
-  PyModuleDef_HEAD_INIT, "_ast3"
+  PyModuleDef_HEAD_INIT, "_ast3", NULL, 0, ast3_methods
 };
 PyMODINIT_FUNC
 PyInit__ast3(void)

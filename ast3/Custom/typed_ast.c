@@ -100,10 +100,7 @@ err_input(perrdetail *err)
             msg = "unexpected unindent";
         else {
             errtype = PyExc_SyntaxError;
-            if (err->token == TYPE_COMMENT)
-              msg = "misplaced type annotation";
-            else
-              msg = "invalid syntax";
+            msg = "invalid syntax";
         }
         break;
     case E_TOKEN:
@@ -265,14 +262,14 @@ string_object_to_py_ast(const char *str, PyObject *filename, int start,
 
 // adapted from builtin_compile_impl in Python/bltinmodule.c
 static PyObject *
-ast35_parse_impl(PyObject *source,
+ast3_parse_impl(PyObject *source,
                      PyObject *filename, const char *mode)
 {
     PyObject *source_copy;
     const char *str;
     int compile_mode = -1;
     PyCompilerFlags cf;
-    int start[] = {Py_file_input, Py_eval_input, Py_single_input, Py_func_type_input};
+    int start[] = {Py_file_input, Py_eval_input, Py_single_input};
     PyObject *result;
 
     cf.cf_flags = PyCF_ONLY_AST | PyCF_SOURCE_IS_UTF8;
@@ -308,7 +305,7 @@ finally:
 
 // adapted from builtin_compile in Python/clinic/bltinmodule.c.h
 PyObject *
-ast35_parse(PyObject *self, PyObject *args)
+ast3_parse(PyObject *self, PyObject *args)
 {
     PyObject *return_value = NULL;
     PyObject *source;
@@ -316,7 +313,7 @@ ast35_parse(PyObject *self, PyObject *args)
     const char *mode;
 
     if (PyArg_ParseTuple(args, "OO&s:parse", &source, PyUnicode_FSDecoder, &filename, &mode))
-        return_value = ast35_parse_impl(source, filename, mode);
+        return_value = ast3_parse_impl(source, filename, mode);
 
     return return_value;
 }
