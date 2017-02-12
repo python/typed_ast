@@ -100,6 +100,9 @@ err_input(perrdetail *err)
             msg = "unexpected unindent";
         else {
             errtype = PyExc_SyntaxError;
+            if (err->token == TYPE_COMMENT)
+              msg = "misplaced type annotation";
+            else
             msg = "invalid syntax";
         }
         break;
@@ -269,7 +272,7 @@ ast3_parse_impl(PyObject *source,
     const char *str;
     int compile_mode = -1;
     PyCompilerFlags cf;
-    int start[] = {Py_file_input, Py_eval_input, Py_single_input};
+    int start[] = {Py_file_input, Py_eval_input, Py_single_input, Py_func_type_input};
     PyObject *result;
 
     cf.cf_flags = PyCF_ONLY_AST | PyCF_SOURCE_IS_UTF8;
