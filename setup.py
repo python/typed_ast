@@ -78,14 +78,17 @@ _ast3 = Extension(
     ])
 
 long_description = """
-This package is a fork of the CPython 2.7 and 3.5 `ast` modules with the
-ability to parse PEP 484 (https://www.python.org/dev/peps/pep-0484/) type
-comments.  The primary goals of this package are correctness and speed.
+`typed_ast` is a Python 3 package that provides a Python 2.7 and Python 3
+parser similar to the standard `ast` library.  Unlike `ast`, the parsers in
+`typed_ast` include PEP 484 type comments and are independent of the version of
+Python under which they are run.  The `typed_ast` parsers produce the standard
+Python AST (plus type comments), and are both fast and correct, as they are
+based on the CPython 2.7 and 3.6 parsers.
 """.strip()
 
 setup (name = 'typed-ast',
-       version = '0.6.3',
-       description = 'fork of Python 2 and 3 ast modules with type comment support',
+       version = '1.0.0',
+       description = 'a fork of Python 2 and 3 ast modules with type comment support',
        long_description = long_description,
        author = 'David Fisher',
        author_email = 'ddfisher@dropbox.com',
@@ -93,7 +96,7 @@ setup (name = 'typed-ast',
        license='Apache License 2.0',
        platforms = ['POSIX', 'Windows'],
        classifiers = [
-           'Development Status :: 4 - Beta',
+           'Development Status :: 5 - Production/Stable',
            'Environment :: Console',
            'Intended Audience :: Developers',
            'Operating System :: POSIX',
