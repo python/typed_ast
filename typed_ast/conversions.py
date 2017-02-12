@@ -1,5 +1,5 @@
 from typed_ast import ast27
-from typed_ast import ast35
+from typed_ast import ast3
 
 def py2to3(ast):
     """Converts a typed Python 2.7 ast to a typed Python 3.5 ast.  The returned
@@ -47,7 +47,7 @@ class _AST2To3(ast27.NodeTransformer):
 
     def generic_visit(self, node):
         class_name = node.__class__.__name__
-        converted_class = getattr(ast35, class_name)
+        converted_class = getattr(ast3, class_name)
         new_node = converted_class()
         for field, old_value in ast27.iter_fields(node):
             if isinstance(old_value, (ast27.AST, list)):
@@ -71,10 +71,10 @@ class _AST2To3(ast27.NodeTransformer):
         return new
 
     def visit_TryExcept(self, n):
-        return ast35.Try(self.visit(n.body),
-                         self.visit(n.handlers),
-                         self.visit(n.orelse),
-                         [])
+        return ast3.Try(self.visit(n.body),
+                        self.visit(n.handlers),
+                        self.visit(n.orelse),
+                        [])
 
     def visit_TryFinally(self, n):
         if len(n.body) == 1 and isinstance(n.body[0], ast27.TryExcept):
@@ -82,10 +82,10 @@ class _AST2To3(ast27.NodeTransformer):
             new.finalbody = self.visit(n.finalbody)
             return new
         else:
-            return ast35.Try(self.visit(n.body),
-                             [],
-                             [],
-                             self.visit(n.finalbody))
+            return ast3.Try(self.visit(n.body),
+                            [],
+                            [],
+                            self.visit(n.finalbody))
 
 
     def visit_ExceptHandler(self, n):
@@ -96,22 +96,22 @@ class _AST2To3(ast27.NodeTransformer):
         else:
             raise RuntimeError("'{}' has non-Name name.".format(ast27.dump(n)))
 
-        return ast35.ExceptHandler(self.maybe_visit(n.type),
-                                   name,
-                                   self.visit(n.body))
+        return ast3.ExceptHandler(self.maybe_visit(n.type),
+                                  name,
+                                  self.visit(n.body))
 
     def visit_Print(self, n):
         keywords = []
         if n.dest is not None:
-            keywords.append(ast35.keyword("file", self.visit(n.dest)))
+            keywords.append(ast3.keyword("file", self.visit(n.dest)))
 
         if not n.nl:
-            keywords.append(ast35.keyword("end", ast35.Str(" ", lineno=n.lineno, col_offset=-1)))
+            keywords.append(ast3.keyword("end", ast3.Str(" ", lineno=n.lineno, col_offset=-1)))
 
-        return ast35.Expr(ast35.Call(ast35.Name("print", ast35.Load(), lineno=n.lineno, col_offset=-1),
-                                     self.visit(n.values),
-                                     keywords,
-                                     lineno=n.lineno, col_offset=-1))
+        return ast3.Expr(ast3.Call(ast3.Name("print", ast3.Load(), lineno=n.lineno, col_offset=-1),
+                                   self.visit(n.values),
+                                   keywords,
+                                   lineno=n.lineno, col_offset=-1))
 
     def visit_Raise(self, n):
         e = None
@@ -120,13 +120,13 @@ class _AST2To3(ast27.NodeTransformer):
 
             if n.inst is not None and not (isinstance(n.inst, ast27.Name) and n.inst.id == "None"):
                 inst = self.visit(n.inst)
-                if isinstance(inst, ast35.Tuple):
+                if isinstance(inst, ast3.Tuple):
                     args = inst.elts
                 else:
                     args = [inst]
-                e = ast35.Call(e, args, [], lineno=e.lineno, col_offset=-1)
+                e = ast3.Call(e, args, [], lineno=e.lineno, col_offset=-1)
 
-        ret = ast35.Raise(e, None)
+        ret = ast3.Raise(e, None)
         if n.tback is not None:
             ret.traceback = self.visit(n.tback)
         return ret
@@ -134,96 +134,98 @@ class _AST2To3(ast27.NodeTransformer):
     def visit_Exec(self, n):
         new_globals = self.maybe_visit(n.globals)
         if new_globals is None:
-            new_globals = ast35.Name("None", ast35.Load(), lineno=-1, col_offset=-1)
+            new_globals = ast3.Name("None", ast3.Load(), lineno=-1, col_offset=-1)
         new_locals = self.maybe_visit(n.locals)
         if new_locals is None:
-            new_locals = ast35.Name("None", ast35.Load(), lineno=-1, col_offset=-1)
+            new_locals = ast3.Name("None", ast3.Load(), lineno=-1, col_offset=-1)
 
-        return ast35.Expr(ast35.Call(ast35.Name("exec", ast35.Load(), lineno=n.lineno, col_offset=-1),
-                                     [self.visit(n.body), new_globals, new_locals],
-                                     [],
-                                     lineno=n.lineno, col_offset=-1))
+        return ast3.Expr(ast3.Call(ast3.Name("exec", ast3.Load(), lineno=n.lineno, col_offset=-1),
+                                   [self.visit(n.body), new_globals, new_locals],
+                                   [],
+                                   lineno=n.lineno, col_offset=-1))
 
     # TODO(ddfisher): the name repr could be used locally as something else; disambiguate
     def visit_Repr(self, n):
-        return ast35.Call(ast35.Name("repr", ast35.Load(), lineno=n.lineno, col_offset=-1),
-                          [self.visit(n.value)],
-                          [])
+        return ast3.Call(ast3.Name("repr", ast3.Load(), lineno=n.lineno, col_offset=-1),
+                         [self.visit(n.value)],
+                         [])
 
     # TODO(ddfisher): this will cause strange behavior on multi-item with statements with type comments
     def visit_With(self, n):
-        return ast35.With([ast35.withitem(self.visit(n.context_expr), self.maybe_visit(n.optional_vars))],
+        return ast3.With([ast3.withitem(self.visit(n.context_expr), self.maybe_visit(n.optional_vars))],
                           self.visit(n.body),
                           n.type_comment)
 
     def visit_Call(self, n):
         args = self.visit(n.args)
         if n.starargs is not None:
-            args.append(ast35.Starred(self.visit(n.starargs), ast35.Load(), lineno=n.starargs.lineno, col_offset=n.starargs.col_offset))
+            args.append(ast3.Starred(self.visit(n.starargs), ast3.Load(), lineno=n.starargs.lineno, col_offset=n.starargs.col_offset))
 
         keywords = self.visit(n.keywords)
         if n.kwargs is not None:
-            keywords.append(ast35.keyword(None, self.visit(n.kwargs)))
+            keywords.append(ast3.keyword(None, self.visit(n.kwargs)))
 
-        return ast35.Call(self.visit(n.func),
-                          args,
-                          keywords)
+        return ast3.Call(self.visit(n.func),
+                         args,
+                         keywords)
 
     # TODO(ddfisher): find better attributes to give Ellipses
     def visit_Ellipsis(self, n):
         # ellipses in Python 2 only exist as a slice index
-        return ast35.Index(ast35.Ellipsis(lineno=-1, col_offset=-1))
+        return ast3.Index(ast3.Ellipsis(lineno=-1, col_offset=-1))
 
     def visit_arguments(self, n):
-        def convert_arg(arg, annotation):
+        def convert_arg(arg, type_comment):
             if isinstance(arg, ast27.Name):
                 v = arg.id
             elif isinstance(arg, ast27.Tuple):
                 v = self.visit(arg)
             else:
                 raise RuntimeError("'{}' is not a valid argument.".format(ast27.dump(arg)))
-            return ast35.arg(v, annotation, lineno=arg.lineno, col_offset=arg.col_offset)
+            return ast3.arg(v, None, type_comment, lineno=arg.lineno, col_offset=arg.col_offset)
 
         def get_type_comment(i):
             if i < len(n.type_comments) and n.type_comments[i] is not None:
-                return ast35.Str(n.type_comments[i])
+                return n.type_comments[i]
             return None
 
         args = [convert_arg(arg, get_type_comment(i)) for i, arg in enumerate(n.args)]
 
         vararg = None
         if n.vararg is not None:
-            vararg = ast35.arg(n.vararg,
-                               get_type_comment(len(args)),
-                               lineno=-1, col_offset=-1)
+            vararg = ast3.arg(n.vararg,
+                              None,
+                              get_type_comment(len(args)),
+                              lineno=-1, col_offset=-1)
 
         kwarg = None
         if n.kwarg is not None:
-            kwarg = ast35.arg(n.kwarg,
-                              get_type_comment(len(args) + (0 if n.vararg is None else 1)),
-                              lineno=-1, col_offset=-1)
+            kwarg = ast3.arg(n.kwarg,
+                             None,
+                             get_type_comment(len(args) + (0 if n.vararg is None else 1)),
+                             lineno=-1, col_offset=-1)
 
         defaults = self.visit(n.defaults)
 
-        return ast35.arguments(args,
-                               vararg,
-                               [],
-                               [],
-                               kwarg,
-                               defaults)
+        return ast3.arguments(args,
+                              vararg,
+                              [],
+                              [],
+                              kwarg,
+                              defaults)
 
     def visit_Str(self, s):
         if isinstance(s.s, bytes):
-            return ast35.Bytes(s.s)
+            return ast3.Bytes(s.s)
         else:
-            return ast35.Str(s.s)
+            return ast3.Str(s.s)
 
     def visit_Num(self, n):
         new = self.generic_visit(n)
         if new.n < 0:
             # Python 3 uses a unary - operator for negative literals.
             new.n = -new.n
-            return ast35.UnaryOp(op=ast35.USub(),
-                                 operand=_copy_attributes(new, n))
+            return ast3.UnaryOp(op=ast3.USub(),
+                                operand=_copy_attributes(new, n))
         else:
             return new
