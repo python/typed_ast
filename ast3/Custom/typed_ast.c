@@ -213,7 +213,7 @@ err_free(perrdetail *err)
 
 // copy of PyParser_ASTFromStringObject in Python/pythonrun.c
 /* Preferred access to parser is through AST. */
-static mod_ty
+mod_ty
 string_object_to_c_ast(const char *s, PyObject *filename, int start,
                              PyCompilerFlags *flags, int feature_version,
                              PyArena *arena)
