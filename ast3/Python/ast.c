@@ -25,6 +25,11 @@ static int validate_nonempty_seq(asdl_seq *, const char *, const char *);
 static int validate_stmt(stmt_ty);
 static int validate_expr(expr_ty, expr_context_ty);
 
+mod_ty
+string_object_to_c_ast(const char *s, PyObject *filename, int start,
+                       PyCompilerFlags *flags, int feature_version,
+                       PyArena *arena);
+
 static int
 validate_comprehension(asdl_seq *gens)
 {
@@ -4362,7 +4367,7 @@ fstring_compile_expr(const char *expr_start, const char *expr_end,
     PyCompilerFlags cf;
     mod_ty mod;
     char *str;
-    PyObject *o;
+    PyObject *o, *fstring_name;
     Py_ssize_t len;
     Py_ssize_t i;
 
@@ -4411,8 +4416,11 @@ fstring_compile_expr(const char *expr_start, const char *expr_end,
     str[len+2] = 0;
 
     cf.cf_flags = PyCF_ONLY_AST;
-    mod = PyParser_ASTFromString(str, "<fstring>",
-                                 Py_eval_input, &cf, c->c_arena);
+    fstring_name = PyUnicode_FromString("<fstring>");
+    mod = string_object_to_c_ast(str, fstring_name,
+                                 Py_eval_input, &cf,
+                                 c->c_feature_version, c->c_arena);
+    Py_DECREF(fstring_name);
     PyMem_RawFree(str);
     if (!mod)
         return NULL;
