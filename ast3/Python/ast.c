@@ -1018,14 +1018,6 @@ forbidden_name(struct compiling *c, identifier name, const node *n,
         ast_error(c, n, "assignment to keyword");
         return 1;
     }
-    if (PyUnicode_CompareWithASCIIString(name, "async") == 0 ||
-        PyUnicode_CompareWithASCIIString(name, "await") == 0)
-    {
-        ast_error(c, n,
-            "'async' and 'await' will become reserved keywords"
-            " in Python 3.7");
-        return 1;
-    }
     if (full_checks) {
         const char * const *p;
         for (p = FORBIDDEN; *p; p++) {
