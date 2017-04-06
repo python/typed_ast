@@ -846,7 +846,7 @@ ast_for_arguments(struct compiling *c, const node *n)
 
                 }
                 i += 1; /* the name */
-                if (TYPE(CHILD(n, i)) == COMMA)
+                if (i < NCH(n) && TYPE(CHILD(n, i)) == COMMA)
                     i += 1; /* the comma, if present */
                 if (parenthesized && Py_Py3kWarningFlag &&
                     !ast_warn(c, ch, "parenthesized argument names "
@@ -862,7 +862,7 @@ ast_for_arguments(struct compiling *c, const node *n)
                 if (!vararg)
                     return NULL;
                 i += 2; /* the star and the name */
-                if (TYPE(CHILD(n, i)) == COMMA)
+                if (i < NCH(n) && TYPE(CHILD(n, i)) == COMMA)
                     i += 1; /* the comma, if present */
                 break;
             case DOUBLESTAR:
@@ -872,7 +872,7 @@ ast_for_arguments(struct compiling *c, const node *n)
                 if (!kwarg)
                     return NULL;
                 i += 2; /* the double star and the name */
-                if (TYPE(CHILD(n, i)) == COMMA)
+                if (i < NCH(n) && TYPE(CHILD(n, i)) == COMMA)
                     i += 1; /* the comma, if present */
                 break;
             case TYPE_COMMENT:

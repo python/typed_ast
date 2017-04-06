@@ -1372,7 +1372,7 @@ handle_keywordonly_args(struct compiling *c, const node *n, int start,
                     goto error;
                 asdl_seq_SET(kwonlyargs, j++, arg);
                 i += 1; /* the name */
-                if (TYPE(CHILD(n, i)) == COMMA)
+                if (i < NCH(n) && TYPE(CHILD(n, i)) == COMMA)
                     i += 1; /* the comma, if present */
                 break;
             case TYPE_COMMENT:
@@ -1514,7 +1514,7 @@ ast_for_arguments(struct compiling *c, const node *n)
                     return NULL;
                 asdl_seq_SET(posargs, k++, arg);
                 i += 1; /* the name */
-                if (TYPE(CHILD(n, i)) == COMMA)
+                if (i < NCH(n) && TYPE(CHILD(n, i)) == COMMA)
                     i += 1; /* the comma, if present */
                 break;
             case STAR:
@@ -1530,7 +1530,7 @@ ast_for_arguments(struct compiling *c, const node *n)
                     int res = 0;
                     i += 2; /* now follows keyword only arguments */
 
-                    if (TYPE(CHILD(n, i)) == TYPE_COMMENT) {
+                    if (i < NCH(n) && TYPE(CHILD(n, i)) == TYPE_COMMENT) {
                         ast_error(c, CHILD(n, i),
                                 "bare * has associated type comment");
                         return NULL;
@@ -1546,11 +1546,11 @@ ast_for_arguments(struct compiling *c, const node *n)
                     if (!vararg)
                         return NULL;
 
-                i += 2; /* the star and the name */
-                if (TYPE(CHILD(n, i)) == COMMA)
-                    i += 1; /* the comma, if present */
+                    i += 2; /* the star and the name */
+                    if (i < NCH(n) && TYPE(CHILD(n, i)) == COMMA)
+                        i += 1; /* the comma, if present */
 
-                    if (TYPE(CHILD(n, i)) == TYPE_COMMENT) {
+                    if (i < NCH(n) && TYPE(CHILD(n, i)) == TYPE_COMMENT) {
                         vararg->type_comment = NEW_TYPE_COMMENT(CHILD(n, i));
                         i += 1;
                     }
@@ -1572,7 +1572,7 @@ ast_for_arguments(struct compiling *c, const node *n)
                 if (!kwarg)
                     return NULL;
                 i += 2; /* the double star and the name */
-                if (TYPE(CHILD(n, i)) == COMMA)
+                if (i < NCH(n) && TYPE(CHILD(n, i)) == COMMA)
                     i += 1; /* the comma, if present */
                 break;
             case TYPE_COMMENT:
