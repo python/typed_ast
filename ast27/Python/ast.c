@@ -456,7 +456,7 @@ set_context(struct compiling *c, expr_ty e, expr_context_ty ctx, const node *n)
     switch (e->kind) {
         case Attribute_kind:
             if (ctx == Store && !forbidden_check(c, n,
-                                (char *)PyUnicode_AsUTF8String(e->v.Attribute.attr)))
+                                PyUnicode_AsUTF8(e->v.Attribute.attr)))
                     return 0;
             e->v.Attribute.ctx = ctx;
             break;
@@ -465,7 +465,7 @@ set_context(struct compiling *c, expr_ty e, expr_context_ty ctx, const node *n)
             break;
         case Name_kind:
             if (ctx == Store && !forbidden_check(c, n,
-                                (char *)PyUnicode_AsUTF8String(e->v.Name.id)))
+                                PyUnicode_AsUTF8(e->v.Name.id)))
                     return 0;
             e->v.Name.ctx = ctx;
             break;
@@ -2203,7 +2203,7 @@ ast_for_call(struct compiling *c, const node *n, expr_ty func)
                     return NULL;
                 }
                 key = e->v.Name.id;
-                if (!forbidden_check(c, CHILD(ch, 0), (char *)PyUnicode_AsUTF8String(key)))
+                if (!forbidden_check(c, CHILD(ch, 0), PyUnicode_AsUTF8(key)))
                     return NULL;
                 for (k = 0; k < nkeywords; k++) {
                     tmp = _PyUnicode_AsString(
