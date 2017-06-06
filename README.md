@@ -1,4 +1,8 @@
 # Typed AST
+
+[![Build Status](https://travis-ci.org/python/typed_ast.svg)](https://travis-ci.org/python/typed_ast)
+[![Chat at https://gitter.im/python/typed_ast](https://badges.gitter.im/python/typed_ast.svg)](https://gitter.im/python/typed_ast)
+
 `typed_ast` is a Python 3 package that provides a Python 2.7 and Python 3
 parser similar to the standard `ast` library.  Unlike `ast`, the parsers in
 `typed_ast` include [PEP 484](https://www.python.org/dev/peps/pep-0484/) type
