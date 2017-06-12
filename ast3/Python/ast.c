@@ -970,7 +970,7 @@ Ta3AST_FromNode(const node *n, PyCompilerFlags *flags, const char *filename_str,
 */
 
 static operator_ty
-get_operator(const node *n)
+get_operator(struct compiling *c, const node *n)
 {
     switch (TYPE(n)) {
         case VBAR:
@@ -990,6 +990,11 @@ get_operator(const node *n)
         case STAR:
             return Mult;
         case AT:
+            if (c->c_feature_version < 5) {
+                ast_error(c, n,
+                        "The '@' operator is only supported in Python 3.5 and greater");
+                return (operator_ty)0;
+            }
             return MatMult;
         case SLASH:
             return Div;
@@ -1198,6 +1203,11 @@ ast_for_augassign(struct compiling *c, const node *n)
             else
                 return Mult;
         case '@':
+            if (c->c_feature_version < 5) {
+                ast_error(c, n,
+                        "The '@' operator is only supported in Python 3.5 and greater");
+                return (operator_ty)0;
+            }
             return MatMult;
         default:
             PyErr_Format(PyExc_SystemError, "invalid augassign: %s", STR(n));
@@ -1696,6 +1706,12 @@ ast_for_funcdef_impl(struct compiling *c, const node *n,
     int name_i = 1;
     node *tc;
     string type_comment = NULL;
+
+    if (is_async && c->c_feature_version < 5) {
+        ast_error(c, n,
+                "Async functions are only supported in Python 3.5 and greater");
+        return NULL;
+    }
 
     REQ(n, funcdef);
 
@@ -2444,7 +2460,7 @@ ast_for_binop(struct compiling *c, const node *n)
     if (!expr2)
         return NULL;
 
-    newoperator = get_operator(CHILD(n, 1));
+    newoperator = get_operator(c, CHILD(n, 1));
     if (!newoperator)
         return NULL;
 
@@ -2458,7 +2474,7 @@ ast_for_binop(struct compiling *c, const node *n)
         expr_ty tmp_result, tmp;
         const node* next_oper = CHILD(n, i * 2 + 1);
 
-        newoperator = get_operator(next_oper);
+        newoperator = get_operator(c, next_oper);
         if (!newoperator)
             return NULL;
 
@@ -2587,6 +2603,11 @@ ast_for_atom_expr(struct compiling *c, const node *n)
     nch = NCH(n);
 
     if (TYPE(CHILD(n, 0)) == AWAIT) {
+        if (c->c_feature_version < 5) {
+            ast_error(c, n,
+                    "Await expressions are only supported in Python 3.5 and greater");
+            return 0;
+        }
         start = 1;
         assert(nch > 1);
     }
@@ -3840,6 +3861,13 @@ ast_for_for_stmt(struct compiling *c, const node *n, int is_async)
     const node *node_target;
     int has_type_comment;
     string type_comment;
+
+    if (is_async && c->c_feature_version < 5) {
+        ast_error(c, n,
+                "Async for loops are only supported in Python 3.5 and greater");
+        return NULL;
+    }
+
     /* for_stmt: 'for' exprlist 'in' testlist ':' [TYPE_COMMENT] suite ['else' ':' suite] */
     REQ(n, for_stmt);
 
@@ -4034,6 +4062,12 @@ ast_for_with_stmt(struct compiling *c, const node *n, int is_async)
     int i, n_items, nch_minus_type, has_type_comment;
     asdl_seq *items, *body;
     string type_comment;
+
+    if (is_async && c->c_feature_version < 5) {
+        ast_error(c, n,
+                "Async with statements are only supported in Python 3.5 and greater");
+        return NULL;
+    }
 
     REQ(n, with_stmt);
 
