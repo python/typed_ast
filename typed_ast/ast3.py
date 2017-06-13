@@ -48,8 +48,12 @@ def parse(source, filename='<unknown>', mode='exec', feature_version=LATEST_MINO
     Set feature_version to limit the syntax parsed to that minor version of
     Python 3.  For example, feature_version=5 will prevent new syntax features
     from Python 3.6+ from being used, such as fstrings.  Currently only
-    supported for Python 3.5+, so feature_version=4 or less are all equivalent
-    to feature_version=5.
+    fully supported for Python 3.5+ with partial support for Python 3.4.
+    So, feature_version=3 or less are all equivalent to feature_version=4.
+
+    When feature_version=4, the parser will forbid the use of the async/await 
+    keywords and the '@' operator, but will not forbid the use of PEP 448 
+    additional unpacking generalizations, which were also added in Python 3.5.
     """
     return _ast3._parse(source, filename, mode, feature_version)
 
