@@ -2606,7 +2606,7 @@ ast_for_atom_expr(struct compiling *c, const node *n)
         if (c->c_feature_version < 5) {
             ast_error(c, n,
                     "Await expressions are only supported in Python 3.5 and greater");
-            return 0;
+            return NULL;
         }
         start = 1;
         assert(nch > 1);

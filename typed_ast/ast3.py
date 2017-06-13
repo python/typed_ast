@@ -51,9 +51,9 @@ def parse(source, filename='<unknown>', mode='exec', feature_version=LATEST_MINO
     fully supported for Python 3.5+ with partial support for Python 3.4.
     So, feature_version=3 or less are all equivalent to feature_version=4.
 
-    If feature_version=4, the parser will currently forbid the use of the
-    async/await keywords and the '@' operator, but will not forbid the use of
-    PEP 448 additional unpacking generalizations, which was added in Python 3.5.
+    When feature_version=4, the parser will forbid the use of the async/await 
+    keywords and the '@' operator, but will not forbid the use of PEP 448 
+    additional unpacking generalizations, which were also added in Python 3.5.
     """
     return _ast3._parse(source, filename, mode, feature_version)
 
