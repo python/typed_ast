@@ -3959,10 +3959,10 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
                         targets = asdl_seq_new(len, arena);
                         if (targets == NULL) goto failed;
                         for (i = 0; i < len; i++) {
-                                expr_ty value;
-                                res = obj2ast_expr(PyList_GET_ITEM(tmp, i), &value, arena);
+                                expr_ty val;
+                                res = obj2ast_expr(PyList_GET_ITEM(tmp, i), &val, arena);
                                 if (res != 0) goto failed;
-                                asdl_seq_SET(targets, i, value);
+                                asdl_seq_SET(targets, i, val);
                         }
                         Py_XDECREF(tmp);
                         tmp = NULL;
