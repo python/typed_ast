@@ -87,7 +87,7 @@ based on the CPython 2.7 and 3.6 parsers.
 """.strip()
 
 setup (name = 'typed-ast',
-       version = '1.0.3',
+       version = '1.0.4',
        description = 'a fork of Python 2 and 3 ast modules with type comment support',
        long_description = long_description,
        author = 'David Fisher',
