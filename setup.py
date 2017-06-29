@@ -95,7 +95,7 @@ def extract_version(file_name):
                 version_info = '.'.join((x.strip() for x in line.split('(', 1)[1].
                                          split(')', 1)[0].split(',')))
             elif line.startswith('__version__ = '):
-                version = line.split('"', 2)[1]
+                version = line.split("'", 2)[1]
             if version_info and version:
                 if version == version_info:
                     return version
