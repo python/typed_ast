@@ -1,6 +1,6 @@
 # Typed AST
 
-[![Build Status](https://travis-ci.org/python/typed_ast.svg)](https://travis-ci.org/python/typed_ast)
+[![Build Status](https://travis-ci.org/python/typed_ast.svg?branch=master)](https://travis-ci.org/python/typed_ast)
 [![Chat at https://gitter.im/python/typed_ast](https://badges.gitter.im/python/typed_ast.svg)](https://gitter.im/python/typed_ast)
 
 `typed_ast` is a Python 3 package that provides a Python 2.7 and Python 3
