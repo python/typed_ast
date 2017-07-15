@@ -2303,6 +2303,7 @@ ast_for_class_bases(struct compiling *c, const node* n)
 static stmt_ty
 ast_for_expr_stmt(struct compiling *c, const node *n)
 {
+    int num;
     REQ(n, expr_stmt);
     /* expr_stmt: testlist (augassign (yield_expr|testlist)
                 | ('=' (yield_expr|testlist))* [TYPE_COMMENT])
@@ -2311,7 +2312,7 @@ ast_for_expr_stmt(struct compiling *c, const node *n)
                 | '<<=' | '>>=' | '**=' | '//='
        test: ... here starts the operator precendence dance
      */
-    int num = NCH(n);
+    num = NCH(n);
 
     if (num == 1 || (num == 2 && TYPE(CHILD(n, 1)) == TYPE_COMMENT)) {
         expr_ty e = ast_for_testlist(c, CHILD(n, 0));
@@ -3516,12 +3517,13 @@ parsenumber(struct compiling *c, const char *s)
                 /* Make a copy without the trailing 'L' */
                 size_t len = end - s  + 1;
                 char *copy = malloc(len);
+                PyObject *result;
                 if (copy == NULL)
                         return PyErr_NoMemory();
                 memcpy(copy, s, len);
                 copy[len - 1] = '\0';
                 old_style_octal = len > 2 && copy[0] == '0' && copy[1] >= '0' && copy[1] <= '9';
-                PyObject *result = PyLong_FromString(copy, (char **)0, old_style_octal ? 8 : 0);
+                result = PyLong_FromString(copy, (char **)0, old_style_octal ? 8 : 0);
                 free(copy);
                 return result;
         }

@@ -2274,6 +2274,7 @@ ast_for_atom(struct compiling *c, const node *n)
         return str;
     }
     case NUMBER: {
+        PyObject *pynum;
         const char *s = STR(ch);
         /* Underscores in numeric literals are only allowed in Python 3.6 or greater */
         /* Check for underscores here rather than in parse_number so we can report a line number on error */
@@ -2282,7 +2283,7 @@ ast_for_atom(struct compiling *c, const node *n)
                     "Underscores in numeric literals are only supported in Python 3.6 and greater");
             return NULL;
         }
-        PyObject *pynum = parsenumber(c, s);
+        pynum = parsenumber(c, s);
         if (!pynum)
             return NULL;
 
@@ -3040,6 +3041,7 @@ ast_for_testlist(struct compiling *c, const node* n)
 static stmt_ty
 ast_for_expr_stmt(struct compiling *c, const node *n)
 {
+    int num;
     REQ(n, expr_stmt);
     /* expr_stmt: testlist_star_expr (annassign | augassign (yield_expr|testlist) |
                            ('=' (yield_expr|testlist_star_expr))* [TYPE_COMMENT])
@@ -3049,7 +3051,7 @@ ast_for_expr_stmt(struct compiling *c, const node *n)
                 | '<<=' | '>>=' | '**=' | '//='
        test: ... here starts the operator precedence dance
      */
-    int num = NCH(n);
+    num = NCH(n);
 
     if (num == 1 || (num == 2 && TYPE(CHILD(n, 1)) == TYPE_COMMENT)) {
         expr_ty e = ast_for_testlist(c, CHILD(n, 0));
