@@ -9,8 +9,7 @@ parser similar to the standard `ast` library.  Unlike `ast`, the parsers in
 comments and are independent of the version of Python under which they are run.
 The `typed_ast` parsers produce the standard Python AST (plus type comments),
 and are both fast and correct, as they are based on the CPython 2.7 and 3.6
-parsers.  `typed_ast` runs on Python 3.3-3.6 on Linux and OS X, and on Python
-3.5-3.6 on Windows.
+parsers.  `typed_ast` runs on Python 3.3-3.6 on Linux, OS X and Windows.
 
 ## Submodules
 ### ast3
