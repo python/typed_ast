@@ -86,8 +86,24 @@ Python AST (plus type comments), and are both fast and correct, as they are
 based on the CPython 2.7 and 3.6 parsers.
 """.strip()
 
+def extract_version(file_name):
+    version_info = None
+    version = None
+    with open(file_name) as fp:
+        for line in fp:
+            if line.startswith('version_info = ('):
+                version_info = '.'.join((x.strip() for x in line.split('(', 1)[1].
+                                         split(')', 1)[0].split(',')))
+            elif line.startswith('__version__ = '):
+                version = line.split("'", 2)[1]
+            if version_info and version:
+                if version == version_info:
+                    return version
+                raise ValueError('__version__ and version_info differ')
+    raise ValueError('no version information found')
+
 setup (name = 'typed-ast',
-       version = '1.0.4',
+       version = extract_version('typed_ast/__init__.py'),
        description = 'a fork of Python 2 and 3 ast modules with type comment support',
        long_description = long_description,
        author = 'David Fisher',
