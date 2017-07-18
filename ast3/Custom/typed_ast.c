@@ -249,6 +249,7 @@ string_object_to_py_ast(const char *str, PyObject *filename, int start,
                        PyCompilerFlags *flags, int feature_version)
 {
     mod_ty mod;
+    PyObject *result;
     PyArena *arena = PyArena_New();
     if (arena == NULL)
         return NULL;
@@ -259,7 +260,7 @@ string_object_to_py_ast(const char *str, PyObject *filename, int start,
         return NULL;
     }
 
-    PyObject *result = Ta3AST_mod2obj(mod);
+    result = Ta3AST_mod2obj(mod);
     PyArena_Free(arena);
     return result;
 }

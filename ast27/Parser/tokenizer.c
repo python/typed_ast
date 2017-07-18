@@ -1352,6 +1352,10 @@ tok_get(register struct tok_state *tok, char **p_start, char **p_end)
         };
         char cbuf[80];
         char *tp, **cp;
+
+        /* used for type comment checks */
+        const char *prefix, *p, *type_start;
+
         tp = cbuf;
         do {
             *tp++ = c = tok_nextc(tok);
@@ -1375,9 +1379,9 @@ tok_get(register struct tok_state *tok, char **p_start, char **p_end)
         }
         while (c != EOF && c != '\n')
             c = tok_nextc(tok);
-
+            
         /* check for type comment */
-        const char *prefix, *p, *type_start;
+        
         p = tok->start;
         prefix = type_comment_prefix;
         while (*prefix && p < tok->cur) {
