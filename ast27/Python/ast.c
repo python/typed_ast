@@ -1498,10 +1498,20 @@ ast_for_atom(struct compiling *c, const node *n)
         return Name(name, Load, LINENO(n), n->n_col_offset, c->c_arena);
     }
     case STRING: {
-        PyObject *str = parsestrplus(c, n);
-        const char *s = STR(CHILD(n, 0));
+        PyObject *kind, *str = parsestrplus(c, n);
+        const char *raw, *s = STR(CHILD(n, 0));
         int quote = Py_CHARMASK(*s);
-        int has_b = 0;
+        /* currently Python allows up to 2 string modifiers */
+        char *ch, s_kind[3] = {0, 0, 0};
+        ch = s_kind;
+        raw = s;
+        while (*raw && *raw != '\'' && *raw != '"') {
+            *ch++ = *raw++;
+        }
+        kind = PyUnicode_FromString(s_kind);
+        if (!kind) {
+            return NULL;
+        }
         if (!str) {
 #ifdef Py_USING_UNICODE
             if (PyErr_ExceptionMatches(PyExc_UnicodeError)){
@@ -1526,10 +1536,7 @@ ast_for_atom(struct compiling *c, const node *n)
             return NULL;
         }
         PyArena_AddPyObject(c->c_arena, str);
-        if (quote == 'b' || quote == 'B') {
-            has_b = 1;
-        }
-        return Str(str, has_b, LINENO(n), n->n_col_offset, c->c_arena);
+        return Str(str, kind, LINENO(n), n->n_col_offset, c->c_arena);
     }
     case NUMBER: {
         PyObject *pynum = parsenumber(c, STR(ch));

@@ -4980,6 +4980,9 @@ make_str_node_and_del(PyObject **str, struct compiling *c, const node* n)
         *ch++ = *raw++;
     }
     kind = PyUnicode_FromString(s_kind);
+    if (!kind) {
+        return NULL;
+    }
     *str = NULL;
     assert(PyUnicode_CheckExact(s));
     if (PyArena_AddPyObject(c->c_arena, s) < 0) {

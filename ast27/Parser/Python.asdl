@@ -71,7 +71,7 @@ module Python version "$Revision$"
 			 expr? starargs, expr? kwargs)
 	     | Repr(expr value)
 	     | Num(object n) -- a number as a PyObject.
-	     | Str(string s, int? has_b) -- need to specify raw, unicode, etc?
+	     | Str(string s, string kind)
 	     -- other literals? bools?
 
 	     -- the following expression can appear in assignment context
