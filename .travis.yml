@@ -1,3 +1,6 @@
+# Build Linux wheels with manylinux.
+# See: https://github.com/pypa/manylinux
+
 matrix:
   include:
     - sudo: required
