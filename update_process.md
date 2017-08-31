@@ -35,12 +35,15 @@ liberally accept PRs for ports of new Python features.
 
 Following are the general steps to follow to update `typed_ast` for a new minor
 version of Python.  They are not meant to be comprehensive -- you'll have to
-troubleshoot problems and use your own intuition along the way.
+troubleshoot problems and use your own intuition along the way.  Most steps have
+an example commit hash in parentheses from the Python 3.6 update.
 
 1. Copy over the parser files from CPython.  The set of files you want is
    likely the set currently present in `ast3`.
+   ([a377f1e](https://github.com/python/typed_ast/commit/a377f1e3deb332bfbec3f3bb0d4c42768626d8d4))
 2. Update the #ifndef guards in the header files.  You can do this with
    `./tools/update_header_guards 3`.
+   ([82a19dd](https://github.com/python/typed_ast/commit/82a19ddddf35170e9ef36c62fbfc1f01c3bce145))
 3. Temporarily remove `Custom/typed_ast.c` from the set of files to compile in
    setup.py.  This should allow the module to compile (though only against the
    version of Python it was copied from).
@@ -60,7 +63,9 @@ troubleshoot problems and use your own intuition along the way.
      If you're on Linux, the script will need some very slight modification to
      work properly (due to cross-platform sed argument differences).  Verify the
      changes look sane.
+     ([d1ec7d0](https://github.com/python/typed_ast/commit/d1ec7d07cb6a7fe016d9446a196dfa3b86c5acf6))
   5. Update `Parser/asdl_c.py`.  Use the changes from git history to guide you.
+     ([29dbec4](https://github.com/python/typed_ast/commit/29dbec47aa145d84e5faaa431ce3b3afca233b3d))
 5. Make a commit.  You've likely been making commits along the way, but it's
    vitally important that there be a commit here so there can be a clean diff for
    the next time an update needs to be written (without the noise of the function
@@ -68,9 +73,11 @@ troubleshoot problems and use your own intuition along the way.
 6. Add `Custom/typed_ast.c` back to setup.py.  Temporarily remove references to
    `TYPE_COMMENT` and `Py_func_type_input` from `Custom/typed_ast.c` to allow it
    to compile.
+   ([b7a034b](https://github.com/python/typed_ast/commit/b7a034bc657dcfd5681b505f3949603fa6597116))
 7. Check that things seem to be working so far.  At this point, if you add the
    `_parse` function to the ast module in `Python-ast.c`, `ast3` should be able
    to compile and parse things without type information.
+   ([5e1885c](https://github.com/python/typed_ast/commit/5e1885cf54e1434a9422f3f797ecb1ed6fb42fb6))
 8. Port over the changes related to parsing type comments.  Use git history to
    guide you here.  Diffing the previous `ast3` against it's external symbol
    update commit  will show you which changes you need to make, and diffing the
@@ -80,18 +87,24 @@ troubleshoot problems and use your own intuition along the way.
    changes, which can be built with `./tools/update_ast3_grammar` (though the
    part that compiles pgen may need tweaking to work on your machine).  Check
    that things work before moving on.
+   ([f74d9f3](https://github.com/python/typed_ast/commit/f74d9f3f231110639752c30c0ae5fbebe870ebc6))
 9. Port over the changes for enforcing `feature_version`.  Check this works.
+   ([89aebce](https://github.com/python/typed_ast/commit/89aebcefb612c113446e3a877f78b93e4cf142b3))
 10. Add `feature_version` checks for any new syntax features in the Python
     version you're updating to.  Check these work.
 11. Make the changes necessary so `ast3` can compile on the previous Python
     version.  This is new territory every time.  Spelunking in the rest of the
     CPython source can often be helpful here.
+    ([5ea3eb8](https://github.com/python/typed_ast/commit/5ea3eb8447fd5c72c6f390014b1f7ea7cd6119ea))
 12. Port compatilibity with older Python versions.  See git history for
     details.  The changes in the previous `ast3` should likely suffice here.
+    ([8d2aeae](https://github.com/python/typed_ast/commit/8d2aeae8651c7e86ac51d7abefb91cb563c94555))
 13. Port compatility with Windows.  This largely involves replacing
     `PyAPI_FUNC` and `PyAPI_DATA` with `extern`.  See the git history for details.
     The changes in the previous `ast3` should likely suffice here as well.
+    ([99b5770](https://github.com/python/typed_ast/commit/99b577060eecd5bdbbfa8e590399c619d026366f))
 14. Port compatility with Linux  This mainly involves making the code C89
     compatible.  See the git history for details.
+    ([b37529e](https://github.com/python/typed_ast/commit/b37529e1fd02f3556374f9078458c19d3e6d937a))
 15. Clean up your commit history to make sure your changes are easy to
     understand and diff for the next update.
