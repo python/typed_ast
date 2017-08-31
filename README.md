@@ -11,6 +11,17 @@ The `typed_ast` parsers produce the standard Python AST (plus type comments),
 and are both fast and correct, as they are based on the CPython 2.7 and 3.6
 parsers.  `typed_ast` runs on Python 3.3-3.6 on Linux, OS X and Windows.
 
+## Development Philosophy
+
+This project is a drop-in replacement for the builtin `ast` module.  It is
+intended to be bug-for-bug compatible and behave identically, except for the
+presence of a few additional fields on the returned classes and a few
+additional optional arguments to the `parse` call.  Therefore, `typed_ast` will
+not accept any bugfixes for bugs in `ast` -- they should be fixed upstream
+instead.  To avoid feature bloat, any new features for `typed_ast` should have
+the potential to be broadly useful and not be built just for one niche usecase
+or in a manner such that only one project can use them.
+
 ## Submodules
 ### ast3
 The `ast3` parser produces the AST from the latest version of Python 3
