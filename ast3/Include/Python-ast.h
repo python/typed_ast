@@ -318,6 +318,7 @@ struct _expr {
         
         struct {
             string s;
+            string kind;
         } Str;
         
         struct {
@@ -601,8 +602,9 @@ expr_ty _Ta3_Call(expr_ty func, asdl_seq * args, asdl_seq * keywords, int
                   lineno, int col_offset, PyArena *arena);
 #define Num(a0, a1, a2, a3) _Ta3_Num(a0, a1, a2, a3)
 expr_ty _Ta3_Num(object n, int lineno, int col_offset, PyArena *arena);
-#define Str(a0, a1, a2, a3) _Ta3_Str(a0, a1, a2, a3)
-expr_ty _Ta3_Str(string s, int lineno, int col_offset, PyArena *arena);
+#define Str(a0, a1, a2, a3, a4) _Ta3_Str(a0, a1, a2, a3, a4)
+expr_ty _Ta3_Str(string s, string kind, int lineno, int col_offset, PyArena
+                 *arena);
 #define FormattedValue(a0, a1, a2, a3, a4, a5) _Ta3_FormattedValue(a0, a1, a2, a3, a4, a5)
 expr_ty _Ta3_FormattedValue(expr_ty value, int conversion, expr_ty format_spec,
                             int lineno, int col_offset, PyArena *arena);

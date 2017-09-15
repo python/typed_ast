@@ -252,7 +252,7 @@ static char *Num_fields[]={
 static PyTypeObject *Str_type;
 static char *Str_fields[]={
         "s",
-        "has_b",
+        "kind",
 };
 static PyTypeObject *Attribute_type;
 static char *Attribute_fields[]={
@@ -1850,7 +1850,7 @@ Num(object n, int lineno, int col_offset, PyArena *arena)
 }
 
 expr_ty
-Str(string s, int has_b, int lineno, int col_offset, PyArena *arena)
+Str(string s, string kind, int lineno, int col_offset, PyArena *arena)
 {
         expr_ty p;
         if (!s) {
@@ -1858,12 +1858,17 @@ Str(string s, int has_b, int lineno, int col_offset, PyArena *arena)
                                 "field s is required for Str");
                 return NULL;
         }
+        if (!kind) {
+                PyErr_SetString(PyExc_ValueError,
+                                "field kind is required for Str");
+                return NULL;
+        }
         p = (expr_ty)PyArena_Malloc(arena, sizeof(*p));
         if (!p)
                 return NULL;
         p->kind = Str_kind;
         p->v.Str.s = s;
-        p->v.Str.has_b = has_b;
+        p->v.Str.kind = kind;
         p->lineno = lineno;
         p->col_offset = col_offset;
         return p;
@@ -2889,9 +2894,9 @@ ast2obj_expr(void* _o)
                 if (PyObject_SetAttrString(result, "s", value) == -1)
                         goto failed;
                 Py_DECREF(value);
-                value = ast2obj_int(o->v.Str.has_b);
+                value = ast2obj_string(o->v.Str.kind);
                 if (!value) goto failed;
-                if (PyObject_SetAttrString(result, "has_b", value) == -1)
+                if (PyObject_SetAttrString(result, "kind", value) == -1)
                         goto failed;
                 Py_DECREF(value);
                 break;
@@ -5714,7 +5719,7 @@ obj2ast_expr(PyObject* obj, expr_ty* out, PyArena* arena)
         }
         if (isinstance) {
                 string s;
-                int has_b;
+                string kind;
 
                 if (PyObject_HasAttrString(obj, "s")) {
                         int res;
@@ -5728,18 +5733,19 @@ obj2ast_expr(PyObject* obj, expr_ty* out, PyArena* arena)
                         PyErr_SetString(PyExc_TypeError, "required field \"s\" missing from Str");
                         return 1;
                 }
-                if (PyObject_HasAttrString(obj, "has_b")) {
+                if (PyObject_HasAttrString(obj, "kind")) {
                         int res;
-                        tmp = PyObject_GetAttrString(obj, "has_b");
+                        tmp = PyObject_GetAttrString(obj, "kind");
                         if (tmp == NULL) goto failed;
-                        res = obj2ast_int(tmp, &has_b, arena);
+                        res = obj2ast_string(tmp, &kind, arena);
                         if (res != 0) goto failed;
                         Py_XDECREF(tmp);
                         tmp = NULL;
                 } else {
-                        has_b = 0;
+                        PyErr_SetString(PyExc_TypeError, "required field \"kind\" missing from Str");
+                        return 1;
                 }
-                *out = Str(s, has_b, lineno, col_offset, arena);
+                *out = Str(s, kind, lineno, col_offset, arena);
                 if (*out == NULL) goto failed;
                 return 0;
         }
