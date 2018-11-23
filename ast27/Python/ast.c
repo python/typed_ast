@@ -1057,11 +1057,11 @@ ast_for_decorated(struct compiling *c, const node *n)
            TYPE(CHILD(n, 1)) == classdef);
 
     if (TYPE(CHILD(n, 1)) == funcdef) {
-      return ast_for_funcdef(c, CHILD(n, 1), decorator_seq);
+      thing = ast_for_funcdef(c, CHILD(n, 1), decorator_seq);
     } else if (TYPE(CHILD(n, 1)) == classdef) {
-      return ast_for_classdef(c, CHILD(n, 1), decorator_seq);
+      thing = ast_for_classdef(c, CHILD(n, 1), decorator_seq);
     }
-    assert(0);
+    return thing;
 }
 
 static expr_ty
