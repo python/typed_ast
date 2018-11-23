@@ -34,6 +34,10 @@
     module in general is to provide an easy to use interface for libraries
     that work tightly with the python syntax (template engines for example).
 
+    Modifications/backports for typed_ast:
+
+    - Fixed line number information for decorated AST nodes.
+      (Based on https://github.com/python/cpython/pull/9731)
 
     :copyright: Copyright 2008 by Armin Ronacher.
     :license: Python License.
