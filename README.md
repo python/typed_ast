@@ -16,21 +16,25 @@ parsers.  `typed_ast` runs on Python 3.3-3.6 on Linux, OS X and Windows.
 This project is a near drop-in replacement for the builtin `ast` module.  It is
 intended to be bug-for-bug compatible and behave identically, except for the
 presence of a few additional fields on the returned classes and a few
-additional optional arguments to the `parse` call. From time to time we may backport important bug fixes from upstream. Therefore, `typed_ast` will
-not accept most all bugfixes for bugs in `ast`. Before a bug fix is considered, it must be merged upstream first. In other words, we only will take select backports from the upstream ast module.  To avoid feature bloat, any new features for `typed_ast` should have
-the potential to be broadly useful and not be built just for one niche usecase
-or in a manner such that only one project can use them.
+additional optional arguments to the `parse` call. From time to time we may
+backport important bug fixes from upstream. Therefore, `typed_ast` will not
+accept most bugfixes for bugs in `ast`. Before a bug fix is considered, it
+must be merged upstream first. In other words, we only will take select
+backports from the upstream ast module.  To avoid feature bloat, any new
+features for `typed_ast` should have the potential to be broadly useful and not
+be built just for one niche usecase or in a manner such that only one project
+can use them.
 
 ## Submodules
 ### ast3
 The `ast3` parser produces the AST from the latest version of Python 3
 (currently Python 3.6).  When new versions of Python 3 are released, it will be
 updated to match any changes in their AST.  (For rationale and technical
-details, see [here](update_process.md).)  The AST it currently produces is described in
-[ast3/Parser/Python.asdl](ast3/Parser/Python.asdl).  If you wish to limit
-parsing to older versions of Python 3, `ast3` can be configured to to give a
-SyntaxError for new syntax features introduced beyond a given Python version.
-For more information, see the module docstring in
+details, see [here](update_process.md).)  The AST it currently produces is
+described in [ast3/Parser/Python.asdl](ast3/Parser/Python.asdl).  If you wish
+to limit parsing to older versions of Python 3, `ast3` can be configured to to
+give a SyntaxError for new syntax features introduced beyond a given Python
+version. For more information, see the module docstring in
 [typed\_ast/ast3.py](typed_ast/ast3.py).
 
 ### ast27
@@ -50,6 +54,8 @@ Note: as these parsers consider type comments part of the grammar, incorrectly
 placed type comments are considered syntax errors.
 
 ## Updates and Releases
-To update `typed_ast` for new major Python releases, see [`update_process.md`](update_process.md).
+To update `typed_ast` for new major Python releases, see
+[`update_process.md`](update_process.md).
 
-To make a new `typed_ast` release, see [`release_process.md`](release_process.md).
+To make a new `typed_ast` release, see
+[`release_process.md`](release_process.md).
