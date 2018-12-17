@@ -34,5 +34,4 @@ deploy:
   acl: public-read
   on:
     repo: python/typed_ast
-    branch: master
     tags: true
