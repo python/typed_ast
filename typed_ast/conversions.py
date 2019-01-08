@@ -218,7 +218,7 @@ class _AST2To3(ast27.NodeTransformer):
         if isinstance(s.s, bytes):
             return ast3.Bytes(s.s)
         else:
-            return ast3.Str(s.s)
+            return ast3.Str(s.s, s.kind)
 
     def visit_Num(self, n):
         new = self.generic_visit(n)
