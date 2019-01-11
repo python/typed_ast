@@ -283,7 +283,7 @@ class NodeTransformer(NodeVisitor):
            def visit_Name(self, node):
                return copy_location(Subscript(
                    value=Name(id='data', ctx=Load()),
-                   slice=Index(value=Str(s=node.id)),
+                   slice=Index(value=Str(s=node.id, kind='')),
                    ctx=node.ctx
                ), node)
 

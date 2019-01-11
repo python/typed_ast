@@ -106,7 +106,8 @@ class _AST2To3(ast27.NodeTransformer):
             keywords.append(ast3.keyword("file", self.visit(n.dest)))
 
         if not n.nl:
-            keywords.append(ast3.keyword("end", ast3.Str(" ", lineno=n.lineno, col_offset=-1)))
+            keywords.append(ast3.keyword("end",
+                                         ast3.Str(s=" ", kind='', lineno=n.lineno, col_offset=-1)))
 
         return ast3.Expr(ast3.Call(ast3.Name("print", ast3.Load(), lineno=n.lineno, col_offset=-1),
                                    self.visit(n.values),
