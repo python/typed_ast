@@ -53,8 +53,8 @@ def parse(source, filename='<unknown>', mode='exec', feature_version=LATEST_MINO
     fully supported for Python 3.5+ with partial support for Python 3.4.
     So, feature_version=3 or less are all equivalent to feature_version=4.
 
-    When feature_version=4, the parser will forbid the use of the async/await 
-    keywords and the '@' operator, but will not forbid the use of PEP 448 
+    When feature_version=4, the parser will forbid the use of the async/await
+    keywords and the '@' operator, but will not forbid the use of PEP 448
     additional unpacking generalizations, which were also added in Python 3.5.
     """
     return _ast3._parse(source, filename, mode, feature_version)
@@ -306,7 +306,7 @@ class NodeTransformer(NodeVisitor):
            def visit_Name(self, node):
                return copy_location(Subscript(
                    value=Name(id='data', ctx=Load()),
-                   slice=Index(value=Str(s=node.id)),
+                   slice=Index(value=Str(s=node.id, kind='')),
                    ctx=node.ctx
                ), node)
 
