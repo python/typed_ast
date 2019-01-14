@@ -19,7 +19,7 @@
    `dist` directory.  (You will have to sign in with your Google account to
    access these wheels, but all Google accounts have access.)
 9. On a Mac with Python 3.6 and 3.7 installed, run `python3.6 setup.py bdist_wheel`
-   and `python3.6 setup.py bdist_wheel` (and copy the wheels as needed).
+   and `python3.7 setup.py bdist_wheel` (and copy the wheels as needed).
 10. Upload the sdist and wheels to PyPI with `twine upload dist/*`.
 11. If possible, verify the final `typed_ast` wheels work on Windows, MacOS,
     and Linux platforms.
