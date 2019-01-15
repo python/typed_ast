@@ -5,7 +5,7 @@
 #include "errcode.h"
 
 node *
-PyNode_New(int type)
+Ta3Node_New(int type)
 {
     node *n = (node *) PyObject_MALLOC(1 * sizeof(node));
     if (n == NULL)
@@ -34,7 +34,7 @@ fancy_roundup(int n)
 }
 
 /* A gimmick to make massive numbers of reallocs quicker.  The result is
- * a number >= the input.  In PyNode_AddChild, it's used like so, when
+ * a number >= the input.  In Ta3Node_AddChild, it's used like so, when
  * we're about to add child number current_size + 1:
  *
  *     if XXXROUNDUP(current_size) < XXXROUNDUP(current_size + 1):
@@ -63,7 +63,7 @@ fancy_roundup(int n)
  *
  * In a run of compileall across the 2.3a0 Lib directory, Andrew MacIntyre
  * reported that, with this scheme, 89% of PyObject_REALLOC calls in
- * PyNode_AddChild passed 1 for the size, and 9% passed 4.  So this usually
+ * Ta3Node_AddChild passed 1 for the size, and 9% passed 4.  So this usually
  * wastes very little memory, but is very effective at sidestepping
  * platform-realloc disasters on vulnerable platforms.
  *
@@ -76,7 +76,7 @@ fancy_roundup(int n)
 
 
 int
-PyNode_AddChild(node *n1, int type, char *str, int lineno, int col_offset)
+Ta3Node_AddChild(node *n1, int type, char *str, int lineno, int col_offset)
 {
     const int nch = n1->n_nchildren;
     int current_capacity;
@@ -118,7 +118,7 @@ static Py_ssize_t sizeofchildren(node *n);
 
 
 void
-PyNode_Free(node *n)
+Ta3Node_Free(node *n)
 {
     if (n != NULL) {
         freechildren(n);
@@ -127,7 +127,7 @@ PyNode_Free(node *n)
 }
 
 Py_ssize_t
-_PyNode_SizeOf(node *n)
+_Ta3Node_SizeOf(node *n)
 {
     Py_ssize_t res = 0;
 
