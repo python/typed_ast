@@ -49,30 +49,32 @@ an example commit hash in parentheses from the Python 3.6 update.
    version of Python it was copied from).
 4. Update exported symbols: To avoid dynamic linker conflicts, exported `ast3`
    functions need their own unique prefix.
-  1. Compile the module with `python3 setup.py build`.
-  2. Generate the list of exported symbols with `./tools/find_exported_symbols 3`.
-     The script may require updating to work on your platform, but should serve
-     as a useful guide at minimum.
-  3. The exported symbols will be written to `exported_symbols3.txt`.  Make
-     sure this file looks sane, then remove `_PyInit__ast3` (which we want to
-     export) and delete the excess output at the beginning of each line (including
-     the leading `_` of each symbol) to end up with a list of function names to
-     change.
-  4. Run `./tools/update_exported_symbols 3`, which updates the exported
-     symbols in all the `ast3` files with sed.  It may take a few seconds to run.
-     If you're on Linux, the script will need some very slight modification to
-     work properly (due to cross-platform sed argument differences).  Verify the
-     changes look sane.
-     ([d1ec7d0](https://github.com/python/typed_ast/commit/d1ec7d07cb6a7fe016d9446a196dfa3b86c5acf6))
-  5. Update `Parser/asdl_c.py`.  Use the changes from git history to guide you.
-     ([29dbec4](https://github.com/python/typed_ast/commit/29dbec47aa145d84e5faaa431ce3b3afca233b3d))
+
+   1. Starting with an empty `build` directory, compile the module with `python3 setup.py build`.
+   2. Generate the list of exported symbols with `./tools/find_exported_symbols 3`.
+      The script may require updating to work on your platform, but should serve
+      as a useful guide at minimum.
+   3. The exported symbols will be written to `exported_symbols3.txt`.  Make
+      sure this file looks sane, then remove `_PyInit__ast3` (which we want to
+      export) to end up with a list of function names to change.
+   4. Run `./tools/update_exported_symbols 3`, which updates the exported
+      symbols in all the `ast3` files with sed.  It may take a few seconds to run.
+      If you're on Linux, the script will need some very slight modification to
+      work properly (due to cross-platform sed argument differences).  Verify the
+      changes look sane.
+      ([d1ec7d0](https://github.com/python/typed_ast/commit/d1ec7d07cb6a7fe016d9446a196dfa3b86c5acf6))
+   5. Update `Parser/asdl_c.py`.  Use the changes from git history to guide you.
+      (Don't be distracted by other files in that commit; look at asdl_c.py only.
+      Much of this renames _ast to _ast3 and substitutes certain _Py_ prefixes with _Ta3_.)
+      ([29dbec4](https://github.com/python/typed_ast/commit/29dbec47aa145d84e5faaa431ce3b3afca233b3d))
+
 5. Make a commit.  You've likely been making commits along the way, but it's
    vitally important that there be a commit here so there can be a clean diff for
    the next time an update needs to be written (without the noise of the function
    prefix rewriting, etc).
-6. Add `Custom/typed_ast.c` back to setup.py.  Temporarily remove references to
-   `TYPE_COMMENT` and `Py_func_type_input` from `Custom/typed_ast.c` to allow it
-   to compile.
+6. Add `Custom/typed_ast.c` back to setup.py.  To allow it to compile,
+   temporarily comment out references to `TYPE_COMMENT` and `Py_func_type_input` and
+   also the `feature_version` argument in the call to `Ta3AST_FromNodeObject()`.
    ([b7a034b](https://github.com/python/typed_ast/commit/b7a034bc657dcfd5681b505f3949603fa6597116))
 7. Check that things seem to be working so far.  At this point, if you add the
    `_parse` function to the ast module in `Python-ast.c`, `ast3` should be able
