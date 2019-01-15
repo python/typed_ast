@@ -610,8 +610,8 @@ static PyGetSetDef ast_type_getsets[] = {
 };
 
 static PyTypeObject AST_type = {
-    PyVarObject_HEAD_INIT(&PyType_Type, 0)
-    "_ast.AST",
+    PyVarObject_HEAD_INIT(NULL, 0)
+    "_ast3.AST",
     sizeof(AST_object),
     0,
     (destructor)ast_dealloc, /* tp_dealloc */
@@ -655,7 +655,7 @@ static PyTypeObject AST_type = {
 static PyTypeObject* make_type(char *type, PyTypeObject* base, char**fields, int num_fields)
 {
     _Py_IDENTIFIER(__module__);
-    _Py_IDENTIFIER(_ast);
+    _Py_IDENTIFIER(_ast3);
     PyObject *fnames, *result;
     int i;
     fnames = PyTuple_New(num_fields);
@@ -672,7 +672,7 @@ static PyTypeObject* make_type(char *type, PyTypeObject* base, char**fields, int
                     type, base,
                     _PyUnicode_FromId(&PyId__fields), fnames,
                     _PyUnicode_FromId(&PyId___module__),
-                    _PyUnicode_FromId(&PyId__ast));
+                    _PyUnicode_FromId(&PyId__ast3));
     Py_DECREF(fnames);
     return (PyTypeObject*)result;
 }
