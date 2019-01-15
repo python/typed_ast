@@ -307,10 +307,8 @@ static char *Num_fields[]={
 };
 static PyTypeObject *Str_type;
 _Py_IDENTIFIER(s);
-_Py_IDENTIFIER(kind);
 static char *Str_fields[]={
     "s",
-    "kind",
 };
 static PyTypeObject *FormattedValue_type;
 _Py_IDENTIFIER(conversion);
@@ -985,7 +983,7 @@ static int init_types(void)
     if (!Call_type) return 0;
     Num_type = make_type("Num", expr_type, Num_fields, 1);
     if (!Num_type) return 0;
-    Str_type = make_type("Str", expr_type, Str_fields, 2);
+    Str_type = make_type("Str", expr_type, Str_fields, 1);
     if (!Str_type) return 0;
     FormattedValue_type = make_type("FormattedValue", expr_type,
                                     FormattedValue_fields, 3);
@@ -2183,7 +2181,7 @@ Num(object n, int lineno, int col_offset, PyArena *arena)
 }
 
 expr_ty
-Str(string s, string kind, int lineno, int col_offset, PyArena *arena)
+Str(string s, int lineno, int col_offset, PyArena *arena)
 {
     expr_ty p;
     if (!s) {
@@ -2191,17 +2189,11 @@ Str(string s, string kind, int lineno, int col_offset, PyArena *arena)
                         "field s is required for Str");
         return NULL;
     }
-    if (!kind) {
-        PyErr_SetString(PyExc_ValueError,
-                        "field kind is required for Str");
-        return NULL;
-    }
     p = (expr_ty)PyArena_Malloc(arena, sizeof(*p));
     if (!p)
         return NULL;
     p->kind = Str_kind;
     p->v.Str.s = s;
-    p->v.Str.kind = kind;
     p->lineno = lineno;
     p->col_offset = col_offset;
     return p;
@@ -3454,11 +3446,6 @@ ast2obj_expr(void* _o)
         value = ast2obj_string(o->v.Str.s);
         if (!value) goto failed;
         if (_PyObject_SetAttrId(result, &PyId_s, value) == -1)
-            goto failed;
-        Py_DECREF(value);
-        value = ast2obj_string(o->v.Str.kind);
-        if (!value) goto failed;
-        if (_PyObject_SetAttrId(result, &PyId_kind, value) == -1)
             goto failed;
         Py_DECREF(value);
         break;
@@ -6779,7 +6766,6 @@ obj2ast_expr(PyObject* obj, expr_ty* out, PyArena* arena)
     }
     if (isinstance) {
         string s;
-        string kind;
 
         if (_PyObject_HasAttrId(obj, &PyId_s)) {
             int res;
@@ -6792,18 +6778,7 @@ obj2ast_expr(PyObject* obj, expr_ty* out, PyArena* arena)
             PyErr_SetString(PyExc_TypeError, "required field \"s\" missing from Str");
             return 1;
         }
-        if (_PyObject_HasAttrId(obj, &PyId_kind)) {
-            int res;
-            tmp = _PyObject_GetAttrId(obj, &PyId_kind);
-            if (tmp == NULL) goto failed;
-            res = obj2ast_string(tmp, &kind, arena);
-            if (res != 0) goto failed;
-            Py_CLEAR(tmp);
-        } else {
-            PyErr_SetString(PyExc_TypeError, "required field \"kind\" missing from Str");
-            return 1;
-        }
-        *out = Str(s, kind, lineno, col_offset, arena);
+        *out = Str(s, lineno, col_offset, arena);
         if (*out == NULL) goto failed;
         return 0;
     }
