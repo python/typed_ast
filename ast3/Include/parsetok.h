@@ -21,13 +21,13 @@ typedef struct {
 } perrdetail;
 
 #if 0
-#define PyPARSE_YIELD_IS_KEYWORD	0x0001
+#define PyPARSE_YIELD_IS_KEYWORD        0x0001
 #endif
 
-#define PyPARSE_DONT_IMPLY_DEDENT	0x0002
+#define PyPARSE_DONT_IMPLY_DEDENT       0x0002
 
 #if 0
-#define PyPARSE_WITH_IS_KEYWORD		0x0003
+#define PyPARSE_WITH_IS_KEYWORD         0x0003
 #define PyPARSE_PRINT_IS_FUNCTION       0x0004
 #define PyPARSE_UNICODE_LITERALS        0x0008
 #endif
@@ -35,15 +35,15 @@ typedef struct {
 #define PyPARSE_IGNORE_COOKIE 0x0010
 #define PyPARSE_BARRY_AS_BDFL 0x0020
 
-extern node * Ta3Parser_ParseString(const char *, grammar *, int,
+PyAPI_FUNC(node *) PyParser_ParseString(const char *, grammar *, int,
                                               perrdetail *);
-extern node * Ta3Parser_ParseFile (FILE *, const char *, grammar *, int,
+PyAPI_FUNC(node *) PyParser_ParseFile (FILE *, const char *, grammar *, int,
                                              const char *, const char *,
                                              perrdetail *);
 
-extern node * Ta3Parser_ParseStringFlags(const char *, grammar *, int,
+PyAPI_FUNC(node *) PyParser_ParseStringFlags(const char *, grammar *, int,
                                               perrdetail *, int);
-extern node * Ta3Parser_ParseFileFlags(
+PyAPI_FUNC(node *) PyParser_ParseFileFlags(
     FILE *fp,
     const char *filename,       /* decoded from the filesystem encoding */
     const char *enc,
@@ -53,7 +53,7 @@ extern node * Ta3Parser_ParseFileFlags(
     const char *ps2,
     perrdetail *err_ret,
     int flags);
-extern node * Ta3Parser_ParseFileFlagsEx(
+PyAPI_FUNC(node *) PyParser_ParseFileFlagsEx(
     FILE *fp,
     const char *filename,       /* decoded from the filesystem encoding */
     const char *enc,
@@ -63,7 +63,7 @@ extern node * Ta3Parser_ParseFileFlagsEx(
     const char *ps2,
     perrdetail *err_ret,
     int *flags);
-extern node * Ta3Parser_ParseFileObject(
+PyAPI_FUNC(node *) PyParser_ParseFileObject(
     FILE *fp,
     PyObject *filename,
     const char *enc,
@@ -74,21 +74,21 @@ extern node * Ta3Parser_ParseFileObject(
     perrdetail *err_ret,
     int *flags);
 
-extern node * Ta3Parser_ParseStringFlagsFilename(
+PyAPI_FUNC(node *) PyParser_ParseStringFlagsFilename(
     const char *s,
     const char *filename,       /* decoded from the filesystem encoding */
     grammar *g,
     int start,
     perrdetail *err_ret,
     int flags);
-extern node * Ta3Parser_ParseStringFlagsFilenameEx(
+PyAPI_FUNC(node *) PyParser_ParseStringFlagsFilenameEx(
     const char *s,
     const char *filename,       /* decoded from the filesystem encoding */
     grammar *g,
     int start,
     perrdetail *err_ret,
     int *flags);
-extern node * Ta3Parser_ParseStringObject(
+PyAPI_FUNC(node *) PyParser_ParseStringObject(
     const char *s,
     PyObject *filename,
     grammar *g,

@@ -9,7 +9,7 @@
 #include "token.h"
 #include "grammar.h"
 
-PyAPI_DATA(int) Py_DebugFlag;
+extern int Py_DebugFlag;
 
 grammar *
 newgrammar(int start)
@@ -31,10 +31,10 @@ newgrammar(int start)
 void
 freegrammar(grammar *g)
 {
-    int i, j;
+    int i;
     for (i = 0; i < g->g_ndfas; i++) {
         free(g->g_dfa[i].d_name);
-        for (j = 0; j < g->g_dfa[i].d_nstates; j++)
+        for (int j = 0; j < g->g_dfa[i].d_nstates; j++)
             PyObject_FREE(g->g_dfa[i].d_state[j].s_arc);
         PyObject_FREE(g->g_dfa[i].d_state);
     }
@@ -121,7 +121,7 @@ addlabel(labellist *ll, int type, const char *str)
     lb->lb_str = strdup(str);
     if (Py_DebugFlag)
         printf("Label @ %8p, %d: %s\n", ll, ll->ll_nlabels,
-               Ta3Grammar_LabelRepr(lb));
+               PyGrammar_LabelRepr(lb));
     return Py_SAFE_DOWNCAST(lb - ll->ll_label, intptr_t, int);
 }
 
@@ -170,7 +170,7 @@ translabel(grammar *g, label *lb)
     int i;
 
     if (Py_DebugFlag)
-        printf("Translating label %s ...\n", Ta3Grammar_LabelRepr(lb));
+        printf("Translating label %s ...\n", PyGrammar_LabelRepr(lb));
 
     if (lb->lb_type == NAME) {
         for (i = 0; i < g->g_ndfas; i++) {
@@ -187,7 +187,7 @@ translabel(grammar *g, label *lb)
             }
         }
         for (i = 0; i < (int)N_TOKENS; i++) {
-            if (strcmp(lb->lb_str, _Ta3Parser_TokenNames[i]) == 0) {
+            if (strcmp(lb->lb_str, _PyParser_TokenNames[i]) == 0) {
                 if (Py_DebugFlag)
                     printf("Label %s is terminal %d.\n",
                         lb->lb_str, i);
@@ -228,7 +228,7 @@ translabel(grammar *g, label *lb)
             lb->lb_str = dest;
         }
         else if (lb->lb_str[2] == lb->lb_str[0]) {
-            int type = (int) Ta3Token_OneChar(lb->lb_str[1]);
+            int type = (int) PyToken_OneChar(lb->lb_str[1]);
             if (type != OP) {
                 lb->lb_type = type;
                 free(lb->lb_str);
@@ -239,7 +239,7 @@ translabel(grammar *g, label *lb)
                     lb->lb_str);
         }
         else if (lb->lb_str[2] && lb->lb_str[3] == lb->lb_str[0]) {
-            int type = (int) Ta3Token_TwoChars(lb->lb_str[1],
+            int type = (int) PyToken_TwoChars(lb->lb_str[1],
                                        lb->lb_str[2]);
             if (type != OP) {
                 lb->lb_type = type;
@@ -251,7 +251,7 @@ translabel(grammar *g, label *lb)
                     lb->lb_str);
         }
         else if (lb->lb_str[2] && lb->lb_str[3] && lb->lb_str[4] == lb->lb_str[0]) {
-            int type = (int) Ta3Token_ThreeChars(lb->lb_str[1],
+            int type = (int) PyToken_ThreeChars(lb->lb_str[1],
                                                 lb->lb_str[2],
                                                 lb->lb_str[3]);
             if (type != OP) {
@@ -269,5 +269,5 @@ translabel(grammar *g, label *lb)
     }
     else
         printf("Can't translate label '%s'\n",
-               Ta3Grammar_LabelRepr(lb));
+               PyGrammar_LabelRepr(lb));
 }

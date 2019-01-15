@@ -9,7 +9,7 @@
 /* Return the DFA for the given type */
 
 dfa *
-Ta3Grammar_FindDFA(grammar *g, int type)
+PyGrammar_FindDFA(grammar *g, int type)
 {
     dfa *d;
 #if 1
@@ -25,13 +25,12 @@ Ta3Grammar_FindDFA(grammar *g, int type)
         if (d->d_type == type)
             return d;
     }
-    assert(0);
-    /* NOTREACHED */
+    Py_UNREACHABLE();
 #endif
 }
 
 const char *
-Ta3Grammar_LabelRepr(label *lb)
+PyGrammar_LabelRepr(label *lb)
 {
     static char buf[100];
 
@@ -47,10 +46,10 @@ Ta3Grammar_LabelRepr(label *lb)
     }
     else if (lb->lb_type < N_TOKENS) {
         if (lb->lb_str == NULL)
-            return _Ta3Parser_TokenNames[lb->lb_type];
+            return _PyParser_TokenNames[lb->lb_type];
         else {
             PyOS_snprintf(buf, sizeof(buf), "%.32s(%.32s)",
-                _Ta3Parser_TokenNames[lb->lb_type], lb->lb_str);
+                _PyParser_TokenNames[lb->lb_type], lb->lb_str);
             return buf;
         }
     }

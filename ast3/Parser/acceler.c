@@ -21,7 +21,7 @@ static void fixdfa(grammar *, dfa *);
 static void fixstate(grammar *, state *);
 
 void
-Ta3Grammar_AddAccelerators(grammar *g)
+PyGrammar_AddAccelerators(grammar *g)
 {
     dfa *d;
     int i;
@@ -32,7 +32,7 @@ Ta3Grammar_AddAccelerators(grammar *g)
 }
 
 void
-Ta3Grammar_RemoveAccelerators(grammar *g)
+PyGrammar_RemoveAccelerators(grammar *g)
 {
     dfa *d;
     int i;
@@ -85,7 +85,7 @@ fixstate(grammar *g, state *s)
             continue;
         }
         if (ISNONTERMINAL(type)) {
-            dfa *d1 = Ta3Grammar_FindDFA(g, type);
+            dfa *d1 = PyGrammar_FindDFA(g, type);
             int ibit;
             if (type - NT_OFFSET >= (1 << 7)) {
                 printf("XXX too high nonterminal number!\n");
