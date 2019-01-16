@@ -10,8 +10,10 @@ static PyTypeObject *mod_type;
 static PyObject* ast2obj_mod(void*);
 static PyTypeObject *Module_type;
 _Py_IDENTIFIER(body);
+_Py_IDENTIFIER(type_ignores);
 static char *Module_fields[]={
     "body",
+    "type_ignores",
 };
 static PyTypeObject *Interactive_type;
 static char *Interactive_fields[]={
@@ -20,6 +22,13 @@ static char *Interactive_fields[]={
 static PyTypeObject *Expression_type;
 static char *Expression_fields[]={
     "body",
+};
+static PyTypeObject *FunctionType_type;
+_Py_IDENTIFIER(argtypes);
+_Py_IDENTIFIER(returns);
+static char *FunctionType_fields[]={
+    "argtypes",
+    "returns",
 };
 static PyTypeObject *Suite_type;
 static char *Suite_fields[]={
@@ -37,13 +46,14 @@ static PyTypeObject *FunctionDef_type;
 _Py_IDENTIFIER(name);
 _Py_IDENTIFIER(args);
 _Py_IDENTIFIER(decorator_list);
-_Py_IDENTIFIER(returns);
+_Py_IDENTIFIER(type_comment);
 static char *FunctionDef_fields[]={
     "name",
     "args",
     "body",
     "decorator_list",
     "returns",
+    "type_comment",
 };
 static PyTypeObject *AsyncFunctionDef_type;
 static char *AsyncFunctionDef_fields[]={
@@ -52,6 +62,7 @@ static char *AsyncFunctionDef_fields[]={
     "body",
     "decorator_list",
     "returns",
+    "type_comment",
 };
 static PyTypeObject *ClassDef_type;
 _Py_IDENTIFIER(bases);
@@ -77,6 +88,7 @@ static PyTypeObject *Assign_type;
 static char *Assign_fields[]={
     "targets",
     "value",
+    "type_comment",
 };
 static PyTypeObject *AugAssign_type;
 _Py_IDENTIFIER(target);
@@ -103,6 +115,7 @@ static char *For_fields[]={
     "iter",
     "body",
     "orelse",
+    "type_comment",
 };
 static PyTypeObject *AsyncFor_type;
 static char *AsyncFor_fields[]={
@@ -110,6 +123,7 @@ static char *AsyncFor_fields[]={
     "iter",
     "body",
     "orelse",
+    "type_comment",
 };
 static PyTypeObject *While_type;
 _Py_IDENTIFIER(test);
@@ -129,11 +143,13 @@ _Py_IDENTIFIER(items);
 static char *With_fields[]={
     "items",
     "body",
+    "type_comment",
 };
 static PyTypeObject *AsyncWith_type;
 static char *AsyncWith_fields[]={
     "items",
     "body",
+    "type_comment",
 };
 static PyTypeObject *Raise_type;
 _Py_IDENTIFIER(exc);
@@ -480,6 +496,7 @@ _Py_IDENTIFIER(arg);
 static char *arg_fields[]={
     "arg",
     "annotation",
+    "type_comment",
 };
 static PyTypeObject *keyword_type;
 static PyObject* ast2obj_keyword(void*);
@@ -501,6 +518,12 @@ _Py_IDENTIFIER(optional_vars);
 static char *withitem_fields[]={
     "context_expr",
     "optional_vars",
+};
+static PyTypeObject *type_ignore_type;
+static PyObject* ast2obj_type_ignore(void*);
+static PyTypeObject *TypeIgnore_type;
+static char *TypeIgnore_fields[]={
+    "lineno",
 };
 
 
@@ -843,23 +866,26 @@ static int init_types(void)
     mod_type = make_type("mod", &AST_type, NULL, 0);
     if (!mod_type) return 0;
     if (!add_attributes(mod_type, NULL, 0)) return 0;
-    Module_type = make_type("Module", mod_type, Module_fields, 1);
+    Module_type = make_type("Module", mod_type, Module_fields, 2);
     if (!Module_type) return 0;
     Interactive_type = make_type("Interactive", mod_type, Interactive_fields,
                                  1);
     if (!Interactive_type) return 0;
     Expression_type = make_type("Expression", mod_type, Expression_fields, 1);
     if (!Expression_type) return 0;
+    FunctionType_type = make_type("FunctionType", mod_type,
+                                  FunctionType_fields, 2);
+    if (!FunctionType_type) return 0;
     Suite_type = make_type("Suite", mod_type, Suite_fields, 1);
     if (!Suite_type) return 0;
     stmt_type = make_type("stmt", &AST_type, NULL, 0);
     if (!stmt_type) return 0;
     if (!add_attributes(stmt_type, stmt_attributes, 2)) return 0;
     FunctionDef_type = make_type("FunctionDef", stmt_type, FunctionDef_fields,
-                                 5);
+                                 6);
     if (!FunctionDef_type) return 0;
     AsyncFunctionDef_type = make_type("AsyncFunctionDef", stmt_type,
-                                      AsyncFunctionDef_fields, 5);
+                                      AsyncFunctionDef_fields, 6);
     if (!AsyncFunctionDef_type) return 0;
     ClassDef_type = make_type("ClassDef", stmt_type, ClassDef_fields, 5);
     if (!ClassDef_type) return 0;
@@ -867,23 +893,23 @@ static int init_types(void)
     if (!Return_type) return 0;
     Delete_type = make_type("Delete", stmt_type, Delete_fields, 1);
     if (!Delete_type) return 0;
-    Assign_type = make_type("Assign", stmt_type, Assign_fields, 2);
+    Assign_type = make_type("Assign", stmt_type, Assign_fields, 3);
     if (!Assign_type) return 0;
     AugAssign_type = make_type("AugAssign", stmt_type, AugAssign_fields, 3);
     if (!AugAssign_type) return 0;
     AnnAssign_type = make_type("AnnAssign", stmt_type, AnnAssign_fields, 4);
     if (!AnnAssign_type) return 0;
-    For_type = make_type("For", stmt_type, For_fields, 4);
+    For_type = make_type("For", stmt_type, For_fields, 5);
     if (!For_type) return 0;
-    AsyncFor_type = make_type("AsyncFor", stmt_type, AsyncFor_fields, 4);
+    AsyncFor_type = make_type("AsyncFor", stmt_type, AsyncFor_fields, 5);
     if (!AsyncFor_type) return 0;
     While_type = make_type("While", stmt_type, While_fields, 3);
     if (!While_type) return 0;
     If_type = make_type("If", stmt_type, If_fields, 3);
     if (!If_type) return 0;
-    With_type = make_type("With", stmt_type, With_fields, 2);
+    With_type = make_type("With", stmt_type, With_fields, 3);
     if (!With_type) return 0;
-    AsyncWith_type = make_type("AsyncWith", stmt_type, AsyncWith_fields, 2);
+    AsyncWith_type = make_type("AsyncWith", stmt_type, AsyncWith_fields, 3);
     if (!AsyncWith_type) return 0;
     Raise_type = make_type("Raise", stmt_type, Raise_fields, 2);
     if (!Raise_type) return 0;
@@ -1151,7 +1177,7 @@ static int init_types(void)
     arguments_type = make_type("arguments", &AST_type, arguments_fields, 6);
     if (!arguments_type) return 0;
     if (!add_attributes(arguments_type, NULL, 0)) return 0;
-    arg_type = make_type("arg", &AST_type, arg_fields, 2);
+    arg_type = make_type("arg", &AST_type, arg_fields, 3);
     if (!arg_type) return 0;
     if (!add_attributes(arg_type, arg_attributes, 2)) return 0;
     keyword_type = make_type("keyword", &AST_type, keyword_fields, 2);
@@ -1163,6 +1189,12 @@ static int init_types(void)
     withitem_type = make_type("withitem", &AST_type, withitem_fields, 2);
     if (!withitem_type) return 0;
     if (!add_attributes(withitem_type, NULL, 0)) return 0;
+    type_ignore_type = make_type("type_ignore", &AST_type, NULL, 0);
+    if (!type_ignore_type) return 0;
+    if (!add_attributes(type_ignore_type, NULL, 0)) return 0;
+    TypeIgnore_type = make_type("TypeIgnore", type_ignore_type,
+                                TypeIgnore_fields, 1);
+    if (!TypeIgnore_type) return 0;
     initialized = 1;
     return 1;
 }
@@ -1186,9 +1218,11 @@ static int obj2ast_arg(PyObject* obj, arg_ty* out, PyArena* arena);
 static int obj2ast_keyword(PyObject* obj, keyword_ty* out, PyArena* arena);
 static int obj2ast_alias(PyObject* obj, alias_ty* out, PyArena* arena);
 static int obj2ast_withitem(PyObject* obj, withitem_ty* out, PyArena* arena);
+static int obj2ast_type_ignore(PyObject* obj, type_ignore_ty* out, PyArena*
+                               arena);
 
 mod_ty
-Module(asdl_seq * body, PyArena *arena)
+Module(asdl_seq * body, asdl_seq * type_ignores, PyArena *arena)
 {
     mod_ty p;
     p = (mod_ty)PyArena_Malloc(arena, sizeof(*p));
@@ -1196,6 +1230,7 @@ Module(asdl_seq * body, PyArena *arena)
         return NULL;
     p->kind = Module_kind;
     p->v.Module.body = body;
+    p->v.Module.type_ignores = type_ignores;
     return p;
 }
 
@@ -1229,6 +1264,24 @@ Expression(expr_ty body, PyArena *arena)
 }
 
 mod_ty
+FunctionType(asdl_seq * argtypes, expr_ty returns, PyArena *arena)
+{
+    mod_ty p;
+    if (!returns) {
+        PyErr_SetString(PyExc_ValueError,
+                        "field returns is required for FunctionType");
+        return NULL;
+    }
+    p = (mod_ty)PyArena_Malloc(arena, sizeof(*p));
+    if (!p)
+        return NULL;
+    p->kind = FunctionType_kind;
+    p->v.FunctionType.argtypes = argtypes;
+    p->v.FunctionType.returns = returns;
+    return p;
+}
+
+mod_ty
 Suite(asdl_seq * body, PyArena *arena)
 {
     mod_ty p;
@@ -1242,8 +1295,8 @@ Suite(asdl_seq * body, PyArena *arena)
 
 stmt_ty
 FunctionDef(identifier name, arguments_ty args, asdl_seq * body, asdl_seq *
-            decorator_list, expr_ty returns, int lineno, int col_offset,
-            PyArena *arena)
+            decorator_list, expr_ty returns, string type_comment, int lineno,
+            int col_offset, PyArena *arena)
 {
     stmt_ty p;
     if (!name) {
@@ -1265,6 +1318,7 @@ FunctionDef(identifier name, arguments_ty args, asdl_seq * body, asdl_seq *
     p->v.FunctionDef.body = body;
     p->v.FunctionDef.decorator_list = decorator_list;
     p->v.FunctionDef.returns = returns;
+    p->v.FunctionDef.type_comment = type_comment;
     p->lineno = lineno;
     p->col_offset = col_offset;
     return p;
@@ -1272,8 +1326,8 @@ FunctionDef(identifier name, arguments_ty args, asdl_seq * body, asdl_seq *
 
 stmt_ty
 AsyncFunctionDef(identifier name, arguments_ty args, asdl_seq * body, asdl_seq
-                 * decorator_list, expr_ty returns, int lineno, int col_offset,
-                 PyArena *arena)
+                 * decorator_list, expr_ty returns, string type_comment, int
+                 lineno, int col_offset, PyArena *arena)
 {
     stmt_ty p;
     if (!name) {
@@ -1295,6 +1349,7 @@ AsyncFunctionDef(identifier name, arguments_ty args, asdl_seq * body, asdl_seq
     p->v.AsyncFunctionDef.body = body;
     p->v.AsyncFunctionDef.decorator_list = decorator_list;
     p->v.AsyncFunctionDef.returns = returns;
+    p->v.AsyncFunctionDef.type_comment = type_comment;
     p->lineno = lineno;
     p->col_offset = col_offset;
     return p;
@@ -1354,8 +1409,8 @@ Delete(asdl_seq * targets, int lineno, int col_offset, PyArena *arena)
 }
 
 stmt_ty
-Assign(asdl_seq * targets, expr_ty value, int lineno, int col_offset, PyArena
-       *arena)
+Assign(asdl_seq * targets, expr_ty value, string type_comment, int lineno, int
+       col_offset, PyArena *arena)
 {
     stmt_ty p;
     if (!value) {
@@ -1369,6 +1424,7 @@ Assign(asdl_seq * targets, expr_ty value, int lineno, int col_offset, PyArena
     p->kind = Assign_kind;
     p->v.Assign.targets = targets;
     p->v.Assign.value = value;
+    p->v.Assign.type_comment = type_comment;
     p->lineno = lineno;
     p->col_offset = col_offset;
     return p;
@@ -1435,8 +1491,8 @@ AnnAssign(expr_ty target, expr_ty annotation, expr_ty value, int simple, int
 }
 
 stmt_ty
-For(expr_ty target, expr_ty iter, asdl_seq * body, asdl_seq * orelse, int
-    lineno, int col_offset, PyArena *arena)
+For(expr_ty target, expr_ty iter, asdl_seq * body, asdl_seq * orelse, string
+    type_comment, int lineno, int col_offset, PyArena *arena)
 {
     stmt_ty p;
     if (!target) {
@@ -1457,14 +1513,15 @@ For(expr_ty target, expr_ty iter, asdl_seq * body, asdl_seq * orelse, int
     p->v.For.iter = iter;
     p->v.For.body = body;
     p->v.For.orelse = orelse;
+    p->v.For.type_comment = type_comment;
     p->lineno = lineno;
     p->col_offset = col_offset;
     return p;
 }
 
 stmt_ty
-AsyncFor(expr_ty target, expr_ty iter, asdl_seq * body, asdl_seq * orelse, int
-         lineno, int col_offset, PyArena *arena)
+AsyncFor(expr_ty target, expr_ty iter, asdl_seq * body, asdl_seq * orelse,
+         string type_comment, int lineno, int col_offset, PyArena *arena)
 {
     stmt_ty p;
     if (!target) {
@@ -1485,6 +1542,7 @@ AsyncFor(expr_ty target, expr_ty iter, asdl_seq * body, asdl_seq * orelse, int
     p->v.AsyncFor.iter = iter;
     p->v.AsyncFor.body = body;
     p->v.AsyncFor.orelse = orelse;
+    p->v.AsyncFor.type_comment = type_comment;
     p->lineno = lineno;
     p->col_offset = col_offset;
     return p;
@@ -1535,8 +1593,8 @@ If(expr_ty test, asdl_seq * body, asdl_seq * orelse, int lineno, int
 }
 
 stmt_ty
-With(asdl_seq * items, asdl_seq * body, int lineno, int col_offset, PyArena
-     *arena)
+With(asdl_seq * items, asdl_seq * body, string type_comment, int lineno, int
+     col_offset, PyArena *arena)
 {
     stmt_ty p;
     p = (stmt_ty)PyArena_Malloc(arena, sizeof(*p));
@@ -1545,14 +1603,15 @@ With(asdl_seq * items, asdl_seq * body, int lineno, int col_offset, PyArena
     p->kind = With_kind;
     p->v.With.items = items;
     p->v.With.body = body;
+    p->v.With.type_comment = type_comment;
     p->lineno = lineno;
     p->col_offset = col_offset;
     return p;
 }
 
 stmt_ty
-AsyncWith(asdl_seq * items, asdl_seq * body, int lineno, int col_offset,
-          PyArena *arena)
+AsyncWith(asdl_seq * items, asdl_seq * body, string type_comment, int lineno,
+          int col_offset, PyArena *arena)
 {
     stmt_ty p;
     p = (stmt_ty)PyArena_Malloc(arena, sizeof(*p));
@@ -1561,6 +1620,7 @@ AsyncWith(asdl_seq * items, asdl_seq * body, int lineno, int col_offset,
     p->kind = AsyncWith_kind;
     p->v.AsyncWith.items = items;
     p->v.AsyncWith.body = body;
+    p->v.AsyncWith.type_comment = type_comment;
     p->lineno = lineno;
     p->col_offset = col_offset;
     return p;
@@ -2494,8 +2554,8 @@ arguments(asdl_seq * args, arg_ty vararg, asdl_seq * kwonlyargs, asdl_seq *
 }
 
 arg_ty
-arg(identifier arg, expr_ty annotation, int lineno, int col_offset, PyArena
-    *arena)
+arg(identifier arg, expr_ty annotation, string type_comment, int lineno, int
+    col_offset, PyArena *arena)
 {
     arg_ty p;
     if (!arg) {
@@ -2508,6 +2568,7 @@ arg(identifier arg, expr_ty annotation, int lineno, int col_offset, PyArena
         return NULL;
     p->arg = arg;
     p->annotation = annotation;
+    p->type_comment = type_comment;
     p->lineno = lineno;
     p->col_offset = col_offset;
     return p;
@@ -2564,6 +2625,18 @@ withitem(expr_ty context_expr, expr_ty optional_vars, PyArena *arena)
     return p;
 }
 
+type_ignore_ty
+TypeIgnore(int lineno, PyArena *arena)
+{
+    type_ignore_ty p;
+    p = (type_ignore_ty)PyArena_Malloc(arena, sizeof(*p));
+    if (!p)
+        return NULL;
+    p->kind = TypeIgnore_kind;
+    p->v.TypeIgnore.lineno = lineno;
+    return p;
+}
+
 
 PyObject*
 ast2obj_mod(void* _o)
@@ -2583,6 +2656,11 @@ ast2obj_mod(void* _o)
         if (_PyObject_SetAttrId(result, &PyId_body, value) == -1)
             goto failed;
         Py_DECREF(value);
+        value = ast2obj_list(o->v.Module.type_ignores, ast2obj_type_ignore);
+        if (!value) goto failed;
+        if (_PyObject_SetAttrId(result, &PyId_type_ignores, value) == -1)
+            goto failed;
+        Py_DECREF(value);
         break;
     case Interactive_kind:
         result = PyType_GenericNew(Interactive_type, NULL, NULL);
@@ -2599,6 +2677,20 @@ ast2obj_mod(void* _o)
         value = ast2obj_expr(o->v.Expression.body);
         if (!value) goto failed;
         if (_PyObject_SetAttrId(result, &PyId_body, value) == -1)
+            goto failed;
+        Py_DECREF(value);
+        break;
+    case FunctionType_kind:
+        result = PyType_GenericNew(FunctionType_type, NULL, NULL);
+        if (!result) goto failed;
+        value = ast2obj_list(o->v.FunctionType.argtypes, ast2obj_expr);
+        if (!value) goto failed;
+        if (_PyObject_SetAttrId(result, &PyId_argtypes, value) == -1)
+            goto failed;
+        Py_DECREF(value);
+        value = ast2obj_expr(o->v.FunctionType.returns);
+        if (!value) goto failed;
+        if (_PyObject_SetAttrId(result, &PyId_returns, value) == -1)
             goto failed;
         Py_DECREF(value);
         break;
@@ -2657,6 +2749,11 @@ ast2obj_stmt(void* _o)
         if (_PyObject_SetAttrId(result, &PyId_returns, value) == -1)
             goto failed;
         Py_DECREF(value);
+        value = ast2obj_string(o->v.FunctionDef.type_comment);
+        if (!value) goto failed;
+        if (_PyObject_SetAttrId(result, &PyId_type_comment, value) == -1)
+            goto failed;
+        Py_DECREF(value);
         break;
     case AsyncFunctionDef_kind:
         result = PyType_GenericNew(AsyncFunctionDef_type, NULL, NULL);
@@ -2685,6 +2782,11 @@ ast2obj_stmt(void* _o)
         value = ast2obj_expr(o->v.AsyncFunctionDef.returns);
         if (!value) goto failed;
         if (_PyObject_SetAttrId(result, &PyId_returns, value) == -1)
+            goto failed;
+        Py_DECREF(value);
+        value = ast2obj_string(o->v.AsyncFunctionDef.type_comment);
+        if (!value) goto failed;
+        if (_PyObject_SetAttrId(result, &PyId_type_comment, value) == -1)
             goto failed;
         Py_DECREF(value);
         break;
@@ -2746,6 +2848,11 @@ ast2obj_stmt(void* _o)
         value = ast2obj_expr(o->v.Assign.value);
         if (!value) goto failed;
         if (_PyObject_SetAttrId(result, &PyId_value, value) == -1)
+            goto failed;
+        Py_DECREF(value);
+        value = ast2obj_string(o->v.Assign.type_comment);
+        if (!value) goto failed;
+        if (_PyObject_SetAttrId(result, &PyId_type_comment, value) == -1)
             goto failed;
         Py_DECREF(value);
         break;
@@ -2815,6 +2922,11 @@ ast2obj_stmt(void* _o)
         if (_PyObject_SetAttrId(result, &PyId_orelse, value) == -1)
             goto failed;
         Py_DECREF(value);
+        value = ast2obj_string(o->v.For.type_comment);
+        if (!value) goto failed;
+        if (_PyObject_SetAttrId(result, &PyId_type_comment, value) == -1)
+            goto failed;
+        Py_DECREF(value);
         break;
     case AsyncFor_kind:
         result = PyType_GenericNew(AsyncFor_type, NULL, NULL);
@@ -2837,6 +2949,11 @@ ast2obj_stmt(void* _o)
         value = ast2obj_list(o->v.AsyncFor.orelse, ast2obj_stmt);
         if (!value) goto failed;
         if (_PyObject_SetAttrId(result, &PyId_orelse, value) == -1)
+            goto failed;
+        Py_DECREF(value);
+        value = ast2obj_string(o->v.AsyncFor.type_comment);
+        if (!value) goto failed;
+        if (_PyObject_SetAttrId(result, &PyId_type_comment, value) == -1)
             goto failed;
         Py_DECREF(value);
         break;
@@ -2891,6 +3008,11 @@ ast2obj_stmt(void* _o)
         if (_PyObject_SetAttrId(result, &PyId_body, value) == -1)
             goto failed;
         Py_DECREF(value);
+        value = ast2obj_string(o->v.With.type_comment);
+        if (!value) goto failed;
+        if (_PyObject_SetAttrId(result, &PyId_type_comment, value) == -1)
+            goto failed;
+        Py_DECREF(value);
         break;
     case AsyncWith_kind:
         result = PyType_GenericNew(AsyncWith_type, NULL, NULL);
@@ -2903,6 +3025,11 @@ ast2obj_stmt(void* _o)
         value = ast2obj_list(o->v.AsyncWith.body, ast2obj_stmt);
         if (!value) goto failed;
         if (_PyObject_SetAttrId(result, &PyId_body, value) == -1)
+            goto failed;
+        Py_DECREF(value);
+        value = ast2obj_string(o->v.AsyncWith.type_comment);
+        if (!value) goto failed;
+        if (_PyObject_SetAttrId(result, &PyId_type_comment, value) == -1)
             goto failed;
         Py_DECREF(value);
         break;
@@ -3837,6 +3964,11 @@ ast2obj_arg(void* _o)
     if (_PyObject_SetAttrId(result, &PyId_annotation, value) == -1)
         goto failed;
     Py_DECREF(value);
+    value = ast2obj_string(o->type_comment);
+    if (!value) goto failed;
+    if (_PyObject_SetAttrId(result, &PyId_type_comment, value) == -1)
+        goto failed;
+    Py_DECREF(value);
     value = ast2obj_int(o->lineno);
     if (!value) goto failed;
     if (_PyObject_SetAttrId(result, &PyId_lineno, value) < 0)
@@ -3938,6 +4070,33 @@ failed:
     return NULL;
 }
 
+PyObject*
+ast2obj_type_ignore(void* _o)
+{
+    type_ignore_ty o = (type_ignore_ty)_o;
+    PyObject *result = NULL, *value = NULL;
+    if (!o) {
+        Py_RETURN_NONE;
+    }
+
+    switch (o->kind) {
+    case TypeIgnore_kind:
+        result = PyType_GenericNew(TypeIgnore_type, NULL, NULL);
+        if (!result) goto failed;
+        value = ast2obj_int(o->v.TypeIgnore.lineno);
+        if (!value) goto failed;
+        if (_PyObject_SetAttrId(result, &PyId_lineno, value) == -1)
+            goto failed;
+        Py_DECREF(value);
+        break;
+    }
+    return result;
+failed:
+    Py_XDECREF(value);
+    Py_XDECREF(result);
+    return NULL;
+}
+
 
 int
 obj2ast_mod(PyObject* obj, mod_ty* out, PyArena* arena)
@@ -3956,6 +4115,7 @@ obj2ast_mod(PyObject* obj, mod_ty* out, PyArena* arena)
     }
     if (isinstance) {
         asdl_seq* body;
+        asdl_seq* type_ignores;
 
         if (_PyObject_LookupAttrId(obj, &PyId_body, &tmp) < 0) {
             return 1;
@@ -3987,7 +4147,37 @@ obj2ast_mod(PyObject* obj, mod_ty* out, PyArena* arena)
             }
             Py_CLEAR(tmp);
         }
-        *out = Module(body, arena);
+        if (_PyObject_LookupAttrId(obj, &PyId_type_ignores, &tmp) < 0) {
+            return 1;
+        }
+        if (tmp == NULL) {
+            PyErr_SetString(PyExc_TypeError, "required field \"type_ignores\" missing from Module");
+            return 1;
+        }
+        else {
+            int res;
+            Py_ssize_t len;
+            Py_ssize_t i;
+            if (!PyList_Check(tmp)) {
+                PyErr_Format(PyExc_TypeError, "Module field \"type_ignores\" must be a list, not a %.200s", tmp->ob_type->tp_name);
+                goto failed;
+            }
+            len = PyList_GET_SIZE(tmp);
+            type_ignores = _Ta3_asdl_seq_new(len, arena);
+            if (type_ignores == NULL) goto failed;
+            for (i = 0; i < len; i++) {
+                type_ignore_ty val;
+                res = obj2ast_type_ignore(PyList_GET_ITEM(tmp, i), &val, arena);
+                if (res != 0) goto failed;
+                if (len != PyList_GET_SIZE(tmp)) {
+                    PyErr_SetString(PyExc_RuntimeError, "Module field \"type_ignores\" changed size during iteration");
+                    goto failed;
+                }
+                asdl_seq_SET(type_ignores, i, val);
+            }
+            Py_CLEAR(tmp);
+        }
+        *out = Module(body, type_ignores, arena);
         if (*out == NULL) goto failed;
         return 0;
     }
@@ -4053,6 +4243,61 @@ obj2ast_mod(PyObject* obj, mod_ty* out, PyArena* arena)
             Py_CLEAR(tmp);
         }
         *out = Expression(body, arena);
+        if (*out == NULL) goto failed;
+        return 0;
+    }
+    isinstance = PyObject_IsInstance(obj, (PyObject*)FunctionType_type);
+    if (isinstance == -1) {
+        return 1;
+    }
+    if (isinstance) {
+        asdl_seq* argtypes;
+        expr_ty returns;
+
+        if (_PyObject_LookupAttrId(obj, &PyId_argtypes, &tmp) < 0) {
+            return 1;
+        }
+        if (tmp == NULL) {
+            PyErr_SetString(PyExc_TypeError, "required field \"argtypes\" missing from FunctionType");
+            return 1;
+        }
+        else {
+            int res;
+            Py_ssize_t len;
+            Py_ssize_t i;
+            if (!PyList_Check(tmp)) {
+                PyErr_Format(PyExc_TypeError, "FunctionType field \"argtypes\" must be a list, not a %.200s", tmp->ob_type->tp_name);
+                goto failed;
+            }
+            len = PyList_GET_SIZE(tmp);
+            argtypes = _Ta3_asdl_seq_new(len, arena);
+            if (argtypes == NULL) goto failed;
+            for (i = 0; i < len; i++) {
+                expr_ty val;
+                res = obj2ast_expr(PyList_GET_ITEM(tmp, i), &val, arena);
+                if (res != 0) goto failed;
+                if (len != PyList_GET_SIZE(tmp)) {
+                    PyErr_SetString(PyExc_RuntimeError, "FunctionType field \"argtypes\" changed size during iteration");
+                    goto failed;
+                }
+                asdl_seq_SET(argtypes, i, val);
+            }
+            Py_CLEAR(tmp);
+        }
+        if (_PyObject_LookupAttrId(obj, &PyId_returns, &tmp) < 0) {
+            return 1;
+        }
+        if (tmp == NULL) {
+            PyErr_SetString(PyExc_TypeError, "required field \"returns\" missing from FunctionType");
+            return 1;
+        }
+        else {
+            int res;
+            res = obj2ast_expr(tmp, &returns, arena);
+            if (res != 0) goto failed;
+            Py_CLEAR(tmp);
+        }
+        *out = FunctionType(argtypes, returns, arena);
         if (*out == NULL) goto failed;
         return 0;
     }
@@ -4153,6 +4398,7 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
         asdl_seq* body;
         asdl_seq* decorator_list;
         expr_ty returns;
+        string type_comment;
 
         if (_PyObject_LookupAttrId(obj, &PyId_name, &tmp) < 0) {
             return 1;
@@ -4253,8 +4499,21 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
             if (res != 0) goto failed;
             Py_CLEAR(tmp);
         }
-        *out = FunctionDef(name, args, body, decorator_list, returns, lineno,
-                           col_offset, arena);
+        if (_PyObject_LookupAttrId(obj, &PyId_type_comment, &tmp) < 0) {
+            return 1;
+        }
+        if (tmp == NULL || tmp == Py_None) {
+            Py_CLEAR(tmp);
+            type_comment = NULL;
+        }
+        else {
+            int res;
+            res = obj2ast_string(tmp, &type_comment, arena);
+            if (res != 0) goto failed;
+            Py_CLEAR(tmp);
+        }
+        *out = FunctionDef(name, args, body, decorator_list, returns,
+                           type_comment, lineno, col_offset, arena);
         if (*out == NULL) goto failed;
         return 0;
     }
@@ -4268,6 +4527,7 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
         asdl_seq* body;
         asdl_seq* decorator_list;
         expr_ty returns;
+        string type_comment;
 
         if (_PyObject_LookupAttrId(obj, &PyId_name, &tmp) < 0) {
             return 1;
@@ -4368,8 +4628,21 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
             if (res != 0) goto failed;
             Py_CLEAR(tmp);
         }
+        if (_PyObject_LookupAttrId(obj, &PyId_type_comment, &tmp) < 0) {
+            return 1;
+        }
+        if (tmp == NULL || tmp == Py_None) {
+            Py_CLEAR(tmp);
+            type_comment = NULL;
+        }
+        else {
+            int res;
+            res = obj2ast_string(tmp, &type_comment, arena);
+            if (res != 0) goto failed;
+            Py_CLEAR(tmp);
+        }
         *out = AsyncFunctionDef(name, args, body, decorator_list, returns,
-                                lineno, col_offset, arena);
+                                type_comment, lineno, col_offset, arena);
         if (*out == NULL) goto failed;
         return 0;
     }
@@ -4594,6 +4867,7 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
     if (isinstance) {
         asdl_seq* targets;
         expr_ty value;
+        string type_comment;
 
         if (_PyObject_LookupAttrId(obj, &PyId_targets, &tmp) < 0) {
             return 1;
@@ -4638,7 +4912,20 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
             if (res != 0) goto failed;
             Py_CLEAR(tmp);
         }
-        *out = Assign(targets, value, lineno, col_offset, arena);
+        if (_PyObject_LookupAttrId(obj, &PyId_type_comment, &tmp) < 0) {
+            return 1;
+        }
+        if (tmp == NULL || tmp == Py_None) {
+            Py_CLEAR(tmp);
+            type_comment = NULL;
+        }
+        else {
+            int res;
+            res = obj2ast_string(tmp, &type_comment, arena);
+            if (res != 0) goto failed;
+            Py_CLEAR(tmp);
+        }
+        *out = Assign(targets, value, type_comment, lineno, col_offset, arena);
         if (*out == NULL) goto failed;
         return 0;
     }
@@ -4770,6 +5057,7 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
         expr_ty iter;
         asdl_seq* body;
         asdl_seq* orelse;
+        string type_comment;
 
         if (_PyObject_LookupAttrId(obj, &PyId_target, &tmp) < 0) {
             return 1;
@@ -4857,7 +5145,21 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
             }
             Py_CLEAR(tmp);
         }
-        *out = For(target, iter, body, orelse, lineno, col_offset, arena);
+        if (_PyObject_LookupAttrId(obj, &PyId_type_comment, &tmp) < 0) {
+            return 1;
+        }
+        if (tmp == NULL || tmp == Py_None) {
+            Py_CLEAR(tmp);
+            type_comment = NULL;
+        }
+        else {
+            int res;
+            res = obj2ast_string(tmp, &type_comment, arena);
+            if (res != 0) goto failed;
+            Py_CLEAR(tmp);
+        }
+        *out = For(target, iter, body, orelse, type_comment, lineno,
+                   col_offset, arena);
         if (*out == NULL) goto failed;
         return 0;
     }
@@ -4870,6 +5172,7 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
         expr_ty iter;
         asdl_seq* body;
         asdl_seq* orelse;
+        string type_comment;
 
         if (_PyObject_LookupAttrId(obj, &PyId_target, &tmp) < 0) {
             return 1;
@@ -4957,7 +5260,21 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
             }
             Py_CLEAR(tmp);
         }
-        *out = AsyncFor(target, iter, body, orelse, lineno, col_offset, arena);
+        if (_PyObject_LookupAttrId(obj, &PyId_type_comment, &tmp) < 0) {
+            return 1;
+        }
+        if (tmp == NULL || tmp == Py_None) {
+            Py_CLEAR(tmp);
+            type_comment = NULL;
+        }
+        else {
+            int res;
+            res = obj2ast_string(tmp, &type_comment, arena);
+            if (res != 0) goto failed;
+            Py_CLEAR(tmp);
+        }
+        *out = AsyncFor(target, iter, body, orelse, type_comment, lineno,
+                        col_offset, arena);
         if (*out == NULL) goto failed;
         return 0;
     }
@@ -5140,6 +5457,7 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
     if (isinstance) {
         asdl_seq* items;
         asdl_seq* body;
+        string type_comment;
 
         if (_PyObject_LookupAttrId(obj, &PyId_items, &tmp) < 0) {
             return 1;
@@ -5201,7 +5519,20 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
             }
             Py_CLEAR(tmp);
         }
-        *out = With(items, body, lineno, col_offset, arena);
+        if (_PyObject_LookupAttrId(obj, &PyId_type_comment, &tmp) < 0) {
+            return 1;
+        }
+        if (tmp == NULL || tmp == Py_None) {
+            Py_CLEAR(tmp);
+            type_comment = NULL;
+        }
+        else {
+            int res;
+            res = obj2ast_string(tmp, &type_comment, arena);
+            if (res != 0) goto failed;
+            Py_CLEAR(tmp);
+        }
+        *out = With(items, body, type_comment, lineno, col_offset, arena);
         if (*out == NULL) goto failed;
         return 0;
     }
@@ -5212,6 +5543,7 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
     if (isinstance) {
         asdl_seq* items;
         asdl_seq* body;
+        string type_comment;
 
         if (_PyObject_LookupAttrId(obj, &PyId_items, &tmp) < 0) {
             return 1;
@@ -5273,7 +5605,20 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
             }
             Py_CLEAR(tmp);
         }
-        *out = AsyncWith(items, body, lineno, col_offset, arena);
+        if (_PyObject_LookupAttrId(obj, &PyId_type_comment, &tmp) < 0) {
+            return 1;
+        }
+        if (tmp == NULL || tmp == Py_None) {
+            Py_CLEAR(tmp);
+            type_comment = NULL;
+        }
+        else {
+            int res;
+            res = obj2ast_string(tmp, &type_comment, arena);
+            if (res != 0) goto failed;
+            Py_CLEAR(tmp);
+        }
+        *out = AsyncWith(items, body, type_comment, lineno, col_offset, arena);
         if (*out == NULL) goto failed;
         return 0;
     }
@@ -7963,6 +8308,7 @@ obj2ast_arg(PyObject* obj, arg_ty* out, PyArena* arena)
     PyObject* tmp = NULL;
     identifier arg;
     expr_ty annotation;
+    string type_comment;
     int lineno;
     int col_offset;
 
@@ -7992,6 +8338,19 @@ obj2ast_arg(PyObject* obj, arg_ty* out, PyArena* arena)
         if (res != 0) goto failed;
         Py_CLEAR(tmp);
     }
+    if (_PyObject_LookupAttrId(obj, &PyId_type_comment, &tmp) < 0) {
+        return 1;
+    }
+    if (tmp == NULL || tmp == Py_None) {
+        Py_CLEAR(tmp);
+        type_comment = NULL;
+    }
+    else {
+        int res;
+        res = obj2ast_string(tmp, &type_comment, arena);
+        if (res != 0) goto failed;
+        Py_CLEAR(tmp);
+    }
     if (_PyObject_LookupAttrId(obj, &PyId_lineno, &tmp) < 0) {
         return 1;
     }
@@ -8018,7 +8377,7 @@ obj2ast_arg(PyObject* obj, arg_ty* out, PyArena* arena)
         if (res != 0) goto failed;
         Py_CLEAR(tmp);
     }
-    *out = arg(arg, annotation, lineno, col_offset, arena);
+    *out = arg(arg, annotation, type_comment, lineno, col_offset, arena);
     return 0;
 failed:
     Py_XDECREF(tmp);
@@ -8145,6 +8504,48 @@ failed:
     return 1;
 }
 
+int
+obj2ast_type_ignore(PyObject* obj, type_ignore_ty* out, PyArena* arena)
+{
+    int isinstance;
+
+    PyObject *tmp = NULL;
+
+    if (obj == Py_None) {
+        *out = NULL;
+        return 0;
+    }
+    isinstance = PyObject_IsInstance(obj, (PyObject*)TypeIgnore_type);
+    if (isinstance == -1) {
+        return 1;
+    }
+    if (isinstance) {
+        int lineno;
+
+        if (_PyObject_LookupAttrId(obj, &PyId_lineno, &tmp) < 0) {
+            return 1;
+        }
+        if (tmp == NULL) {
+            PyErr_SetString(PyExc_TypeError, "required field \"lineno\" missing from TypeIgnore");
+            return 1;
+        }
+        else {
+            int res;
+            res = obj2ast_int(tmp, &lineno, arena);
+            if (res != 0) goto failed;
+            Py_CLEAR(tmp);
+        }
+        *out = TypeIgnore(lineno, arena);
+        if (*out == NULL) goto failed;
+        return 0;
+    }
+
+    PyErr_Format(PyExc_TypeError, "expected some sort of type_ignore, but got %R", obj);
+    failed:
+    Py_XDECREF(tmp);
+    return 1;
+}
+
 
 PyObject *ast3_parse(PyObject *self, PyObject *args);
 static PyMethodDef ast3_methods[] = {
@@ -8172,6 +8573,8 @@ PyInit__ast3(void)
         0) return NULL;
     if (PyDict_SetItemString(d, "Expression", (PyObject*)Expression_type) < 0)
         return NULL;
+    if (PyDict_SetItemString(d, "FunctionType", (PyObject*)FunctionType_type) <
+        0) return NULL;
     if (PyDict_SetItemString(d, "Suite", (PyObject*)Suite_type) < 0) return
         NULL;
     if (PyDict_SetItemString(d, "stmt", (PyObject*)stmt_type) < 0) return NULL;
@@ -8355,6 +8758,10 @@ PyInit__ast3(void)
     if (PyDict_SetItemString(d, "alias", (PyObject*)alias_type) < 0) return
         NULL;
     if (PyDict_SetItemString(d, "withitem", (PyObject*)withitem_type) < 0)
+        return NULL;
+    if (PyDict_SetItemString(d, "type_ignore", (PyObject*)type_ignore_type) <
+        0) return NULL;
+    if (PyDict_SetItemString(d, "TypeIgnore", (PyObject*)TypeIgnore_type) < 0)
         return NULL;
     return m;
 }
