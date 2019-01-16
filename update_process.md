@@ -91,6 +91,16 @@ an example commit hash in parentheses from the Python 3.6 update.
    part that compiles pgen may need tweaking to work on your machine).  Check
    that things work before moving on.
    ([f74d9f3](https://github.com/python/typed_ast/commit/f74d9f3f231110639752c30c0ae5fbebe870ebc6))
+   A bit more detail:
+
+   - Add the `TYPE_IGNORE` and `TYPE_COMMENT` symbols to `Include/token.h`, and updating `N_TOKENS`
+   - Update `Parser/Python.asdl` to add `type_comments` and `type_ignores` to various definitions
+     and run `tools/update_ast3_asdl`; this updates `Include/Python-ast.h` and `Python/Python-ast.c`
+   - Reapply patches to `Parser/parsetok.c` and `Parser/tokenizer.c`
+   - Add `[TYPE_COMMENT]` to various places in `Grammar/Grammar`, and then run
+     `tools/update_ast3_grammar`; this updates `Python/graminit.c` and `Include/graminit.h`
+   - Copy the definition of `Py_func_type_input` from `Python/graminit.h` to `Include/compile.h`
+
 9. Port over the changes for enforcing `feature_version`.  Check this works.
    ([89aebce](https://github.com/python/typed_ast/commit/89aebcefb612c113446e3a877f78b93e4cf142b3))
 10. Add `feature_version` checks for any new syntax features in the Python
