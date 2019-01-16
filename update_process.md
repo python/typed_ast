@@ -38,6 +38,12 @@ version of Python.  They are not meant to be comprehensive -- you'll have to
 troubleshoot problems and use your own intuition along the way.  Most steps have
 an example commit hash in parentheses from the Python 3.6 update.
 
+(At a high level, steps 1-4 alter the code so it uses `Ta3` instead of
+`Py` as a prefix for globals; the next few steps add support for type
+comments to the lexer, grammar and "asdl" machinery; then we add
+support for `feature_version`; finally we work on making the code
+compatible with older Python versions and other platforms.)
+
 1. Copy over the parser files from CPython.  The set of files you want is
    likely the set currently present in `ast3`.
    ([a377f1e](https://github.com/python/typed_ast/commit/a377f1e3deb332bfbec3f3bb0d4c42768626d8d4))
@@ -100,6 +106,8 @@ an example commit hash in parentheses from the Python 3.6 update.
    - Add `[TYPE_COMMENT]` to various places in `Grammar/Grammar`, and then run
      `tools/update_ast3_grammar`; this updates `Python/graminit.c` and `Include/graminit.h`
    - Copy the definition of `Py_func_type_input` from `Python/graminit.h` to `Include/compile.h`
+   - Attempt compilation and fix errors, e.g. add an extra argument to `Module(stmts, arena)`
+     to pass `type_ignores`
 
 9. Port over the changes for enforcing `feature_version`.  Check this works.
    ([89aebce](https://github.com/python/typed_ast/commit/89aebcefb612c113446e3a877f78b93e4cf142b3))
