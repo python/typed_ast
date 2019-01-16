@@ -64,14 +64,15 @@ extern "C" {
 #define ELLIPSIS        52
 /* Don't forget to update the table _Ta3Parser_TokenNames in tokenizer.c! */
 #define OP              53
-#define TYPE_IGNORE     54
-#define TYPE_COMMENT    55
-#define ERRORTOKEN      56
-/* These aren't used by the C tokenizer but are needed for tokenize.py */
-#define COMMENT         57
-#define NL              58
-#define ENCODING                59
-#define N_TOKENS        60
+#define AWAIT		54
+#define ASYNC		55
+#define TYPE_IGNORE	56
+#define TYPE_COMMENT	57
+#define ERRORTOKEN	58
+#define COMMENT         59
+#define NL              60
+#define ENCODING        61
+#define N_TOKENS	62
 
 /* Special definitions for cooperation with parser */
 

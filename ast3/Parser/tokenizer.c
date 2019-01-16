@@ -106,6 +106,8 @@ const char *_Ta3Parser_TokenNames[] = {
     "ELLIPSIS",
     /* This table must match the #defines in token.h! */
     "OP",
+    "AWAIT",
+    "ASYNC",
     "TYPE_IGNORE",
     "TYPE_COMMENT",
     "<ERRORTOKEN>",
