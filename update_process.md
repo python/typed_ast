@@ -66,6 +66,9 @@ an example commit hash in parentheses from the Python 3.6 update.
    5. Update `Parser/asdl_c.py`.  Use the changes from git history to guide you.
       (Don't be distracted by other files in that commit; look at asdl_c.py only.
       Much of this renames _ast to _ast3 and substitutes certain _Py_ prefixes with _Ta3_.)
+      Run it like this:
+      - `python3.7 ast3/Parser/asdl_c.py -h ast3/Include/Python-ast.h ast3/Parser/Python.asdl`
+      - `python3.7 ast3/Parser/asdl_c.py -c ast3/Python/Python-ast.c ast3/Parser/Python.asdl`
       ([29dbec4](https://github.com/python/typed_ast/commit/29dbec47aa145d84e5faaa431ce3b3afca233b3d))
 
 5. Make a commit.  You've likely been making commits along the way, but it's
