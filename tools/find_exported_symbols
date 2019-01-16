@@ -6,5 +6,5 @@ PROJ_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )/.."
     | grep -v UND \
     | sed 's/.* _//' \
     | grep -v PyInit__ast \
-    | grep -v '^_?Py' \
+    | grep 'Py' \
     > "exported_symbols${1}.txt"
