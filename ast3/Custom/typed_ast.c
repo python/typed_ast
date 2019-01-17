@@ -223,6 +223,8 @@ string_object_to_c_ast(const char *s, PyObject *filename, int start,
     perrdetail err;
     int iflags = PARSER_FLAGS(flags);
 
+    if (feature_version >= 7)
+        iflags |= PyPARSE_ALWAYS_ASYNC;
     node *n = Ta3Parser_ParseStringObject(s, filename,
                                          &_Ta3Parser_Grammar, start, &err,
                                          &iflags);

@@ -171,6 +171,7 @@ tok_new(void)
     tok->async_def = 0;
     tok->async_def_indent = 0;
     tok->async_def_nl = 0;
+    tok->async_always = 0;
 
     return tok;
 }
@@ -1616,7 +1617,7 @@ tok_get(struct tok_state *tok, char **p_start, char **p_end)
         /* async/await parsing block. */
         if (tok->cur - tok->start == 5) {
             /* Current token length is 5. */
-            if (tok->async_def) {
+            if (tok->async_always || tok->async_def) {
                 /* We're inside an 'async def' function. */
                 if (memcmp(tok->start, "async", 5) == 0) {
                     return ASYNC;
