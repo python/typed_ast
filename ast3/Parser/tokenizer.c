@@ -18,6 +18,19 @@
 #include "abstract.h"
 #endif /* PGEN */
 
+#ifndef Py_XSETREF
+#define Py_XSETREF(op, op2)                     \
+    do {                                        \
+        PyObject *_py_tmp = (PyObject *)(op);   \
+        (op) = (op2);                           \
+        Py_XDECREF(_py_tmp);                    \
+    } while (0)
+#endif /* Py_XSETREF */
+
+#ifndef _PyObject_CallNoArg
+#define _PyObject_CallNoArg(func) PyObject_CallObject(func, NULL)
+#endif
+
 /* Alternate tab spacing */
 #define ALTTABSIZE 1
 
