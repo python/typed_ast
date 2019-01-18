@@ -558,13 +558,30 @@ ast_clear(AST_object *self)
     return 0;
 }
 
+static int lookup_attr_id(PyObject *v, _Py_Identifier *name, PyObject **result)
+{
+    PyObject *oname = _PyUnicode_FromId(name); /* borrowed */
+    if (!oname) {
+        *result = NULL;
+        return -1;
+    }
+    *result = PyObject_GetAttr(v, oname);
+    if (*result == NULL) {
+        if (!PyErr_ExceptionMatches(PyExc_AttributeError)) {
+            return -1;
+        }
+        PyErr_Clear();
+    }
+    return 0;
+}
+
 static int
 ast_type_init(PyObject *self, PyObject *args, PyObject *kw)
 {
     Py_ssize_t i, numfields = 0;
     int res = -1;
     PyObject *key, *value, *fields;
-    if (_PyObject_LookupAttrId((PyObject*)Py_TYPE(self), &PyId__fields, &fields) < 0) {
+    if (lookup_attr_id((PyObject*)Py_TYPE(self), &PyId__fields, &fields) < 0) {
         goto cleanup;
     }
     if (fields) {
@@ -613,7 +630,7 @@ ast_type_reduce(PyObject *self, PyObject *unused)
 {
     _Py_IDENTIFIER(__dict__);
     PyObject *dict;
-    if (_PyObject_LookupAttrId(self, &PyId___dict__, &dict) < 0) {
+    if (lookup_attr_id(self, &PyId___dict__, &dict) < 0) {
         return NULL;
     }
     if (dict) {
@@ -4117,7 +4134,7 @@ obj2ast_mod(PyObject* obj, mod_ty* out, PyArena* arena)
         asdl_seq* body;
         asdl_seq* type_ignores;
 
-        if (_PyObject_LookupAttrId(obj, &PyId_body, &tmp) < 0) {
+        if (lookup_attr_id(obj, &PyId_body, &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -4147,7 +4164,7 @@ obj2ast_mod(PyObject* obj, mod_ty* out, PyArena* arena)
             }
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttrId(obj, &PyId_type_ignores, &tmp) < 0) {
+        if (lookup_attr_id(obj, &PyId_type_ignores, &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -4188,7 +4205,7 @@ obj2ast_mod(PyObject* obj, mod_ty* out, PyArena* arena)
     if (isinstance) {
         asdl_seq* body;
 
-        if (_PyObject_LookupAttrId(obj, &PyId_body, &tmp) < 0) {
+        if (lookup_attr_id(obj, &PyId_body, &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -4229,7 +4246,7 @@ obj2ast_mod(PyObject* obj, mod_ty* out, PyArena* arena)
     if (isinstance) {
         expr_ty body;
 
-        if (_PyObject_LookupAttrId(obj, &PyId_body, &tmp) < 0) {
+        if (lookup_attr_id(obj, &PyId_body, &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -4254,7 +4271,7 @@ obj2ast_mod(PyObject* obj, mod_ty* out, PyArena* arena)
         asdl_seq* argtypes;
         expr_ty returns;
 
-        if (_PyObject_LookupAttrId(obj, &PyId_argtypes, &tmp) < 0) {
+        if (lookup_attr_id(obj, &PyId_argtypes, &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -4284,7 +4301,7 @@ obj2ast_mod(PyObject* obj, mod_ty* out, PyArena* arena)
             }
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttrId(obj, &PyId_returns, &tmp) < 0) {
+        if (lookup_attr_id(obj, &PyId_returns, &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -4308,7 +4325,7 @@ obj2ast_mod(PyObject* obj, mod_ty* out, PyArena* arena)
     if (isinstance) {
         asdl_seq* body;
 
-        if (_PyObject_LookupAttrId(obj, &PyId_body, &tmp) < 0) {
+        if (lookup_attr_id(obj, &PyId_body, &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -4362,7 +4379,7 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
         *out = NULL;
         return 0;
     }
-    if (_PyObject_LookupAttrId(obj, &PyId_lineno, &tmp) < 0) {
+    if (lookup_attr_id(obj, &PyId_lineno, &tmp) < 0) {
         return 1;
     }
     if (tmp == NULL) {
@@ -4375,7 +4392,7 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
         if (res != 0) goto failed;
         Py_CLEAR(tmp);
     }
-    if (_PyObject_LookupAttrId(obj, &PyId_col_offset, &tmp) < 0) {
+    if (lookup_attr_id(obj, &PyId_col_offset, &tmp) < 0) {
         return 1;
     }
     if (tmp == NULL) {
@@ -4400,7 +4417,7 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
         expr_ty returns;
         string type_comment;
 
-        if (_PyObject_LookupAttrId(obj, &PyId_name, &tmp) < 0) {
+        if (lookup_attr_id(obj, &PyId_name, &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -4413,7 +4430,7 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
             if (res != 0) goto failed;
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttrId(obj, &PyId_args, &tmp) < 0) {
+        if (lookup_attr_id(obj, &PyId_args, &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -4426,7 +4443,7 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
             if (res != 0) goto failed;
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttrId(obj, &PyId_body, &tmp) < 0) {
+        if (lookup_attr_id(obj, &PyId_body, &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -4456,7 +4473,7 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
             }
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttrId(obj, &PyId_decorator_list, &tmp) < 0) {
+        if (lookup_attr_id(obj, &PyId_decorator_list, &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -4486,7 +4503,7 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
             }
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttrId(obj, &PyId_returns, &tmp) < 0) {
+        if (lookup_attr_id(obj, &PyId_returns, &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL || tmp == Py_None) {
@@ -4499,7 +4516,7 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
             if (res != 0) goto failed;
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttrId(obj, &PyId_type_comment, &tmp) < 0) {
+        if (lookup_attr_id(obj, &PyId_type_comment, &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL || tmp == Py_None) {
@@ -4529,7 +4546,7 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
         expr_ty returns;
         string type_comment;
 
-        if (_PyObject_LookupAttrId(obj, &PyId_name, &tmp) < 0) {
+        if (lookup_attr_id(obj, &PyId_name, &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -4542,7 +4559,7 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
             if (res != 0) goto failed;
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttrId(obj, &PyId_args, &tmp) < 0) {
+        if (lookup_attr_id(obj, &PyId_args, &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -4555,7 +4572,7 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
             if (res != 0) goto failed;
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttrId(obj, &PyId_body, &tmp) < 0) {
+        if (lookup_attr_id(obj, &PyId_body, &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -4585,7 +4602,7 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
             }
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttrId(obj, &PyId_decorator_list, &tmp) < 0) {
+        if (lookup_attr_id(obj, &PyId_decorator_list, &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -4615,7 +4632,7 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
             }
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttrId(obj, &PyId_returns, &tmp) < 0) {
+        if (lookup_attr_id(obj, &PyId_returns, &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL || tmp == Py_None) {
@@ -4628,7 +4645,7 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
             if (res != 0) goto failed;
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttrId(obj, &PyId_type_comment, &tmp) < 0) {
+        if (lookup_attr_id(obj, &PyId_type_comment, &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL || tmp == Py_None) {
@@ -4657,7 +4674,7 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
         asdl_seq* body;
         asdl_seq* decorator_list;
 
-        if (_PyObject_LookupAttrId(obj, &PyId_name, &tmp) < 0) {
+        if (lookup_attr_id(obj, &PyId_name, &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -4670,7 +4687,7 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
             if (res != 0) goto failed;
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttrId(obj, &PyId_bases, &tmp) < 0) {
+        if (lookup_attr_id(obj, &PyId_bases, &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -4700,7 +4717,7 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
             }
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttrId(obj, &PyId_keywords, &tmp) < 0) {
+        if (lookup_attr_id(obj, &PyId_keywords, &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -4730,7 +4747,7 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
             }
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttrId(obj, &PyId_body, &tmp) < 0) {
+        if (lookup_attr_id(obj, &PyId_body, &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -4760,7 +4777,7 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
             }
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttrId(obj, &PyId_decorator_list, &tmp) < 0) {
+        if (lookup_attr_id(obj, &PyId_decorator_list, &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -4802,7 +4819,7 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
     if (isinstance) {
         expr_ty value;
 
-        if (_PyObject_LookupAttrId(obj, &PyId_value, &tmp) < 0) {
+        if (lookup_attr_id(obj, &PyId_value, &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL || tmp == Py_None) {
@@ -4826,7 +4843,7 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
     if (isinstance) {
         asdl_seq* targets;
 
-        if (_PyObject_LookupAttrId(obj, &PyId_targets, &tmp) < 0) {
+        if (lookup_attr_id(obj, &PyId_targets, &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -4869,7 +4886,7 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
         expr_ty value;
         string type_comment;
 
-        if (_PyObject_LookupAttrId(obj, &PyId_targets, &tmp) < 0) {
+        if (lookup_attr_id(obj, &PyId_targets, &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -4899,7 +4916,7 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
             }
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttrId(obj, &PyId_value, &tmp) < 0) {
+        if (lookup_attr_id(obj, &PyId_value, &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -4912,7 +4929,7 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
             if (res != 0) goto failed;
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttrId(obj, &PyId_type_comment, &tmp) < 0) {
+        if (lookup_attr_id(obj, &PyId_type_comment, &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL || tmp == Py_None) {
@@ -4938,7 +4955,7 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
         operator_ty op;
         expr_ty value;
 
-        if (_PyObject_LookupAttrId(obj, &PyId_target, &tmp) < 0) {
+        if (lookup_attr_id(obj, &PyId_target, &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -4951,7 +4968,7 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
             if (res != 0) goto failed;
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttrId(obj, &PyId_op, &tmp) < 0) {
+        if (lookup_attr_id(obj, &PyId_op, &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -4964,7 +4981,7 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
             if (res != 0) goto failed;
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttrId(obj, &PyId_value, &tmp) < 0) {
+        if (lookup_attr_id(obj, &PyId_value, &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -4991,7 +5008,7 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
         expr_ty value;
         int simple;
 
-        if (_PyObject_LookupAttrId(obj, &PyId_target, &tmp) < 0) {
+        if (lookup_attr_id(obj, &PyId_target, &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -5004,7 +5021,7 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
             if (res != 0) goto failed;
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttrId(obj, &PyId_annotation, &tmp) < 0) {
+        if (lookup_attr_id(obj, &PyId_annotation, &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -5017,7 +5034,7 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
             if (res != 0) goto failed;
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttrId(obj, &PyId_value, &tmp) < 0) {
+        if (lookup_attr_id(obj, &PyId_value, &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL || tmp == Py_None) {
@@ -5030,7 +5047,7 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
             if (res != 0) goto failed;
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttrId(obj, &PyId_simple, &tmp) < 0) {
+        if (lookup_attr_id(obj, &PyId_simple, &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -5059,7 +5076,7 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
         asdl_seq* orelse;
         string type_comment;
 
-        if (_PyObject_LookupAttrId(obj, &PyId_target, &tmp) < 0) {
+        if (lookup_attr_id(obj, &PyId_target, &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -5072,7 +5089,7 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
             if (res != 0) goto failed;
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttrId(obj, &PyId_iter, &tmp) < 0) {
+        if (lookup_attr_id(obj, &PyId_iter, &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -5085,7 +5102,7 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
             if (res != 0) goto failed;
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttrId(obj, &PyId_body, &tmp) < 0) {
+        if (lookup_attr_id(obj, &PyId_body, &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -5115,7 +5132,7 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
             }
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttrId(obj, &PyId_orelse, &tmp) < 0) {
+        if (lookup_attr_id(obj, &PyId_orelse, &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -5145,7 +5162,7 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
             }
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttrId(obj, &PyId_type_comment, &tmp) < 0) {
+        if (lookup_attr_id(obj, &PyId_type_comment, &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL || tmp == Py_None) {
@@ -5174,7 +5191,7 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
         asdl_seq* orelse;
         string type_comment;
 
-        if (_PyObject_LookupAttrId(obj, &PyId_target, &tmp) < 0) {
+        if (lookup_attr_id(obj, &PyId_target, &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -5187,7 +5204,7 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
             if (res != 0) goto failed;
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttrId(obj, &PyId_iter, &tmp) < 0) {
+        if (lookup_attr_id(obj, &PyId_iter, &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -5200,7 +5217,7 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
             if (res != 0) goto failed;
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttrId(obj, &PyId_body, &tmp) < 0) {
+        if (lookup_attr_id(obj, &PyId_body, &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -5230,7 +5247,7 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
             }
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttrId(obj, &PyId_orelse, &tmp) < 0) {
+        if (lookup_attr_id(obj, &PyId_orelse, &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -5260,7 +5277,7 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
             }
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttrId(obj, &PyId_type_comment, &tmp) < 0) {
+        if (lookup_attr_id(obj, &PyId_type_comment, &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL || tmp == Py_None) {
@@ -5287,7 +5304,7 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
         asdl_seq* body;
         asdl_seq* orelse;
 
-        if (_PyObject_LookupAttrId(obj, &PyId_test, &tmp) < 0) {
+        if (lookup_attr_id(obj, &PyId_test, &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -5300,7 +5317,7 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
             if (res != 0) goto failed;
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttrId(obj, &PyId_body, &tmp) < 0) {
+        if (lookup_attr_id(obj, &PyId_body, &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -5330,7 +5347,7 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
             }
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttrId(obj, &PyId_orelse, &tmp) < 0) {
+        if (lookup_attr_id(obj, &PyId_orelse, &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -5373,7 +5390,7 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
         asdl_seq* body;
         asdl_seq* orelse;
 
-        if (_PyObject_LookupAttrId(obj, &PyId_test, &tmp) < 0) {
+        if (lookup_attr_id(obj, &PyId_test, &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -5386,7 +5403,7 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
             if (res != 0) goto failed;
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttrId(obj, &PyId_body, &tmp) < 0) {
+        if (lookup_attr_id(obj, &PyId_body, &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -5416,7 +5433,7 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
             }
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttrId(obj, &PyId_orelse, &tmp) < 0) {
+        if (lookup_attr_id(obj, &PyId_orelse, &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -5459,7 +5476,7 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
         asdl_seq* body;
         string type_comment;
 
-        if (_PyObject_LookupAttrId(obj, &PyId_items, &tmp) < 0) {
+        if (lookup_attr_id(obj, &PyId_items, &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -5489,7 +5506,7 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
             }
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttrId(obj, &PyId_body, &tmp) < 0) {
+        if (lookup_attr_id(obj, &PyId_body, &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -5519,7 +5536,7 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
             }
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttrId(obj, &PyId_type_comment, &tmp) < 0) {
+        if (lookup_attr_id(obj, &PyId_type_comment, &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL || tmp == Py_None) {
@@ -5545,7 +5562,7 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
         asdl_seq* body;
         string type_comment;
 
-        if (_PyObject_LookupAttrId(obj, &PyId_items, &tmp) < 0) {
+        if (lookup_attr_id(obj, &PyId_items, &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -5575,7 +5592,7 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
             }
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttrId(obj, &PyId_body, &tmp) < 0) {
+        if (lookup_attr_id(obj, &PyId_body, &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -5605,7 +5622,7 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
             }
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttrId(obj, &PyId_type_comment, &tmp) < 0) {
+        if (lookup_attr_id(obj, &PyId_type_comment, &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL || tmp == Py_None) {
@@ -5630,7 +5647,7 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
         expr_ty exc;
         expr_ty cause;
 
-        if (_PyObject_LookupAttrId(obj, &PyId_exc, &tmp) < 0) {
+        if (lookup_attr_id(obj, &PyId_exc, &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL || tmp == Py_None) {
@@ -5643,7 +5660,7 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
             if (res != 0) goto failed;
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttrId(obj, &PyId_cause, &tmp) < 0) {
+        if (lookup_attr_id(obj, &PyId_cause, &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL || tmp == Py_None) {
@@ -5670,7 +5687,7 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
         asdl_seq* orelse;
         asdl_seq* finalbody;
 
-        if (_PyObject_LookupAttrId(obj, &PyId_body, &tmp) < 0) {
+        if (lookup_attr_id(obj, &PyId_body, &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -5700,7 +5717,7 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
             }
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttrId(obj, &PyId_handlers, &tmp) < 0) {
+        if (lookup_attr_id(obj, &PyId_handlers, &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -5730,7 +5747,7 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
             }
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttrId(obj, &PyId_orelse, &tmp) < 0) {
+        if (lookup_attr_id(obj, &PyId_orelse, &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -5760,7 +5777,7 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
             }
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttrId(obj, &PyId_finalbody, &tmp) < 0) {
+        if (lookup_attr_id(obj, &PyId_finalbody, &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -5803,7 +5820,7 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
         expr_ty test;
         expr_ty msg;
 
-        if (_PyObject_LookupAttrId(obj, &PyId_test, &tmp) < 0) {
+        if (lookup_attr_id(obj, &PyId_test, &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -5816,7 +5833,7 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
             if (res != 0) goto failed;
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttrId(obj, &PyId_msg, &tmp) < 0) {
+        if (lookup_attr_id(obj, &PyId_msg, &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL || tmp == Py_None) {
@@ -5840,7 +5857,7 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
     if (isinstance) {
         asdl_seq* names;
 
-        if (_PyObject_LookupAttrId(obj, &PyId_names, &tmp) < 0) {
+        if (lookup_attr_id(obj, &PyId_names, &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -5883,7 +5900,7 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
         asdl_seq* names;
         int level;
 
-        if (_PyObject_LookupAttrId(obj, &PyId_module, &tmp) < 0) {
+        if (lookup_attr_id(obj, &PyId_module, &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL || tmp == Py_None) {
@@ -5896,7 +5913,7 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
             if (res != 0) goto failed;
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttrId(obj, &PyId_names, &tmp) < 0) {
+        if (lookup_attr_id(obj, &PyId_names, &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -5926,7 +5943,7 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
             }
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttrId(obj, &PyId_level, &tmp) < 0) {
+        if (lookup_attr_id(obj, &PyId_level, &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL || tmp == Py_None) {
@@ -5950,7 +5967,7 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
     if (isinstance) {
         asdl_seq* names;
 
-        if (_PyObject_LookupAttrId(obj, &PyId_names, &tmp) < 0) {
+        if (lookup_attr_id(obj, &PyId_names, &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -5991,7 +6008,7 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
     if (isinstance) {
         asdl_seq* names;
 
-        if (_PyObject_LookupAttrId(obj, &PyId_names, &tmp) < 0) {
+        if (lookup_attr_id(obj, &PyId_names, &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -6032,7 +6049,7 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
     if (isinstance) {
         expr_ty value;
 
-        if (_PyObject_LookupAttrId(obj, &PyId_value, &tmp) < 0) {
+        if (lookup_attr_id(obj, &PyId_value, &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -6099,7 +6116,7 @@ obj2ast_expr(PyObject* obj, expr_ty* out, PyArena* arena)
         *out = NULL;
         return 0;
     }
-    if (_PyObject_LookupAttrId(obj, &PyId_lineno, &tmp) < 0) {
+    if (lookup_attr_id(obj, &PyId_lineno, &tmp) < 0) {
         return 1;
     }
     if (tmp == NULL) {
@@ -6112,7 +6129,7 @@ obj2ast_expr(PyObject* obj, expr_ty* out, PyArena* arena)
         if (res != 0) goto failed;
         Py_CLEAR(tmp);
     }
-    if (_PyObject_LookupAttrId(obj, &PyId_col_offset, &tmp) < 0) {
+    if (lookup_attr_id(obj, &PyId_col_offset, &tmp) < 0) {
         return 1;
     }
     if (tmp == NULL) {
@@ -6133,7 +6150,7 @@ obj2ast_expr(PyObject* obj, expr_ty* out, PyArena* arena)
         boolop_ty op;
         asdl_seq* values;
 
-        if (_PyObject_LookupAttrId(obj, &PyId_op, &tmp) < 0) {
+        if (lookup_attr_id(obj, &PyId_op, &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -6146,7 +6163,7 @@ obj2ast_expr(PyObject* obj, expr_ty* out, PyArena* arena)
             if (res != 0) goto failed;
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttrId(obj, &PyId_values, &tmp) < 0) {
+        if (lookup_attr_id(obj, &PyId_values, &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -6189,7 +6206,7 @@ obj2ast_expr(PyObject* obj, expr_ty* out, PyArena* arena)
         operator_ty op;
         expr_ty right;
 
-        if (_PyObject_LookupAttrId(obj, &PyId_left, &tmp) < 0) {
+        if (lookup_attr_id(obj, &PyId_left, &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -6202,7 +6219,7 @@ obj2ast_expr(PyObject* obj, expr_ty* out, PyArena* arena)
             if (res != 0) goto failed;
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttrId(obj, &PyId_op, &tmp) < 0) {
+        if (lookup_attr_id(obj, &PyId_op, &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -6215,7 +6232,7 @@ obj2ast_expr(PyObject* obj, expr_ty* out, PyArena* arena)
             if (res != 0) goto failed;
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttrId(obj, &PyId_right, &tmp) < 0) {
+        if (lookup_attr_id(obj, &PyId_right, &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -6240,7 +6257,7 @@ obj2ast_expr(PyObject* obj, expr_ty* out, PyArena* arena)
         unaryop_ty op;
         expr_ty operand;
 
-        if (_PyObject_LookupAttrId(obj, &PyId_op, &tmp) < 0) {
+        if (lookup_attr_id(obj, &PyId_op, &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -6253,7 +6270,7 @@ obj2ast_expr(PyObject* obj, expr_ty* out, PyArena* arena)
             if (res != 0) goto failed;
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttrId(obj, &PyId_operand, &tmp) < 0) {
+        if (lookup_attr_id(obj, &PyId_operand, &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -6278,7 +6295,7 @@ obj2ast_expr(PyObject* obj, expr_ty* out, PyArena* arena)
         arguments_ty args;
         expr_ty body;
 
-        if (_PyObject_LookupAttrId(obj, &PyId_args, &tmp) < 0) {
+        if (lookup_attr_id(obj, &PyId_args, &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -6291,7 +6308,7 @@ obj2ast_expr(PyObject* obj, expr_ty* out, PyArena* arena)
             if (res != 0) goto failed;
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttrId(obj, &PyId_body, &tmp) < 0) {
+        if (lookup_attr_id(obj, &PyId_body, &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -6317,7 +6334,7 @@ obj2ast_expr(PyObject* obj, expr_ty* out, PyArena* arena)
         expr_ty body;
         expr_ty orelse;
 
-        if (_PyObject_LookupAttrId(obj, &PyId_test, &tmp) < 0) {
+        if (lookup_attr_id(obj, &PyId_test, &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -6330,7 +6347,7 @@ obj2ast_expr(PyObject* obj, expr_ty* out, PyArena* arena)
             if (res != 0) goto failed;
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttrId(obj, &PyId_body, &tmp) < 0) {
+        if (lookup_attr_id(obj, &PyId_body, &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -6343,7 +6360,7 @@ obj2ast_expr(PyObject* obj, expr_ty* out, PyArena* arena)
             if (res != 0) goto failed;
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttrId(obj, &PyId_orelse, &tmp) < 0) {
+        if (lookup_attr_id(obj, &PyId_orelse, &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -6368,7 +6385,7 @@ obj2ast_expr(PyObject* obj, expr_ty* out, PyArena* arena)
         asdl_seq* keys;
         asdl_seq* values;
 
-        if (_PyObject_LookupAttrId(obj, &PyId_keys, &tmp) < 0) {
+        if (lookup_attr_id(obj, &PyId_keys, &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -6398,7 +6415,7 @@ obj2ast_expr(PyObject* obj, expr_ty* out, PyArena* arena)
             }
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttrId(obj, &PyId_values, &tmp) < 0) {
+        if (lookup_attr_id(obj, &PyId_values, &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -6439,7 +6456,7 @@ obj2ast_expr(PyObject* obj, expr_ty* out, PyArena* arena)
     if (isinstance) {
         asdl_seq* elts;
 
-        if (_PyObject_LookupAttrId(obj, &PyId_elts, &tmp) < 0) {
+        if (lookup_attr_id(obj, &PyId_elts, &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -6481,7 +6498,7 @@ obj2ast_expr(PyObject* obj, expr_ty* out, PyArena* arena)
         expr_ty elt;
         asdl_seq* generators;
 
-        if (_PyObject_LookupAttrId(obj, &PyId_elt, &tmp) < 0) {
+        if (lookup_attr_id(obj, &PyId_elt, &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -6494,7 +6511,7 @@ obj2ast_expr(PyObject* obj, expr_ty* out, PyArena* arena)
             if (res != 0) goto failed;
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttrId(obj, &PyId_generators, &tmp) < 0) {
+        if (lookup_attr_id(obj, &PyId_generators, &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -6536,7 +6553,7 @@ obj2ast_expr(PyObject* obj, expr_ty* out, PyArena* arena)
         expr_ty elt;
         asdl_seq* generators;
 
-        if (_PyObject_LookupAttrId(obj, &PyId_elt, &tmp) < 0) {
+        if (lookup_attr_id(obj, &PyId_elt, &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -6549,7 +6566,7 @@ obj2ast_expr(PyObject* obj, expr_ty* out, PyArena* arena)
             if (res != 0) goto failed;
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttrId(obj, &PyId_generators, &tmp) < 0) {
+        if (lookup_attr_id(obj, &PyId_generators, &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -6592,7 +6609,7 @@ obj2ast_expr(PyObject* obj, expr_ty* out, PyArena* arena)
         expr_ty value;
         asdl_seq* generators;
 
-        if (_PyObject_LookupAttrId(obj, &PyId_key, &tmp) < 0) {
+        if (lookup_attr_id(obj, &PyId_key, &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -6605,7 +6622,7 @@ obj2ast_expr(PyObject* obj, expr_ty* out, PyArena* arena)
             if (res != 0) goto failed;
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttrId(obj, &PyId_value, &tmp) < 0) {
+        if (lookup_attr_id(obj, &PyId_value, &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -6618,7 +6635,7 @@ obj2ast_expr(PyObject* obj, expr_ty* out, PyArena* arena)
             if (res != 0) goto failed;
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttrId(obj, &PyId_generators, &tmp) < 0) {
+        if (lookup_attr_id(obj, &PyId_generators, &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -6660,7 +6677,7 @@ obj2ast_expr(PyObject* obj, expr_ty* out, PyArena* arena)
         expr_ty elt;
         asdl_seq* generators;
 
-        if (_PyObject_LookupAttrId(obj, &PyId_elt, &tmp) < 0) {
+        if (lookup_attr_id(obj, &PyId_elt, &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -6673,7 +6690,7 @@ obj2ast_expr(PyObject* obj, expr_ty* out, PyArena* arena)
             if (res != 0) goto failed;
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttrId(obj, &PyId_generators, &tmp) < 0) {
+        if (lookup_attr_id(obj, &PyId_generators, &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -6714,7 +6731,7 @@ obj2ast_expr(PyObject* obj, expr_ty* out, PyArena* arena)
     if (isinstance) {
         expr_ty value;
 
-        if (_PyObject_LookupAttrId(obj, &PyId_value, &tmp) < 0) {
+        if (lookup_attr_id(obj, &PyId_value, &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -6738,7 +6755,7 @@ obj2ast_expr(PyObject* obj, expr_ty* out, PyArena* arena)
     if (isinstance) {
         expr_ty value;
 
-        if (_PyObject_LookupAttrId(obj, &PyId_value, &tmp) < 0) {
+        if (lookup_attr_id(obj, &PyId_value, &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL || tmp == Py_None) {
@@ -6762,7 +6779,7 @@ obj2ast_expr(PyObject* obj, expr_ty* out, PyArena* arena)
     if (isinstance) {
         expr_ty value;
 
-        if (_PyObject_LookupAttrId(obj, &PyId_value, &tmp) < 0) {
+        if (lookup_attr_id(obj, &PyId_value, &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -6788,7 +6805,7 @@ obj2ast_expr(PyObject* obj, expr_ty* out, PyArena* arena)
         asdl_int_seq* ops;
         asdl_seq* comparators;
 
-        if (_PyObject_LookupAttrId(obj, &PyId_left, &tmp) < 0) {
+        if (lookup_attr_id(obj, &PyId_left, &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -6801,7 +6818,7 @@ obj2ast_expr(PyObject* obj, expr_ty* out, PyArena* arena)
             if (res != 0) goto failed;
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttrId(obj, &PyId_ops, &tmp) < 0) {
+        if (lookup_attr_id(obj, &PyId_ops, &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -6831,7 +6848,7 @@ obj2ast_expr(PyObject* obj, expr_ty* out, PyArena* arena)
             }
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttrId(obj, &PyId_comparators, &tmp) < 0) {
+        if (lookup_attr_id(obj, &PyId_comparators, &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -6874,7 +6891,7 @@ obj2ast_expr(PyObject* obj, expr_ty* out, PyArena* arena)
         asdl_seq* args;
         asdl_seq* keywords;
 
-        if (_PyObject_LookupAttrId(obj, &PyId_func, &tmp) < 0) {
+        if (lookup_attr_id(obj, &PyId_func, &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -6887,7 +6904,7 @@ obj2ast_expr(PyObject* obj, expr_ty* out, PyArena* arena)
             if (res != 0) goto failed;
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttrId(obj, &PyId_args, &tmp) < 0) {
+        if (lookup_attr_id(obj, &PyId_args, &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -6917,7 +6934,7 @@ obj2ast_expr(PyObject* obj, expr_ty* out, PyArena* arena)
             }
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttrId(obj, &PyId_keywords, &tmp) < 0) {
+        if (lookup_attr_id(obj, &PyId_keywords, &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -6958,7 +6975,7 @@ obj2ast_expr(PyObject* obj, expr_ty* out, PyArena* arena)
     if (isinstance) {
         object n;
 
-        if (_PyObject_LookupAttrId(obj, &PyId_n, &tmp) < 0) {
+        if (lookup_attr_id(obj, &PyId_n, &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -6982,7 +6999,7 @@ obj2ast_expr(PyObject* obj, expr_ty* out, PyArena* arena)
     if (isinstance) {
         string s;
 
-        if (_PyObject_LookupAttrId(obj, &PyId_s, &tmp) < 0) {
+        if (lookup_attr_id(obj, &PyId_s, &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -7008,7 +7025,7 @@ obj2ast_expr(PyObject* obj, expr_ty* out, PyArena* arena)
         int conversion;
         expr_ty format_spec;
 
-        if (_PyObject_LookupAttrId(obj, &PyId_value, &tmp) < 0) {
+        if (lookup_attr_id(obj, &PyId_value, &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -7021,7 +7038,7 @@ obj2ast_expr(PyObject* obj, expr_ty* out, PyArena* arena)
             if (res != 0) goto failed;
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttrId(obj, &PyId_conversion, &tmp) < 0) {
+        if (lookup_attr_id(obj, &PyId_conversion, &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL || tmp == Py_None) {
@@ -7034,7 +7051,7 @@ obj2ast_expr(PyObject* obj, expr_ty* out, PyArena* arena)
             if (res != 0) goto failed;
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttrId(obj, &PyId_format_spec, &tmp) < 0) {
+        if (lookup_attr_id(obj, &PyId_format_spec, &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL || tmp == Py_None) {
@@ -7059,7 +7076,7 @@ obj2ast_expr(PyObject* obj, expr_ty* out, PyArena* arena)
     if (isinstance) {
         asdl_seq* values;
 
-        if (_PyObject_LookupAttrId(obj, &PyId_values, &tmp) < 0) {
+        if (lookup_attr_id(obj, &PyId_values, &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -7100,7 +7117,7 @@ obj2ast_expr(PyObject* obj, expr_ty* out, PyArena* arena)
     if (isinstance) {
         bytes s;
 
-        if (_PyObject_LookupAttrId(obj, &PyId_s, &tmp) < 0) {
+        if (lookup_attr_id(obj, &PyId_s, &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -7124,7 +7141,7 @@ obj2ast_expr(PyObject* obj, expr_ty* out, PyArena* arena)
     if (isinstance) {
         singleton value;
 
-        if (_PyObject_LookupAttrId(obj, &PyId_value, &tmp) < 0) {
+        if (lookup_attr_id(obj, &PyId_value, &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -7158,7 +7175,7 @@ obj2ast_expr(PyObject* obj, expr_ty* out, PyArena* arena)
     if (isinstance) {
         constant value;
 
-        if (_PyObject_LookupAttrId(obj, &PyId_value, &tmp) < 0) {
+        if (lookup_attr_id(obj, &PyId_value, &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -7184,7 +7201,7 @@ obj2ast_expr(PyObject* obj, expr_ty* out, PyArena* arena)
         identifier attr;
         expr_context_ty ctx;
 
-        if (_PyObject_LookupAttrId(obj, &PyId_value, &tmp) < 0) {
+        if (lookup_attr_id(obj, &PyId_value, &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -7197,7 +7214,7 @@ obj2ast_expr(PyObject* obj, expr_ty* out, PyArena* arena)
             if (res != 0) goto failed;
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttrId(obj, &PyId_attr, &tmp) < 0) {
+        if (lookup_attr_id(obj, &PyId_attr, &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -7210,7 +7227,7 @@ obj2ast_expr(PyObject* obj, expr_ty* out, PyArena* arena)
             if (res != 0) goto failed;
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttrId(obj, &PyId_ctx, &tmp) < 0) {
+        if (lookup_attr_id(obj, &PyId_ctx, &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -7236,7 +7253,7 @@ obj2ast_expr(PyObject* obj, expr_ty* out, PyArena* arena)
         slice_ty slice;
         expr_context_ty ctx;
 
-        if (_PyObject_LookupAttrId(obj, &PyId_value, &tmp) < 0) {
+        if (lookup_attr_id(obj, &PyId_value, &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -7249,7 +7266,7 @@ obj2ast_expr(PyObject* obj, expr_ty* out, PyArena* arena)
             if (res != 0) goto failed;
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttrId(obj, &PyId_slice, &tmp) < 0) {
+        if (lookup_attr_id(obj, &PyId_slice, &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -7262,7 +7279,7 @@ obj2ast_expr(PyObject* obj, expr_ty* out, PyArena* arena)
             if (res != 0) goto failed;
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttrId(obj, &PyId_ctx, &tmp) < 0) {
+        if (lookup_attr_id(obj, &PyId_ctx, &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -7287,7 +7304,7 @@ obj2ast_expr(PyObject* obj, expr_ty* out, PyArena* arena)
         expr_ty value;
         expr_context_ty ctx;
 
-        if (_PyObject_LookupAttrId(obj, &PyId_value, &tmp) < 0) {
+        if (lookup_attr_id(obj, &PyId_value, &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -7300,7 +7317,7 @@ obj2ast_expr(PyObject* obj, expr_ty* out, PyArena* arena)
             if (res != 0) goto failed;
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttrId(obj, &PyId_ctx, &tmp) < 0) {
+        if (lookup_attr_id(obj, &PyId_ctx, &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -7325,7 +7342,7 @@ obj2ast_expr(PyObject* obj, expr_ty* out, PyArena* arena)
         identifier id;
         expr_context_ty ctx;
 
-        if (_PyObject_LookupAttrId(obj, &PyId_id, &tmp) < 0) {
+        if (lookup_attr_id(obj, &PyId_id, &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -7338,7 +7355,7 @@ obj2ast_expr(PyObject* obj, expr_ty* out, PyArena* arena)
             if (res != 0) goto failed;
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttrId(obj, &PyId_ctx, &tmp) < 0) {
+        if (lookup_attr_id(obj, &PyId_ctx, &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -7363,7 +7380,7 @@ obj2ast_expr(PyObject* obj, expr_ty* out, PyArena* arena)
         asdl_seq* elts;
         expr_context_ty ctx;
 
-        if (_PyObject_LookupAttrId(obj, &PyId_elts, &tmp) < 0) {
+        if (lookup_attr_id(obj, &PyId_elts, &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -7393,7 +7410,7 @@ obj2ast_expr(PyObject* obj, expr_ty* out, PyArena* arena)
             }
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttrId(obj, &PyId_ctx, &tmp) < 0) {
+        if (lookup_attr_id(obj, &PyId_ctx, &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -7418,7 +7435,7 @@ obj2ast_expr(PyObject* obj, expr_ty* out, PyArena* arena)
         asdl_seq* elts;
         expr_context_ty ctx;
 
-        if (_PyObject_LookupAttrId(obj, &PyId_elts, &tmp) < 0) {
+        if (lookup_attr_id(obj, &PyId_elts, &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -7448,7 +7465,7 @@ obj2ast_expr(PyObject* obj, expr_ty* out, PyArena* arena)
             }
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttrId(obj, &PyId_ctx, &tmp) < 0) {
+        if (lookup_attr_id(obj, &PyId_ctx, &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -7550,7 +7567,7 @@ obj2ast_slice(PyObject* obj, slice_ty* out, PyArena* arena)
         expr_ty upper;
         expr_ty step;
 
-        if (_PyObject_LookupAttrId(obj, &PyId_lower, &tmp) < 0) {
+        if (lookup_attr_id(obj, &PyId_lower, &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL || tmp == Py_None) {
@@ -7563,7 +7580,7 @@ obj2ast_slice(PyObject* obj, slice_ty* out, PyArena* arena)
             if (res != 0) goto failed;
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttrId(obj, &PyId_upper, &tmp) < 0) {
+        if (lookup_attr_id(obj, &PyId_upper, &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL || tmp == Py_None) {
@@ -7576,7 +7593,7 @@ obj2ast_slice(PyObject* obj, slice_ty* out, PyArena* arena)
             if (res != 0) goto failed;
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttrId(obj, &PyId_step, &tmp) < 0) {
+        if (lookup_attr_id(obj, &PyId_step, &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL || tmp == Py_None) {
@@ -7600,7 +7617,7 @@ obj2ast_slice(PyObject* obj, slice_ty* out, PyArena* arena)
     if (isinstance) {
         asdl_seq* dims;
 
-        if (_PyObject_LookupAttrId(obj, &PyId_dims, &tmp) < 0) {
+        if (lookup_attr_id(obj, &PyId_dims, &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -7641,7 +7658,7 @@ obj2ast_slice(PyObject* obj, slice_ty* out, PyArena* arena)
     if (isinstance) {
         expr_ty value;
 
-        if (_PyObject_LookupAttrId(obj, &PyId_value, &tmp) < 0) {
+        if (lookup_attr_id(obj, &PyId_value, &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -7946,7 +7963,7 @@ obj2ast_comprehension(PyObject* obj, comprehension_ty* out, PyArena* arena)
     asdl_seq* ifs;
     int is_async;
 
-    if (_PyObject_LookupAttrId(obj, &PyId_target, &tmp) < 0) {
+    if (lookup_attr_id(obj, &PyId_target, &tmp) < 0) {
         return 1;
     }
     if (tmp == NULL) {
@@ -7959,7 +7976,7 @@ obj2ast_comprehension(PyObject* obj, comprehension_ty* out, PyArena* arena)
         if (res != 0) goto failed;
         Py_CLEAR(tmp);
     }
-    if (_PyObject_LookupAttrId(obj, &PyId_iter, &tmp) < 0) {
+    if (lookup_attr_id(obj, &PyId_iter, &tmp) < 0) {
         return 1;
     }
     if (tmp == NULL) {
@@ -7972,7 +7989,7 @@ obj2ast_comprehension(PyObject* obj, comprehension_ty* out, PyArena* arena)
         if (res != 0) goto failed;
         Py_CLEAR(tmp);
     }
-    if (_PyObject_LookupAttrId(obj, &PyId_ifs, &tmp) < 0) {
+    if (lookup_attr_id(obj, &PyId_ifs, &tmp) < 0) {
         return 1;
     }
     if (tmp == NULL) {
@@ -8002,7 +8019,7 @@ obj2ast_comprehension(PyObject* obj, comprehension_ty* out, PyArena* arena)
         }
         Py_CLEAR(tmp);
     }
-    if (_PyObject_LookupAttrId(obj, &PyId_is_async, &tmp) < 0) {
+    if (lookup_attr_id(obj, &PyId_is_async, &tmp) < 0) {
         return 1;
     }
     if (tmp == NULL) {
@@ -8035,7 +8052,7 @@ obj2ast_excepthandler(PyObject* obj, excepthandler_ty* out, PyArena* arena)
         *out = NULL;
         return 0;
     }
-    if (_PyObject_LookupAttrId(obj, &PyId_lineno, &tmp) < 0) {
+    if (lookup_attr_id(obj, &PyId_lineno, &tmp) < 0) {
         return 1;
     }
     if (tmp == NULL) {
@@ -8048,7 +8065,7 @@ obj2ast_excepthandler(PyObject* obj, excepthandler_ty* out, PyArena* arena)
         if (res != 0) goto failed;
         Py_CLEAR(tmp);
     }
-    if (_PyObject_LookupAttrId(obj, &PyId_col_offset, &tmp) < 0) {
+    if (lookup_attr_id(obj, &PyId_col_offset, &tmp) < 0) {
         return 1;
     }
     if (tmp == NULL) {
@@ -8070,7 +8087,7 @@ obj2ast_excepthandler(PyObject* obj, excepthandler_ty* out, PyArena* arena)
         identifier name;
         asdl_seq* body;
 
-        if (_PyObject_LookupAttrId(obj, &PyId_type, &tmp) < 0) {
+        if (lookup_attr_id(obj, &PyId_type, &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL || tmp == Py_None) {
@@ -8083,7 +8100,7 @@ obj2ast_excepthandler(PyObject* obj, excepthandler_ty* out, PyArena* arena)
             if (res != 0) goto failed;
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttrId(obj, &PyId_name, &tmp) < 0) {
+        if (lookup_attr_id(obj, &PyId_name, &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL || tmp == Py_None) {
@@ -8096,7 +8113,7 @@ obj2ast_excepthandler(PyObject* obj, excepthandler_ty* out, PyArena* arena)
             if (res != 0) goto failed;
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttrId(obj, &PyId_body, &tmp) < 0) {
+        if (lookup_attr_id(obj, &PyId_body, &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -8148,7 +8165,7 @@ obj2ast_arguments(PyObject* obj, arguments_ty* out, PyArena* arena)
     arg_ty kwarg;
     asdl_seq* defaults;
 
-    if (_PyObject_LookupAttrId(obj, &PyId_args, &tmp) < 0) {
+    if (lookup_attr_id(obj, &PyId_args, &tmp) < 0) {
         return 1;
     }
     if (tmp == NULL) {
@@ -8178,7 +8195,7 @@ obj2ast_arguments(PyObject* obj, arguments_ty* out, PyArena* arena)
         }
         Py_CLEAR(tmp);
     }
-    if (_PyObject_LookupAttrId(obj, &PyId_vararg, &tmp) < 0) {
+    if (lookup_attr_id(obj, &PyId_vararg, &tmp) < 0) {
         return 1;
     }
     if (tmp == NULL || tmp == Py_None) {
@@ -8191,7 +8208,7 @@ obj2ast_arguments(PyObject* obj, arguments_ty* out, PyArena* arena)
         if (res != 0) goto failed;
         Py_CLEAR(tmp);
     }
-    if (_PyObject_LookupAttrId(obj, &PyId_kwonlyargs, &tmp) < 0) {
+    if (lookup_attr_id(obj, &PyId_kwonlyargs, &tmp) < 0) {
         return 1;
     }
     if (tmp == NULL) {
@@ -8221,7 +8238,7 @@ obj2ast_arguments(PyObject* obj, arguments_ty* out, PyArena* arena)
         }
         Py_CLEAR(tmp);
     }
-    if (_PyObject_LookupAttrId(obj, &PyId_kw_defaults, &tmp) < 0) {
+    if (lookup_attr_id(obj, &PyId_kw_defaults, &tmp) < 0) {
         return 1;
     }
     if (tmp == NULL) {
@@ -8251,7 +8268,7 @@ obj2ast_arguments(PyObject* obj, arguments_ty* out, PyArena* arena)
         }
         Py_CLEAR(tmp);
     }
-    if (_PyObject_LookupAttrId(obj, &PyId_kwarg, &tmp) < 0) {
+    if (lookup_attr_id(obj, &PyId_kwarg, &tmp) < 0) {
         return 1;
     }
     if (tmp == NULL || tmp == Py_None) {
@@ -8264,7 +8281,7 @@ obj2ast_arguments(PyObject* obj, arguments_ty* out, PyArena* arena)
         if (res != 0) goto failed;
         Py_CLEAR(tmp);
     }
-    if (_PyObject_LookupAttrId(obj, &PyId_defaults, &tmp) < 0) {
+    if (lookup_attr_id(obj, &PyId_defaults, &tmp) < 0) {
         return 1;
     }
     if (tmp == NULL) {
@@ -8312,7 +8329,7 @@ obj2ast_arg(PyObject* obj, arg_ty* out, PyArena* arena)
     int lineno;
     int col_offset;
 
-    if (_PyObject_LookupAttrId(obj, &PyId_arg, &tmp) < 0) {
+    if (lookup_attr_id(obj, &PyId_arg, &tmp) < 0) {
         return 1;
     }
     if (tmp == NULL) {
@@ -8325,7 +8342,7 @@ obj2ast_arg(PyObject* obj, arg_ty* out, PyArena* arena)
         if (res != 0) goto failed;
         Py_CLEAR(tmp);
     }
-    if (_PyObject_LookupAttrId(obj, &PyId_annotation, &tmp) < 0) {
+    if (lookup_attr_id(obj, &PyId_annotation, &tmp) < 0) {
         return 1;
     }
     if (tmp == NULL || tmp == Py_None) {
@@ -8338,7 +8355,7 @@ obj2ast_arg(PyObject* obj, arg_ty* out, PyArena* arena)
         if (res != 0) goto failed;
         Py_CLEAR(tmp);
     }
-    if (_PyObject_LookupAttrId(obj, &PyId_type_comment, &tmp) < 0) {
+    if (lookup_attr_id(obj, &PyId_type_comment, &tmp) < 0) {
         return 1;
     }
     if (tmp == NULL || tmp == Py_None) {
@@ -8351,7 +8368,7 @@ obj2ast_arg(PyObject* obj, arg_ty* out, PyArena* arena)
         if (res != 0) goto failed;
         Py_CLEAR(tmp);
     }
-    if (_PyObject_LookupAttrId(obj, &PyId_lineno, &tmp) < 0) {
+    if (lookup_attr_id(obj, &PyId_lineno, &tmp) < 0) {
         return 1;
     }
     if (tmp == NULL) {
@@ -8364,7 +8381,7 @@ obj2ast_arg(PyObject* obj, arg_ty* out, PyArena* arena)
         if (res != 0) goto failed;
         Py_CLEAR(tmp);
     }
-    if (_PyObject_LookupAttrId(obj, &PyId_col_offset, &tmp) < 0) {
+    if (lookup_attr_id(obj, &PyId_col_offset, &tmp) < 0) {
         return 1;
     }
     if (tmp == NULL) {
@@ -8391,7 +8408,7 @@ obj2ast_keyword(PyObject* obj, keyword_ty* out, PyArena* arena)
     identifier arg;
     expr_ty value;
 
-    if (_PyObject_LookupAttrId(obj, &PyId_arg, &tmp) < 0) {
+    if (lookup_attr_id(obj, &PyId_arg, &tmp) < 0) {
         return 1;
     }
     if (tmp == NULL || tmp == Py_None) {
@@ -8404,7 +8421,7 @@ obj2ast_keyword(PyObject* obj, keyword_ty* out, PyArena* arena)
         if (res != 0) goto failed;
         Py_CLEAR(tmp);
     }
-    if (_PyObject_LookupAttrId(obj, &PyId_value, &tmp) < 0) {
+    if (lookup_attr_id(obj, &PyId_value, &tmp) < 0) {
         return 1;
     }
     if (tmp == NULL) {
@@ -8431,7 +8448,7 @@ obj2ast_alias(PyObject* obj, alias_ty* out, PyArena* arena)
     identifier name;
     identifier asname;
 
-    if (_PyObject_LookupAttrId(obj, &PyId_name, &tmp) < 0) {
+    if (lookup_attr_id(obj, &PyId_name, &tmp) < 0) {
         return 1;
     }
     if (tmp == NULL) {
@@ -8444,7 +8461,7 @@ obj2ast_alias(PyObject* obj, alias_ty* out, PyArena* arena)
         if (res != 0) goto failed;
         Py_CLEAR(tmp);
     }
-    if (_PyObject_LookupAttrId(obj, &PyId_asname, &tmp) < 0) {
+    if (lookup_attr_id(obj, &PyId_asname, &tmp) < 0) {
         return 1;
     }
     if (tmp == NULL || tmp == Py_None) {
@@ -8471,7 +8488,7 @@ obj2ast_withitem(PyObject* obj, withitem_ty* out, PyArena* arena)
     expr_ty context_expr;
     expr_ty optional_vars;
 
-    if (_PyObject_LookupAttrId(obj, &PyId_context_expr, &tmp) < 0) {
+    if (lookup_attr_id(obj, &PyId_context_expr, &tmp) < 0) {
         return 1;
     }
     if (tmp == NULL) {
@@ -8484,7 +8501,7 @@ obj2ast_withitem(PyObject* obj, withitem_ty* out, PyArena* arena)
         if (res != 0) goto failed;
         Py_CLEAR(tmp);
     }
-    if (_PyObject_LookupAttrId(obj, &PyId_optional_vars, &tmp) < 0) {
+    if (lookup_attr_id(obj, &PyId_optional_vars, &tmp) < 0) {
         return 1;
     }
     if (tmp == NULL || tmp == Py_None) {
@@ -8522,7 +8539,7 @@ obj2ast_type_ignore(PyObject* obj, type_ignore_ty* out, PyArena* arena)
     if (isinstance) {
         int lineno;
 
-        if (_PyObject_LookupAttrId(obj, &PyId_lineno, &tmp) < 0) {
+        if (lookup_attr_id(obj, &PyId_lineno, &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL) {

@@ -497,7 +497,7 @@ class Obj2ModVisitor(PickleVisitor):
 
     def visitField(self, field, name, sum=None, prod=None, depth=0):
         ctype = get_c_type(field.type)
-        self.emit("if (_PyObject_LookupAttrId(obj, &PyId_%s, &tmp) < 0) {" % field.name, depth)
+        self.emit("if (lookup_attr_id(obj, &PyId_%s, &tmp) < 0) {" % field.name, depth)
         self.emit("return 1;", depth+1)
         self.emit("}", depth)
         if not field.opt:
@@ -654,13 +654,30 @@ ast_clear(AST_object *self)
     return 0;
 }
 
+static int lookup_attr_id(PyObject *v, _Py_Identifier *name, PyObject **result)
+{
+    PyObject *oname = _PyUnicode_FromId(name); /* borrowed */
+    if (!oname) {
+        *result = NULL;
+        return -1;
+    }
+    *result = PyObject_GetAttr(v, oname);
+    if (*result == NULL) {
+        if (!PyErr_ExceptionMatches(PyExc_AttributeError)) {
+            return -1;
+        }
+        PyErr_Clear();
+    }
+    return 0;
+}
+
 static int
 ast_type_init(PyObject *self, PyObject *args, PyObject *kw)
 {
     Py_ssize_t i, numfields = 0;
     int res = -1;
     PyObject *key, *value, *fields;
-    if (_PyObject_LookupAttrId((PyObject*)Py_TYPE(self), &PyId__fields, &fields) < 0) {
+    if (lookup_attr_id((PyObject*)Py_TYPE(self), &PyId__fields, &fields) < 0) {
         goto cleanup;
     }
     if (fields) {
@@ -709,7 +726,7 @@ ast_type_reduce(PyObject *self, PyObject *unused)
 {
     _Py_IDENTIFIER(__dict__);
     PyObject *dict;
-    if (_PyObject_LookupAttrId(self, &PyId___dict__, &dict) < 0) {
+    if (lookup_attr_id(self, &PyId___dict__, &dict) < 0) {
         return NULL;
     }
     if (dict) {
