@@ -64,6 +64,8 @@ Ta3Parser_ParseStringObject(const char *s, PyObject *filename,
     Py_INCREF(err_ret->filename);
     tok->filename = err_ret->filename;
 #endif
+    if (*flags & PyPARSE_ALWAYS_ASYNC)
+        tok->async_always = 1;
     return parsetok(tok, g, start, err_ret, flags);
 }
 

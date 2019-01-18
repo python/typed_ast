@@ -69,6 +69,7 @@ struct tok_state {
     int async_def_indent; /* Indentation level of the outermost 'async def'. */
     int async_def_nl;     /* =1 if the outermost 'async def' had at least one
                              NEWLINE token after it. */
+    int async_always;     /* =1 if async/await are always keywords */
 };
 
 extern struct tok_state *Ta3Tokenizer_FromString(const char *, int);

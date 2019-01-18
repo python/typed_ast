@@ -40,7 +40,7 @@
 import _ast3
 from _ast3 import *
 
-LATEST_MINOR_VERSION = 6
+LATEST_MINOR_VERSION = 7
 
 def parse(source, filename='<unknown>', mode='exec', feature_version=LATEST_MINOR_VERSION):
     """
@@ -56,6 +56,8 @@ def parse(source, filename='<unknown>', mode='exec', feature_version=LATEST_MINO
     When feature_version=4, the parser will forbid the use of the async/await
     keywords and the '@' operator, but will not forbid the use of PEP 448
     additional unpacking generalizations, which were also added in Python 3.5.
+
+    When feature_version>=7, 'async' and 'await' are always keywords.
     """
     return _ast3._parse(source, filename, mode, feature_version)
 

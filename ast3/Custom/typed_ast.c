@@ -222,10 +222,13 @@ string_object_to_c_ast(const char *s, PyObject *filename, int start,
     PyCompilerFlags localflags;
     perrdetail err;
     int iflags = PARSER_FLAGS(flags);
+    node *n;
 
-    node *n = Ta3Parser_ParseStringObject(s, filename,
-                                         &_Ta3Parser_Grammar, start, &err,
-                                         &iflags);
+    if (feature_version >= 7)
+        iflags |= PyPARSE_ALWAYS_ASYNC;
+    n = Ta3Parser_ParseStringObject(s, filename,
+                                    &_Ta3Parser_Grammar, start, &err,
+                                    &iflags);
     if (flags == NULL) {
         localflags.cf_flags = 0;
         flags = &localflags;
