@@ -232,7 +232,7 @@ string_object_to_c_ast(const char *s, PyObject *filename, int start,
     }
     if (n) {
         flags->cf_flags |= iflags & PyCF_MASK;
-        mod = Ta3AST_FromNodeObject(n, flags, filename, /*feature_version,*/ arena);
+        mod = Ta3AST_FromNodeObject(n, flags, filename, feature_version, arena);
         Ta3Node_Free(n);
     }
     else {
