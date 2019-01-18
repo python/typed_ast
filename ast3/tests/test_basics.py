@@ -6,7 +6,7 @@ import _ast3
 
 # Lowest and highest supported Python 3 minor version (inclusive)
 MIN_VER = 4
-MAX_VER = 6
+MAX_VER = 7
 NEXT_VER = MAX_VER + 1
 
 
