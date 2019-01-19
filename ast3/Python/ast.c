@@ -699,6 +699,7 @@ new_identifier(const char *n, struct compiling *c)
     if (!PyUnicode_IS_ASCII(id)) {
         PyObject *id2;
         PyObject *form;
+        PyObject *args[2];
         _Py_IDENTIFIER(NFKC);
         if (!c->c_normalize && !init_normalization(c)) {
             Py_DECREF(id);
@@ -709,7 +710,8 @@ new_identifier(const char *n, struct compiling *c)
             Py_DECREF(id);
             return NULL;
         }
-        PyObject *args[2] = {form, id};
+        args[0] = form;
+        args[1] = id;
         id2 = _PyObject_FastCall(c->c_normalize, args, 2);
         Py_DECREF(id);
         if (!id2)
