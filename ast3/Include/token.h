@@ -84,10 +84,10 @@ extern "C" {
 #define ISEOF(x)                ((x) == ENDMARKER)
 
 
-PyAPI_DATA(const char *) _Ta3Parser_TokenNames[]; /* Token names */
-PyAPI_FUNC(int) Ta3Token_OneChar(int);
-PyAPI_FUNC(int) Ta3Token_TwoChars(int, int);
-PyAPI_FUNC(int) Ta3Token_ThreeChars(int, int, int);
+extern const char * _Ta3Parser_TokenNames[]; /* Token names */
+extern int Ta3Token_OneChar(int);
+extern int Ta3Token_TwoChars(int, int);
+extern int Ta3Token_ThreeChars(int, int, int);
 
 #ifdef __cplusplus
 }

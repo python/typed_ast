@@ -2,7 +2,7 @@
 
 #include "pgenheaders.h"
 #include "grammar.h"
-PyAPI_DATA(grammar) _Ta3Parser_Grammar;
+extern grammar _Ta3Parser_Grammar;
 static arc arcs_0_0[3] = {
     {2, 1},
     {3, 1},

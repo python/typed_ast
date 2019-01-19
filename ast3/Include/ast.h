@@ -4,14 +4,14 @@
 extern "C" {
 #endif
 
-PyAPI_FUNC(int) Ta3AST_Validate(mod_ty);
-PyAPI_FUNC(mod_ty) Ta3AST_FromNode(
+extern int Ta3AST_Validate(mod_ty);
+extern mod_ty Ta3AST_FromNode(
     const node *n,
     PyCompilerFlags *flags,
     const char *filename,       /* decoded from the filesystem encoding */
     int feature_version,
     PyArena *arena);
-PyAPI_FUNC(mod_ty) Ta3AST_FromNodeObject(
+extern mod_ty Ta3AST_FromNodeObject(
     const node *n,
     PyCompilerFlags *flags,
     PyObject *filename,
@@ -21,7 +21,7 @@ PyAPI_FUNC(mod_ty) Ta3AST_FromNodeObject(
 #ifndef Py_LIMITED_API
 
 /* _PyAST_ExprAsUnicode is defined in ast_unparse.c */
-PyAPI_FUNC(PyObject *) _PyAST_ExprAsUnicode(expr_ty);
+extern PyObject * _PyAST_ExprAsUnicode(expr_ty);
 
 #endif /* !Py_LIMITED_API */
 

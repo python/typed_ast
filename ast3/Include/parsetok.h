@@ -36,15 +36,15 @@ typedef struct {
 #define PyPARSE_BARRY_AS_BDFL 0x0020
 #define PyPARSE_ALWAYS_ASYNC  0x8000
 
-PyAPI_FUNC(node *) Ta3Parser_ParseString(const char *, grammar *, int,
+extern node * Ta3Parser_ParseString(const char *, grammar *, int,
                                               perrdetail *);
-PyAPI_FUNC(node *) Ta3Parser_ParseFile (FILE *, const char *, grammar *, int,
+extern node * Ta3Parser_ParseFile (FILE *, const char *, grammar *, int,
                                              const char *, const char *,
                                              perrdetail *);
 
-PyAPI_FUNC(node *) Ta3Parser_ParseStringFlags(const char *, grammar *, int,
+extern node * Ta3Parser_ParseStringFlags(const char *, grammar *, int,
                                               perrdetail *, int);
-PyAPI_FUNC(node *) Ta3Parser_ParseFileFlags(
+extern node * Ta3Parser_ParseFileFlags(
     FILE *fp,
     const char *filename,       /* decoded from the filesystem encoding */
     const char *enc,
@@ -54,7 +54,7 @@ PyAPI_FUNC(node *) Ta3Parser_ParseFileFlags(
     const char *ps2,
     perrdetail *err_ret,
     int flags);
-PyAPI_FUNC(node *) Ta3Parser_ParseFileFlagsEx(
+extern node * Ta3Parser_ParseFileFlagsEx(
     FILE *fp,
     const char *filename,       /* decoded from the filesystem encoding */
     const char *enc,
@@ -64,7 +64,7 @@ PyAPI_FUNC(node *) Ta3Parser_ParseFileFlagsEx(
     const char *ps2,
     perrdetail *err_ret,
     int *flags);
-PyAPI_FUNC(node *) Ta3Parser_ParseFileObject(
+extern node * Ta3Parser_ParseFileObject(
     FILE *fp,
     PyObject *filename,
     const char *enc,
@@ -75,21 +75,21 @@ PyAPI_FUNC(node *) Ta3Parser_ParseFileObject(
     perrdetail *err_ret,
     int *flags);
 
-PyAPI_FUNC(node *) Ta3Parser_ParseStringFlagsFilename(
+extern node * Ta3Parser_ParseStringFlagsFilename(
     const char *s,
     const char *filename,       /* decoded from the filesystem encoding */
     grammar *g,
     int start,
     perrdetail *err_ret,
     int flags);
-PyAPI_FUNC(node *) Ta3Parser_ParseStringFlagsFilenameEx(
+extern node * Ta3Parser_ParseStringFlagsFilenameEx(
     const char *s,
     const char *filename,       /* decoded from the filesystem encoding */
     grammar *g,
     int start,
     perrdetail *err_ret,
     int *flags);
-PyAPI_FUNC(node *) Ta3Parser_ParseStringObject(
+extern node * Ta3Parser_ParseStringObject(
     const char *s,
     PyObject *filename,
     grammar *g,
@@ -99,8 +99,8 @@ PyAPI_FUNC(node *) Ta3Parser_ParseStringObject(
 
 /* Note that the following functions are defined in pythonrun.c,
    not in parsetok.c */
-PyAPI_FUNC(void) PyParser_SetError(perrdetail *);
-PyAPI_FUNC(void) PyParser_ClearError(perrdetail *);
+extern void PyParser_SetError(perrdetail *);
+extern void PyParser_ClearError(perrdetail *);
 
 #ifdef __cplusplus
 }
