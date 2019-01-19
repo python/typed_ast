@@ -13,6 +13,56 @@
 #include <assert.h>
 #include <stdbool.h>
 
+#ifndef _PyObject_FastCall
+static PyObject *
+_PyObject_FastCall(PyObject *func, PyObject *const *args, int nargs)
+{
+    PyObject *t, *res;
+    int i;
+
+    t = PyTuple_New(nargs);
+    if (t == NULL) {
+        return NULL;
+    }
+    for (i = 0; i < nargs; i++) {
+        if (PyTuple_SetItem(t, i, args[i]) < 0) {
+            Py_DECREF(t);
+            return NULL;
+        }
+    }
+    res = PyObject_CallObject(func, t);
+    Py_DECREF(t);
+    return res;
+}
+#endif
+
+#if PY_MINOR_VERSION < 6
+#define _PyUnicode_EqualToASCIIString(a, b) (PyUnicode_CompareWithASCIIString((a), (b)) == 0)
+
+static PyObject *
+_PyBytes_DecodeEscape(const char *s,
+                      Py_ssize_t len,
+                      const char *errors,
+                      Py_ssize_t unicode,
+                      const char *recode_encoding,
+                      const char **first_invalid_escape)
+{
+    *first_invalid_escape = NULL;
+    return PyBytes_DecodeEscape(s, len, errors, unicode, recode_encoding);
+}
+
+PyObject *
+_PyUnicode_DecodeUnicodeEscape(const char *s,
+                               Py_ssize_t size,
+                               const char *errors,
+                               const char **first_invalid_escape)
+{
+    *first_invalid_escape = NULL;
+    return PyUnicode_DecodeUnicodeEscape(s, size, errors);
+}
+
+#endif
+
 static int validate_stmts(asdl_seq *);
 static int validate_exprs(asdl_seq *, expr_context_ty, int);
 static int validate_nonempty_seq(asdl_seq *, const char *, const char *);
