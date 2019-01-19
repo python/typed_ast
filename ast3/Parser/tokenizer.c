@@ -47,7 +47,7 @@
                || c == '_'\
                || (c >= 128))
 
-extern char *PyOS_Readline(FILE *, FILE *, const char *);
+PyAPI_FUNC(char *) PyOS_Readline(FILE *, FILE *, const char *);
 /* Return malloc'ed string including trailing \n;
    empty malloc'ed string for EOF;
    NULL if interrupted */
