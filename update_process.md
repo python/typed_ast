@@ -99,13 +99,21 @@ compatible with older Python versions and other platforms.)
    ([f74d9f3](https://github.com/python/typed_ast/commit/f74d9f3f231110639752c30c0ae5fbebe870ebc6))
    A bit more detail:
 
-   - Add the `TYPE_IGNORE` and `TYPE_COMMENT` symbols to `Include/token.h`, and updating `N_TOKENS`
+   - Add the `TYPE_IGNORE` and `TYPE_COMMENT` symbols to `Include/token.h`, and updating `N_TOKENS`;
+     also add theze to the list of strings in `Parser/tokenizer.c` (in the same order!)
+   - NOTE: As of Python 3.7, the `ASYNC` and `AWAIT` symbols also need to be added to both places
    - Update `Parser/Python.asdl` to add `type_comments` and `type_ignores` to various definitions
      and run `tools/update_ast3_asdl`; this updates `Include/Python-ast.h` and `Python/Python-ast.c`
-   - Reapply patches to `Parser/parsetok.c` and `Parser/tokenizer.c`
+   - Reapply other patches to `Parser/parsetok.c` and `Parser/tokenizer.c` (these implement
+     recognition of type comments)
    - Add `[TYPE_COMMENT]` to various places in `Grammar/Grammar`, and then run
      `tools/update_ast3_grammar`; this updates `Python/graminit.c` and `Include/graminit.h`
+   - NOTE: As of Python 3.7, this is problematic because the upstream developers like to add
+     dependencies on CPython internals to pgen; I ended up copying some files into CPython,
+     running pgen there (`make regen-grammar`), and copying the results back
    - Copy the definition of `Py_func_type_input` from `Python/graminit.h` to `Include/compile.h`
+   - NOTE: As of Python 3.7, compile.h depends on CPython internals; I ended up creating a small
+     file compile-ast3.h with just the four symbols we need (maybe we even only need the one)
    - Attempt compilation and fix errors, e.g. add an extra argument to `Module(stmts, arena)`
      to pass `type_ignores`
 
@@ -113,12 +121,12 @@ compatible with older Python versions and other platforms.)
    ([89aebce](https://github.com/python/typed_ast/commit/89aebcefb612c113446e3a877f78b93e4cf142b3))
 10. Add `feature_version` checks for any new syntax features in the Python
     version you're updating to.  Check these work.
-11. Make the changes necessary so `ast3` can compile on the previous Python
-    version.  This is new territory every time.  Spelunking in the rest of the
+11. Make the changes necessary so `ast3` can compile on previous Python
+    versions.  This is new territory every time.  Spelunking in the rest of the
     CPython source can often be helpful here.
     ([5ea3eb8](https://github.com/python/typed_ast/commit/5ea3eb8447fd5c72c6f390014b1f7ea7cd6119ea))
 12. Port compatilibity with older Python versions.  See git history for
-    details.  The changes in the previous `ast3` should likely suffice here.
+    details.
     ([8d2aeae](https://github.com/python/typed_ast/commit/8d2aeae8651c7e86ac51d7abefb91cb563c94555))
 13. Port compatility with Windows.  This largely involves replacing
     `PyAPI_FUNC` and `PyAPI_DATA` with `extern`.  See the git history for details.
