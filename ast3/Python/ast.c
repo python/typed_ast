@@ -698,12 +698,13 @@ new_identifier(const char *n, struct compiling *c)
        identifier; if so, normalize to NFKC. */
     if (!PyUnicode_IS_ASCII(id)) {
         PyObject *id2;
+        PyObject *form;
         _Py_IDENTIFIER(NFKC);
         if (!c->c_normalize && !init_normalization(c)) {
             Py_DECREF(id);
             return NULL;
         }
-        PyObject *form = _PyUnicode_FromId(&PyId_NFKC);
+        form = _PyUnicode_FromId(&PyId_NFKC);
         if (form == NULL) {
             Py_DECREF(id);
             return NULL;
@@ -3102,6 +3103,8 @@ ast_for_testlist(struct compiling *c, const node* n)
 static stmt_ty
 ast_for_expr_stmt(struct compiling *c, const node *n)
 {
+    int num;
+
     REQ(n, expr_stmt);
     /* expr_stmt: testlist_star_expr (annassign | augassign (yield_expr|testlist) |
                            ('=' (yield_expr|testlist_star_expr))* [TYPE_COMMENT])
@@ -3111,7 +3114,7 @@ ast_for_expr_stmt(struct compiling *c, const node *n)
                 | '<<=' | '>>=' | '**=' | '//='
        test: ... here starts the operator precedence dance
      */
-    int num = NCH(n);
+    num = NCH(n);
 
     if (num == 1 || (num == 2 && TYPE(CHILD(n, 1)) == TYPE_COMMENT)) {
         expr_ty e = ast_for_testlist(c, CHILD(n, 0));
@@ -4425,6 +4428,7 @@ decode_unicode_with_escapes(struct compiling *c, const node *n, const char *s,
     char *buf;
     char *p;
     const char *end;
+    const char *first_invalid_escape;
 
     /* check for integer overflow */
     if (len > SIZE_MAX / 6)
@@ -4474,7 +4478,6 @@ decode_unicode_with_escapes(struct compiling *c, const node *n, const char *s,
     len = p - buf;
     s = buf;
 
-    const char *first_invalid_escape;
     v = _PyUnicode_DecodeUnicodeEscape(s, len, NULL, &first_invalid_escape);
 
     if (v != NULL && first_invalid_escape != NULL) {
