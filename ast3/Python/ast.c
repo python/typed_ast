@@ -11,7 +11,11 @@
 #include "pythonrun.h"
 
 #include <assert.h>
-#include <stdbool.h>
+
+// VS 2010 doesn't have <stdbool.h>...
+typedef int bool;
+#define false 0
+#define true 1
 
 #ifndef _PyObject_FastCall
 static PyObject *
