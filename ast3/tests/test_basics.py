@@ -57,6 +57,113 @@ def test_withstmt():
         assert tree.body[0].type_comment == "int"
 
 
+longargs = """\
+def f(
+    a = 1,  # type: A
+):
+    pass
+
+def f(
+    a = 1  # type: A
+):
+    pass
+
+def f(
+    a,  # type: A
+    b,  # type: B
+):
+    pass
+
+def f(
+    a,  # type: A
+    b  # type: B
+):
+    pass
+
+def f(
+    *a,  # type: A
+):
+    pass
+
+def f(
+    *a  # type: A
+):
+    pass
+
+def f(
+    **a,  # type: A
+):
+    pass
+
+def f(
+    **a  # type: A
+):
+    pass
+
+def f(
+    *a,  # type: A
+    **b,  # type: B
+):
+    pass
+
+def f(
+    *a,  # type: A
+    **b  # type: B
+):
+    pass
+
+def f(
+    a,  # type: A
+    *b,  # type: B
+):
+    pass
+
+def f(
+    a,  # type: A
+    *b  # type: B
+):
+    pass
+
+def f(
+    a,  # type: A
+    **b,  # type: B
+):
+    pass
+
+def f(
+    a,  # type: A
+    **b  # type: B
+):
+    pass
+
+def f(
+    a,  # type: A
+    *b,  # type: B
+    **c,  # type: C
+):
+    pass
+
+def f(
+    a,  # type: A
+    *b,  # type: B
+    **c  # type: C
+):
+    pass
+
+"""
+def test_longargs():
+    for version in range(MIN_VER, NEXT_VER):
+        tree = _ast3._parse(longargs, "<longargs>", "exec", version)
+        for t in tree.body:
+            args = list(t.args.args)
+            if t.args.vararg:
+                args.append(t.args.vararg)
+            if t.args.kwarg:
+                args.append(t.args.kwarg)
+            for a in args:
+                assert a.type_comment == a.arg.upper()
+
+
 ignores = """\
 def foo():
     pass  # type: ignore
