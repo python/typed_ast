@@ -58,95 +58,95 @@ def test_withstmt():
 
 
 longargs = """\
-def f(
+def fa(
     a = 1,  # type: A
 ):
     pass
 
-def f(
+def fa(
     a = 1  # type: A
 ):
     pass
 
-def f(
+def fab(
     a,  # type: A
     b,  # type: B
 ):
     pass
 
-def f(
+def fab(
     a,  # type: A
     b  # type: B
 ):
     pass
 
-def f(
-    *a,  # type: A
+def fv(
+    *v,  # type: V
 ):
     pass
 
-def f(
-    *a  # type: A
+def fv(
+    *v  # type: V
 ):
     pass
 
-def f(
-    **a,  # type: A
+def fk(
+    **k,  # type: K
 ):
     pass
 
-def f(
-    **a  # type: A
+def fk(
+    **k  # type: K
 ):
     pass
 
-def f(
-    *a,  # type: A
-    **b,  # type: B
+def fvk(
+    *v,  # type: V
+    **k,  # type: K
 ):
     pass
 
-def f(
-    *a,  # type: A
-    **b  # type: B
+def fvk(
+    *v,  # type: V
+    **k  # type: K
 ):
     pass
 
-def f(
+def fav(
     a,  # type: A
-    *b,  # type: B
+    *v,  # type: V
 ):
     pass
 
-def f(
+def fav(
     a,  # type: A
-    *b  # type: B
+    *v  # type: V
 ):
     pass
 
-def f(
+def fak(
     a,  # type: A
-    **b,  # type: B
+    **k,  # type: K
 ):
     pass
 
-def f(
+def fak(
     a,  # type: A
-    **b  # type: B
+    **k  # type: K
 ):
     pass
 
-def f(
+def favk(
     a,  # type: A
-    *b,  # type: B
-    **c,  # type: C
+    *v,  # type: V
+    **k,  # type: K
 ):
     pass
 
-def f(
+def favk(
     a,  # type: A
-    *b,  # type: B
-    **c  # type: C
+    *v,  # type: V
+    **k  # type: K
 ):
     pass
 
@@ -155,13 +155,22 @@ def test_longargs():
     for version in range(MIN_VER, NEXT_VER):
         tree = _ast3._parse(longargs, "<longargs>", "exec", version)
         for t in tree.body:
-            args = list(t.args.args)
-            if t.args.vararg:
-                args.append(t.args.vararg)
-            if t.args.kwarg:
-                args.append(t.args.kwarg)
-            for a in args:
-                assert a.type_comment == a.arg.upper()
+            # The expected args are encoded in the function name
+            todo = set(t.name[1:])
+            assert len(t.args.args) == len(todo) - bool(t.args.vararg) - bool(t.args.kwarg)
+            assert t.name.startswith('f')
+            for c in t.name[1:]:
+                todo.remove(c)
+                if c == 'v':
+                    arg = t.args.vararg
+                elif c == 'k':
+                    arg = t.args.kwarg
+                else:
+                    assert 0 <= ord(c) - ord('a') < len(t.args.args)
+                    arg = t.args.args[ord(c) - ord('a')]
+                assert arg.arg == c  # That's the argument name
+                assert arg.type_comment == arg.arg.upper()
+            assert not todo
 
 
 ignores = """\
