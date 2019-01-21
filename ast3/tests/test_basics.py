@@ -25,6 +25,51 @@ def test_basics():
         assert tree.body[1].type_comment == "() -> None"
 
 
+vardecl = """\
+a = 0  # type: int
+a  # type: int
+"""
+def test_vardecl():
+    for version in range(MIN_VER, NEXT_VER):
+        tree = _ast3._parse(vardecl, "<vardecl>", "exec", version)
+        assert tree.body[0].type_comment == "int"
+        # Curious fact: an expression can have a type comment
+        # but it is lost in the AST.
+
+
+forstmt = """\
+for a in []:  # type: int
+    pass
+"""
+def test_forstmt():
+    for version in range(MIN_VER, NEXT_VER):
+        tree = _ast3._parse(forstmt, "<forstmt>", "exec", version)
+        assert tree.body[0].type_comment == "int"
+
+
+withstmt = """\
+with context():  # type: int
+    pass
+"""
+def test_withstmt():
+    for version in range(MIN_VER, NEXT_VER):
+        tree = _ast3._parse(withstmt, "<withstmt>", "exec", version)
+        assert tree.body[0].type_comment == "int"
+
+
+ignores = """\
+def foo():
+    pass  # type: ignore
+
+def bar():
+    x = 1  # type: ignore
+"""
+def test_ignores():
+    for version in range(MIN_VER, NEXT_VER):
+        tree = _ast3._parse(ignores, "<ignores>", "exec", version)
+        assert [ti.lineno for ti in tree.type_ignores] == [2, 5]
+
+
 # TODO: type comment on new line (currently fails)
 asyncfunc = """\
 async def foo():  # type: () -> int
