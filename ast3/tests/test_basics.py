@@ -72,3 +72,18 @@ def test_matmul():
             tree = _ast3._parse(matmul, "<matmul>", "exec", version)
     for version in range(5, NEXT_VER):
         tree = _ast3._parse(matmul, "<matmul>", "exec", version)
+
+
+strkind = """\
+plain = 'abc'
+raw = r'abc'
+"""
+def test_strkind():
+    # Test that Str() objects have a kind argument/attribute.
+    node = _ast3.Str("foo", "r")
+    assert node.s == "foo"
+    assert node.kind == "r"
+    for version in range(MIN_VER, NEXT_VER):
+        tree = _ast3._parse(strkind, "<strkind>", "exec", version)
+        assert tree.body[0].value.kind == ""
+        assert tree.body[1].value.kind == "r"
