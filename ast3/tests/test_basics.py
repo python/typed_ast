@@ -57,6 +57,9 @@ def test_withstmt():
         assert tree.body[0].type_comment == "int"
 
 
+# A test function named 'fabvk' would have two positional args, a and b,
+# plus a var-arg *v, plus a kw-arg **k.  It is verified in test_longargs()
+# that it has exactly these arguments, no more, no fewer.
 longargs = """\
 def fa(
     a = 1,  # type: A
