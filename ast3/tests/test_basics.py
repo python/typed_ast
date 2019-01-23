@@ -244,7 +244,7 @@ strkind = """\
 plain = 'abc'
 raw = r'abc'
 plain_bytes = b'abc'
-plain_bytes = br'abc'
+raw_bytes = br'abc'
 """
 def test_strkind():
     # Test that Str() objects have a kind argument/attribute.
