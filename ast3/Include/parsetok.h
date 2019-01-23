@@ -34,7 +34,7 @@ typedef struct {
 
 #define PyPARSE_IGNORE_COOKIE 0x0010
 #define PyPARSE_BARRY_AS_BDFL 0x0020
-#define PyPARSE_ALWAYS_ASYNC  0x8000
+#define PyPARSE_ASYNC_ALWAYS  0x8000
 
 extern node * Ta3Parser_ParseString(const char *, grammar *, int,
                                               perrdetail *);
