@@ -77,10 +77,10 @@ module Python
          | Compare(expr left, cmpop* ops, expr* comparators)
          | Call(expr func, expr* args, keyword* keywords)
          | Num(object n) -- a number as a PyObject.
-         | Str(string s, string kind) -- need to specify raw, unicode, etc?
+         | Str(string s, string kind)
          | FormattedValue(expr value, int? conversion, expr? format_spec)
          | JoinedStr(expr* values)
-         | Bytes(bytes s)
+         | Bytes(bytes s, string kind)
          | NameConstant(singleton value)
          | Ellipsis
          | Constant(constant value)
@@ -132,4 +132,3 @@ module Python
 
     type_ignore = TypeIgnore(int lineno)
 }
-

@@ -217,7 +217,7 @@ class _AST2To3(ast27.NodeTransformer):
 
     def visit_Str(self, s):
         if isinstance(s.s, bytes):
-            return ast3.Bytes(s.s)
+            return ast3.Bytes(s.s, s.kind)
         else:
             return ast3.Str(s.s, s.kind)
 

@@ -3,6 +3,8 @@ import os
 import pytest
 
 from typed_ast import _ast3
+from typed_ast import _ast27
+import typed_ast.conversions
 
 # Lowest and highest supported Python 3 minor version (inclusive)
 MIN_VER = 4
@@ -241,6 +243,8 @@ def test_matmul():
 strkind = """\
 plain = 'abc'
 raw = r'abc'
+plain_bytes = b'abc'
+raw_bytes = br'abc'
 """
 def test_strkind():
     # Test that Str() objects have a kind argument/attribute.
@@ -251,3 +255,18 @@ def test_strkind():
         tree = _ast3._parse(strkind, "<strkind>", "exec", version)
         assert tree.body[0].value.kind == ""
         assert tree.body[1].value.kind == "r"
+        assert tree.body[2].value.kind == "b"
+        assert tree.body[3].value.kind == "br"
+
+
+basic_py2 = """\
+a = 'hello'
+b = u'hello'
+c = b'hello'
+"""
+def test_convert_strs():
+    ast = _ast27.parse(basic_py2, "<basic_py2>", "exec")
+    tree = typed_ast.conversions.py2to3(ast)
+    assert tree.body[0].value.kind == ""
+    assert tree.body[1].value.kind == "u"
+    assert tree.body[2].value.kind == "b"
