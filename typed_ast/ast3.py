@@ -37,8 +37,8 @@
     :copyright: Copyright 2008 by Armin Ronacher.
     :license: Python License.
 """
-import _ast3
-from _ast3 import *
+from typed_ast import _ast3
+from typed_ast._ast3 import *
 
 LATEST_MINOR_VERSION = 7
 

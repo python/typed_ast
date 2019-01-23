@@ -38,8 +38,8 @@
     :copyright: Copyright 2008 by Armin Ronacher.
     :license: Python License.
 """
-import _ast27
-from _ast27 import *
+from typed_ast import _ast27
+from typed_ast._ast27 import *
 
 
 def parse(source, filename='<unknown>', mode='exec'):
