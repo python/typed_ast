@@ -117,4 +117,5 @@ setup (name = 'typed-ast',
            'Topic :: Software Development',
        ],
        packages = ['typed_ast'],
+       ext_package='typed_ast',
        ext_modules = [_ast27, _ast3])

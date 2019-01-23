@@ -2,8 +2,8 @@ import os
 
 import pytest
 
-import _ast27
-import _ast3
+from typed_ast import _ast3
+from typed_ast import _ast27
 import typed_ast.conversions
 
 # Lowest and highest supported Python 3 minor version (inclusive)
