@@ -1,6 +1,8 @@
 *.o
 *.pyc
-build/
+/build/
 __pycache__/
 .DS_Store
-tools/pgen3
+/tools/pgen3
+/.pytest_cache/
+/typed_ast.egg-info/

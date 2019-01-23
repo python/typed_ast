@@ -106,7 +106,8 @@ class _AST2To3(ast27.NodeTransformer):
             keywords.append(ast3.keyword("file", self.visit(n.dest)))
 
         if not n.nl:
-            keywords.append(ast3.keyword("end", ast3.Str(" ", lineno=n.lineno, col_offset=-1)))
+            keywords.append(ast3.keyword("end",
+                                         ast3.Str(s=" ", kind='', lineno=n.lineno, col_offset=-1)))
 
         return ast3.Expr(ast3.Call(ast3.Name("print", ast3.Load(), lineno=n.lineno, col_offset=-1),
                                    self.visit(n.values),
@@ -216,9 +217,9 @@ class _AST2To3(ast27.NodeTransformer):
 
     def visit_Str(self, s):
         if isinstance(s.s, bytes):
-            return ast3.Bytes(s.s)
+            return ast3.Bytes(s.s, s.kind)
         else:
-            return ast3.Str(s.s)
+            return ast3.Str(s.s, s.kind)
 
     def visit_Num(self, n):
         new = self.generic_visit(n)

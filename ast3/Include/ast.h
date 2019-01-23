@@ -18,6 +18,13 @@ extern mod_ty Ta3AST_FromNodeObject(
     int feature_version,
     PyArena *arena);
 
+#ifndef Py_LIMITED_API
+
+/* _PyAST_ExprAsUnicode is defined in ast_unparse.c */
+extern PyObject * _PyAST_ExprAsUnicode(expr_ty);
+
+#endif /* !Py_LIMITED_API */
+
 #ifdef __cplusplus
 }
 #endif

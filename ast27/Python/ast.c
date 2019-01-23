@@ -1494,7 +1494,6 @@ ast_for_atom(struct compiling *c, const node *n)
     case STRING: {
         PyObject *kind, *str = parsestrplus(c, n);
         const char *raw, *s = STR(CHILD(n, 0));
-        int quote = Py_CHARMASK(*s);
         /* currently Python allows up to 2 string modifiers */
         char *ch, s_kind[3] = {0, 0, 0};
         ch = s_kind;
@@ -1513,7 +1512,7 @@ ast_for_atom(struct compiling *c, const node *n)
                 PyErr_Fetch(&type, &value, &tback);
                 errstr = PyObject_Str(value);
                 if (errstr) {
-                    char *s = "";
+                    const char *s = "";
                     char buf[128];
                     s = _PyUnicode_AsString(errstr);
                     PyOS_snprintf(buf, sizeof(buf), "(unicode error) %s", s);
@@ -2184,7 +2183,7 @@ ast_for_call(struct compiling *c, const node *n, expr_ty func)
                 keyword_ty kw;
                 identifier key;
                 int k;
-                char *tmp;
+                const char *tmp;
 
                 /* CHILD(ch, 0) is test, but must be an identifier? */
                 e = ast_for_expr(c, CHILD(ch, 0));

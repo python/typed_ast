@@ -1,24 +1,50 @@
-# Build Linux wheels with manylinux.
+# Run unit tests and build Linux wheels with manylinux.
 # See: https://github.com/pypa/manylinux
 
-matrix:
+dist: xenial
+
+language: python
+
+install:
+  - pip3 install pytest
+  - pip3 install .
+
+python:
+  - 3.4
+  - 3.5
+  - 3.6
+  - 3.7
+
+script:
+  - pytest
+
+jobs:
   include:
-    - sudo: required
+    - name: "manylinux x86-64"
+      sudo: required
       services:
         - docker
       env: DOCKER_IMAGE=quay.io/pypa/manylinux1_x86_64
-    - sudo: required
+           DEPLOY=1
+      install:
+        - docker pull $DOCKER_IMAGE
+      script:
+        - docker run --rm -v `pwd`:/io $DOCKER_IMAGE $PRE_CMD /io/.travis/build-linux-wheels.sh
+        - ls wheelhouse/
+    - name: "manylinux i686"
+      sudo: required
       services:
         - docker
       env: DOCKER_IMAGE=quay.io/pypa/manylinux1_i686
            PRE_CMD=linux32
+           DEPLOY=1
+      install:
+        - docker pull $DOCKER_IMAGE
+      script:
+        - docker run --rm -v `pwd`:/io $DOCKER_IMAGE $PRE_CMD /io/.travis/build-linux-wheels.sh
+        - ls wheelhouse/
 
-install:
-  - docker pull $DOCKER_IMAGE
 
-script:
-  - docker run --rm -v `pwd`:/io $DOCKER_IMAGE $PRE_CMD /io/.travis/build-linux-wheels.sh
-  - ls wheelhouse/
 
 # Upload build artifacts to Google Cloud Storage for tagged releases.
 # For GCS deployment documentation, see: https://docs.travis-ci.com/user/deployment/gcs/
@@ -34,5 +60,5 @@ deploy:
   acl: public-read
   on:
     repo: python/typed_ast
-    branch: master
     tags: true
+    condition: $DEPLOY = 1  # Don't deploy on pytest matrix, only on docker jobs
