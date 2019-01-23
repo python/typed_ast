@@ -5159,19 +5159,24 @@ FstringParser_Dealloc(FstringParser *state)
     ExprList_Dealloc(&state->expr_list);
 }
 
-/* Make a Str node, but decref the PyUnicode object being added. */
-static expr_ty
-make_str_node_and_del(PyObject **str, struct compiling *c, const node* n)
-{
-    PyObject *kind, *s = *str;
-    const char *raw = STR(CHILD(n, 0));
+static PyObject *
+make_str_kind(const char *raw) {
     /* currently Python allows up to 2 string modifiers */
     char *ch, s_kind[3] = {0, 0, 0};
     ch = s_kind;
     while (*raw && *raw != '\'' && *raw != '"') {
         *ch++ = *raw++;
     }
-    kind = PyUnicode_FromString(s_kind);
+    return PyUnicode_FromString(s_kind);
+}
+
+
+/* Make a Str node, but decref the PyUnicode object being added. */
+static expr_ty
+make_str_node_and_del(PyObject **str, struct compiling *c, const node* n)
+{
+    PyObject *s = *str;
+    PyObject *kind = make_str_kind(STR(CHILD(n, 0)));
     if (!kind) {
         return NULL;
     }
@@ -5548,10 +5553,14 @@ parsestrplus(struct compiling *c, const node *n)
         }
     }
     if (bytesmode) {
+        PyObject *kind = make_str_kind(STR(CHILD(n, 0)));
+
         /* Just return the bytes object and we're done. */
-        if (PyArena_AddPyObject(c->c_arena, bytes_str) < 0)
+        if (PyArena_AddPyObject(c->c_arena, bytes_str) < 0) {
+            Py_DECREF(kind);
             goto error;
-        return Bytes(bytes_str, LINENO(n), n->n_col_offset, c->c_arena);
+        }
+        return Bytes(bytes_str, kind, LINENO(n), n->n_col_offset, c->c_arena);
     }
 
     /* We're not a bytes string, bytes_str should never have been set. */

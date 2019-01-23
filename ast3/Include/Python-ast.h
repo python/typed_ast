@@ -333,6 +333,7 @@ struct _expr {
 
         struct {
             bytes s;
+            string kind;
         } Bytes;
 
         struct {
@@ -603,15 +604,17 @@ expr_ty _Ta3_Call(expr_ty func, asdl_seq * args, asdl_seq * keywords, int
 #define Num(a0, a1, a2, a3) _Ta3_Num(a0, a1, a2, a3)
 expr_ty _Ta3_Num(object n, int lineno, int col_offset, PyArena *arena);
 #define Str(a0, a1, a2, a3, a4) _Ta3_Str(a0, a1, a2, a3, a4)
-expr_ty _Ta3_Str(string s, string kind, int lineno, int col_offset, PyArena *arena);
+expr_ty _Ta3_Str(string s, string kind, int lineno, int col_offset, PyArena
+                 *arena);
 #define FormattedValue(a0, a1, a2, a3, a4, a5) _Ta3_FormattedValue(a0, a1, a2, a3, a4, a5)
 expr_ty _Ta3_FormattedValue(expr_ty value, int conversion, expr_ty format_spec,
                             int lineno, int col_offset, PyArena *arena);
 #define JoinedStr(a0, a1, a2, a3) _Ta3_JoinedStr(a0, a1, a2, a3)
 expr_ty _Ta3_JoinedStr(asdl_seq * values, int lineno, int col_offset, PyArena
                        *arena);
-#define Bytes(a0, a1, a2, a3) _Ta3_Bytes(a0, a1, a2, a3)
-expr_ty _Ta3_Bytes(bytes s, int lineno, int col_offset, PyArena *arena);
+#define Bytes(a0, a1, a2, a3, a4) _Ta3_Bytes(a0, a1, a2, a3, a4)
+expr_ty _Ta3_Bytes(bytes s, string kind, int lineno, int col_offset, PyArena
+                   *arena);
 #define NameConstant(a0, a1, a2, a3) _Ta3_NameConstant(a0, a1, a2, a3)
 expr_ty _Ta3_NameConstant(singleton value, int lineno, int col_offset, PyArena
                           *arena);
