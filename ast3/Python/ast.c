@@ -73,10 +73,11 @@ static int validate_nonempty_seq(asdl_seq *, const char *, const char *);
 static int validate_stmt(stmt_ty);
 static int validate_expr(expr_ty, expr_context_ty);
 
-mod_ty
-string_object_to_c_ast(const char *s, PyObject *filename, int start,
-                       PyCompilerFlags *flags, int feature_version,
-                       PyArena *arena);
+void
+_Ta3Parser_UpdateFlags(PyCompilerFlags *flags, int *iflags, int feature_version);
+node *
+Ta3Parser_SimpleParseStringFlagsFilename(const char *str, const char *filename,
+                                         int start, int flags);
 
 static int
 validate_comprehension(asdl_seq *gens)
@@ -4577,7 +4578,7 @@ fstring_compile_expr(const char *expr_start, const char *expr_end,
     char *str;
     Py_ssize_t len;
     const char *s;
-    PyObject *fstring_name;
+    int iflags = 0;
 
     assert(expr_end >= expr_start);
     assert(*(expr_start-1) == '{');
@@ -4614,8 +4615,9 @@ fstring_compile_expr(const char *expr_start, const char *expr_end,
     str[len+2] = 0;
 
     cf.cf_flags = PyCF_ONLY_AST;
-    mod_n = PyParser_SimpleParseStringFlagsFilename(str, "<fstring>",
-                                                    Py_eval_input, 0);
+    _Ta3Parser_UpdateFlags(&cf, &iflags, c->c_feature_version);
+    mod_n = Ta3Parser_SimpleParseStringFlagsFilename(str, "<fstring>",
+                                                     Py_eval_input, iflags);
     if (!mod_n) {
         PyMem_RawFree(str);
         return NULL;
@@ -4624,11 +4626,7 @@ fstring_compile_expr(const char *expr_start, const char *expr_end,
     str[0] = '{';
     str[len+1] = '}';
     fstring_fix_node_location(n, mod_n, str);
-    fstring_name = PyUnicode_FromString("<fstring>");
-    mod = string_object_to_c_ast(str, fstring_name,
-                                 Py_eval_input, &cf,
-                                 c->c_feature_version, c->c_arena);
-    Py_DECREF(fstring_name);
+    mod = Ta3AST_FromNode(mod_n, &cf, "<fstring>", c->c_feature_version, c->c_arena);
     PyMem_RawFree(str);
     Ta3Node_Free(mod_n);
     if (!mod)

@@ -211,9 +211,33 @@ err_free(perrdetail *err)
     Py_CLEAR(err->filename);
 }
 
+// from Python/pythonrun.c
+node *
+Ta3Parser_SimpleParseStringFlagsFilename(const char *str, const char *filename,
+                                         int start, int flags)
+{
+    perrdetail err;
+    node *n = Ta3Parser_ParseStringFlagsFilename(str, filename,
+                            &_Ta3Parser_Grammar, start, &err, flags);
+    if (n == NULL)
+        err_input(&err);
+    err_free(&err);
+    return n;
+}
+
+/* update compiler and parser flags based on feature version */
+void
+_Ta3Parser_UpdateFlags(PyCompilerFlags *flags, int *iflags, int feature_version)
+{
+    *iflags = PARSER_FLAGS(flags);
+    if (feature_version >= 7)
+        *iflags |= PyPARSE_ASYNC_ALWAYS;
+    flags->cf_flags |= *iflags & PyCF_MASK;
+}
+
 // copy of PyParser_ASTFromStringObject in Python/pythonrun.c
 /* Preferred access to parser is through AST. */
-mod_ty
+static mod_ty
 string_object_to_c_ast(const char *s, PyObject *filename, int start,
                              PyCompilerFlags *flags, int feature_version,
                              PyArena *arena)
@@ -221,18 +245,17 @@ string_object_to_c_ast(const char *s, PyObject *filename, int start,
     mod_ty mod;
     PyCompilerFlags localflags;
     perrdetail err;
-    int iflags = PARSER_FLAGS(flags);
     node *n;
+    int iflags;
 
-    if (feature_version >= 7)
-        iflags |= PyPARSE_ASYNC_ALWAYS;
-    n = Ta3Parser_ParseStringObject(s, filename,
-                                    &_Ta3Parser_Grammar, start, &err,
-                                    &iflags);
     if (flags == NULL) {
         localflags.cf_flags = 0;
         flags = &localflags;
     }
+    _Ta3Parser_UpdateFlags(flags, &iflags, feature_version);
+    n = Ta3Parser_ParseStringObject(s, filename,
+                                    &_Ta3Parser_Grammar, start, &err,
+                                    &iflags);
     if (n) {
         flags->cf_flags |= iflags & PyCF_MASK;
         mod = Ta3AST_FromNodeObject(n, flags, filename, feature_version, arena);

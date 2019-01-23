@@ -270,3 +270,22 @@ def test_convert_strs():
     assert tree.body[0].value.kind == ""
     assert tree.body[1].value.kind == "u"
     assert tree.body[2].value.kind == "b"
+
+simple_fstring = """\
+f'{5}'
+"""
+def test_simple_fstring():
+    for version in range(6, NEXT_VER):
+        tree = _ast3._parse(simple_fstring, "<fstring>", "exec", version)
+        assert isinstance(tree.body[0].value, _ast3.JoinedStr)
+        assert isinstance(tree.body[0].value.values[0].value, _ast3.Num)
+
+# Test the interaction between versions and f strings
+await_fstring = """\
+f'1 + {f"{await}"}'
+"""
+def test_await_fstring():
+    # Should work on 6 but fail on 7
+    _ast3._parse(await_fstring, "<bad-f-string>", "exec", 6)
+    with pytest.raises(SyntaxError):
+        _ast3._parse(await_fstring, "<bad-f-string>", "exec", 7)
