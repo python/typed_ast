@@ -74,7 +74,7 @@ static int validate_stmt(stmt_ty);
 static int validate_expr(expr_ty, expr_context_ty);
 
 void
-update_typed_ast_flags(PyCompilerFlags *flags, int *iflags, int feature_version);
+_Ta3Parser_UpdateFlags(PyCompilerFlags *flags, int *iflags, int feature_version);
 node *
 Ta3Parser_SimpleParseStringFlagsFilename(const char *str, const char *filename,
                                          int start, int flags);
@@ -4615,7 +4615,7 @@ fstring_compile_expr(const char *expr_start, const char *expr_end,
     str[len+2] = 0;
 
     cf.cf_flags = PyCF_ONLY_AST;
-    update_typed_ast_flags(&cf, &iflags, c->c_feature_version);
+    _Ta3Parser_UpdateFlags(&cf, &iflags, c->c_feature_version);
     mod_n = Ta3Parser_SimpleParseStringFlagsFilename(str, "<fstring>",
                                                      Py_eval_input, iflags);
     if (!mod_n) {

@@ -227,7 +227,7 @@ Ta3Parser_SimpleParseStringFlagsFilename(const char *str, const char *filename,
 
 /* update compiler and parser flags based on feature version */
 void
-update_typed_ast_flags(PyCompilerFlags *flags, int *iflags, int feature_version)
+_Ta3Parser_UpdateFlags(PyCompilerFlags *flags, int *iflags, int feature_version)
 {
     *iflags = PARSER_FLAGS(flags);
     if (feature_version >= 7)
@@ -237,7 +237,7 @@ update_typed_ast_flags(PyCompilerFlags *flags, int *iflags, int feature_version)
 
 // copy of PyParser_ASTFromStringObject in Python/pythonrun.c
 /* Preferred access to parser is through AST. */
-mod_ty
+static mod_ty
 string_object_to_c_ast(const char *s, PyObject *filename, int start,
                              PyCompilerFlags *flags, int feature_version,
                              PyArena *arena)
@@ -252,7 +252,7 @@ string_object_to_c_ast(const char *s, PyObject *filename, int start,
         localflags.cf_flags = 0;
         flags = &localflags;
     }
-    update_typed_ast_flags(flags, &iflags, feature_version);
+    _Ta3Parser_UpdateFlags(flags, &iflags, feature_version);
     n = Ta3Parser_ParseStringObject(s, filename,
                                     &_Ta3Parser_Grammar, start, &err,
                                     &iflags);
