@@ -21,19 +21,20 @@ typedef struct {
 } perrdetail;
 
 #if 0
-#define PyPARSE_YIELD_IS_KEYWORD	0x0001
+#define PyPARSE_YIELD_IS_KEYWORD        0x0001
 #endif
 
-#define PyPARSE_DONT_IMPLY_DEDENT	0x0002
+#define PyPARSE_DONT_IMPLY_DEDENT       0x0002
 
 #if 0
-#define PyPARSE_WITH_IS_KEYWORD		0x0003
+#define PyPARSE_WITH_IS_KEYWORD         0x0003
 #define PyPARSE_PRINT_IS_FUNCTION       0x0004
 #define PyPARSE_UNICODE_LITERALS        0x0008
 #endif
 
 #define PyPARSE_IGNORE_COOKIE 0x0010
 #define PyPARSE_BARRY_AS_BDFL 0x0020
+#define PyPARSE_ASYNC_ALWAYS  0x8000
 
 extern node * Ta3Parser_ParseString(const char *, grammar *, int,
                                               perrdetail *);
@@ -98,8 +99,8 @@ extern node * Ta3Parser_ParseStringObject(
 
 /* Note that the following functions are defined in pythonrun.c,
    not in parsetok.c */
-PyAPI_FUNC(void) PyParser_SetError(perrdetail *);
-PyAPI_FUNC(void) PyParser_ClearError(perrdetail *);
+extern void PyParser_SetError(perrdetail *);
+extern void PyParser_ClearError(perrdetail *);
 
 #ifdef __cplusplus
 }

@@ -67,7 +67,7 @@ _ast3 = Extension(
         'ast3/Include/asdl.h',
         'ast3/Include/ast.h',
         'ast3/Include/bitset.h',
-        'ast3/Include/compile.h',
+        'ast3/Include/compile-ast3.h',
         'ast3/Include/errcode.h',
         'ast3/Include/graminit.h',
         'ast3/Include/grammar.h',
