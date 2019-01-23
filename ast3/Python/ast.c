@@ -73,10 +73,11 @@ static int validate_nonempty_seq(asdl_seq *, const char *, const char *);
 static int validate_stmt(stmt_ty);
 static int validate_expr(expr_ty, expr_context_ty);
 
-mod_ty
-string_object_to_c_ast(const char *s, PyObject *filename, int start,
-                       PyCompilerFlags *flags, int feature_version,
-                       PyArena *arena);
+void
+update_typed_ast_flags(PyCompilerFlags *flags, int *iflags, int feature_version);
+node *
+Ta3Parser_SimpleParseStringFlagsFilename(const char *str, const char *filename,
+                                         int start, int flags);
 
 static int
 validate_comprehension(asdl_seq *gens)
@@ -4577,6 +4578,7 @@ fstring_compile_expr(const char *expr_start, const char *expr_end,
     char *str;
     Py_ssize_t len;
     const char *s;
+    int iflags = 0;
 
     assert(expr_end >= expr_start);
     assert(*(expr_start-1) == '{');
@@ -4613,8 +4615,9 @@ fstring_compile_expr(const char *expr_start, const char *expr_end,
     str[len+2] = 0;
 
     cf.cf_flags = PyCF_ONLY_AST;
-    mod_n = PyParser_SimpleParseStringFlagsFilename(str, "<fstring>",
-                                                    Py_eval_input, 0);
+    update_typed_ast_flags(&cf, &iflags, c->c_feature_version);
+    mod_n = Ta3Parser_SimpleParseStringFlagsFilename(str, "<fstring>",
+                                                     Py_eval_input, iflags);
     if (!mod_n) {
         PyMem_RawFree(str);
         return NULL;
