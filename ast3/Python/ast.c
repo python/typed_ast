@@ -1392,7 +1392,7 @@ handle_keywordonly_args(struct compiling *c, const node *n, int start,
     PyObject *argname;
     node *ch;
     expr_ty expression, annotation;
-    arg_ty arg;
+    arg_ty arg = NULL;
     int i = start;
     int j = 0; /* index for kwdefaults and kwonlyargs */
 
@@ -1485,7 +1485,7 @@ ast_for_arguments(struct compiling *c, const node *n)
     int nposdefaults = 0, found_default = 0;
     asdl_seq *posargs, *posdefaults, *kwonlyargs, *kwdefaults;
     arg_ty vararg = NULL, kwarg = NULL;
-    arg_ty arg;
+    arg_ty arg = NULL;
     node *ch;
 
     if (TYPE(n) == parameters) {
@@ -1606,9 +1606,9 @@ ast_for_arguments(struct compiling *c, const node *n)
                     if (!vararg)
                         return NULL;
 
-                i += 2; /* the star and the name */
-                if (TYPE(CHILD(n, i)) == COMMA)
-                    i += 1; /* the comma, if present */
+                    i += 2; /* the star and the name */
+                    if (TYPE(CHILD(n, i)) == COMMA)
+                        i += 1; /* the comma, if present */
 
                     if (TYPE(CHILD(n, i)) == TYPE_COMMENT) {
                         vararg->type_comment = NEW_TYPE_COMMENT(CHILD(n, i));
