@@ -44,6 +44,12 @@ comments to the lexer, grammar and "asdl" machinery; then we add
 support for `feature_version`; finally we work on making the code
 compatible with older Python versions and other platforms.)
 
+Note that steps 1-4 can be automated using tools/script and various
+other files in tools/.  You need to install GNU binutils in order
+to be able to use gobjdump in tools/find_exported_symbols
+(e.g. `brew install binutils`).  The script assumes you're on a Mac
+and your CPython source tree is at `~/src/cpython37`.
+
 1. Copy over the parser files from CPython.  The set of files you want is
    likely the set currently present in `ast3`.
    ([a377f1e](https://github.com/python/typed_ast/commit/a377f1e3deb332bfbec3f3bb0d4c42768626d8d4))
@@ -88,7 +94,7 @@ compatible with older Python versions and other platforms.)
    to compile and parse things without type information.
    ([5e1885c](https://github.com/python/typed_ast/commit/5e1885cf54e1434a9422f3f797ecb1ed6fb42fb6))
 8. Port over the changes related to parsing type comments.  Use git history to
-   guide you here.  Diffing the previous `ast3` against it's external symbol
+   guide you here.  Diffing the previous `ast3` against its external symbol
    update commit  will show you which changes you need to make, and diffing the
    previous `ast3` against the current work in progress can be helpful for
    quickly finding where to put them.  You'll need to make `Python.asdl`
@@ -109,7 +115,7 @@ compatible with older Python versions and other platforms.)
    - Add `[TYPE_COMMENT]` to various places in `Grammar/Grammar`, and then run
      `tools/update_ast3_grammar`; this updates `Python/graminit.c` and `Include/graminit.h`
    - NOTE: As of Python 3.7, this is problematic because the upstream developers like to add
-     dependencies on CPython internals to pgen; I ended up copying some files into CPython,
+     dependencies on CPython internals to pgen.  I ended up copying some files into CPython,
      running pgen there (`make regen-grammar`), and copying the results back
    - Copy the definition of `Py_func_type_input` from `Python/graminit.h` to `Include/compile.h`
    - NOTE: As of Python 3.7, compile.h depends on CPython internals; I ended up creating a small
