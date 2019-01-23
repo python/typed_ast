@@ -1476,8 +1476,18 @@ tok_get(struct tok_state *tok, char **p_start, char **p_end)
         }
     }
 
+    /* Peek ahead at the next character */
+    c = tok_nextc(tok);
+    tok_backup(tok, c);
+    /* Check if we are closing an async function */
     if (tok->async_def
         && !blankline
+        /* Due to some implementation artifacts of type comments,
+         * a TYPE_COMMENT at the start of a function won't set an
+         * indentation level and it will produce a NEWLINE after it.
+         * To avoid spuriously ending an async function due to this,
+         * wait until we have some non-newline char in front of us. */
+        && c != '\n'
         && tok->level == 0
         /* There was a NEWLINE after ASYNC DEF,
            so we're past the signature. */

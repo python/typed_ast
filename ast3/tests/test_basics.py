@@ -191,9 +191,9 @@ def test_ignores():
         assert [ti.lineno for ti in tree.type_ignores] == [2, 5]
 
 
-# TODO: type comment on new line (currently fails)
 asyncfunc = """\
-async def foo():  # type: () -> int
+async def foo():
+    # type: () -> int
     return await bar()
 """
 def test_asyncfunc():
