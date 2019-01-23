@@ -4577,7 +4577,6 @@ fstring_compile_expr(const char *expr_start, const char *expr_end,
     char *str;
     Py_ssize_t len;
     const char *s;
-    PyObject *fstring_name;
 
     assert(expr_end >= expr_start);
     assert(*(expr_start-1) == '{');
@@ -4624,11 +4623,7 @@ fstring_compile_expr(const char *expr_start, const char *expr_end,
     str[0] = '{';
     str[len+1] = '}';
     fstring_fix_node_location(n, mod_n, str);
-    fstring_name = PyUnicode_FromString("<fstring>");
-    mod = string_object_to_c_ast(str, fstring_name,
-                                 Py_eval_input, &cf,
-                                 c->c_feature_version, c->c_arena);
-    Py_DECREF(fstring_name);
+    mod = Ta3AST_FromNode(mod_n, &cf, "<fstring>", c->c_feature_version, c->c_arena);
     PyMem_RawFree(str);
     Ta3Node_Free(mod_n);
     if (!mod)
