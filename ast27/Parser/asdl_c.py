@@ -668,7 +668,7 @@ static PyMethodDef ast_type_methods[] = {
 
 static PyTypeObject AST_type = {
     PyVarObject_HEAD_INIT(NULL, 0)
-    "_ast27.AST",
+    "typed_ast._ast27.AST",
     sizeof(PyObject),
     0,
     0,                       /* tp_dealloc */
@@ -724,7 +724,7 @@ static PyTypeObject* make_type(char *type, PyTypeObject* base, char**fields, int
         PyTuple_SET_ITEM(fnames, i, field);
     }
     result = PyObject_CallFunction((PyObject*)&PyType_Type, "s(O){sOss}",
-                    type, base, "_fields", fnames, "__module__", "_ast27");
+                    type, base, "_fields", fnames, "__module__", "typed_ast._ast27");
     Py_DECREF(fnames);
     return (PyTypeObject*)result;
 }
