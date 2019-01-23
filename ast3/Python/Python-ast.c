@@ -327,6 +327,7 @@ static char *JoinedStr_fields[]={
 static PyTypeObject *Bytes_type;
 static char *Bytes_fields[]={
     "s",
+    "kind",
 };
 static PyTypeObject *NameConstant_type;
 static char *NameConstant_fields[]={
@@ -997,7 +998,7 @@ static int init_types(void)
     if (!FormattedValue_type) return 0;
     JoinedStr_type = make_type("JoinedStr", expr_type, JoinedStr_fields, 1);
     if (!JoinedStr_type) return 0;
-    Bytes_type = make_type("Bytes", expr_type, Bytes_fields, 1);
+    Bytes_type = make_type("Bytes", expr_type, Bytes_fields, 2);
     if (!Bytes_type) return 0;
     NameConstant_type = make_type("NameConstant", expr_type,
                                   NameConstant_fields, 1);
@@ -2249,7 +2250,7 @@ JoinedStr(asdl_seq * values, int lineno, int col_offset, PyArena *arena)
 }
 
 expr_ty
-Bytes(bytes s, int lineno, int col_offset, PyArena *arena)
+Bytes(bytes s, string kind, int lineno, int col_offset, PyArena *arena)
 {
     expr_ty p;
     if (!s) {
@@ -2257,11 +2258,17 @@ Bytes(bytes s, int lineno, int col_offset, PyArena *arena)
                         "field s is required for Bytes");
         return NULL;
     }
+    if (!kind) {
+        PyErr_SetString(PyExc_ValueError,
+                        "field kind is required for Bytes");
+        return NULL;
+    }
     p = (expr_ty)PyArena_Malloc(arena, sizeof(*p));
     if (!p)
         return NULL;
     p->kind = Bytes_kind;
     p->v.Bytes.s = s;
+    p->v.Bytes.kind = kind;
     p->lineno = lineno;
     p->col_offset = col_offset;
     return p;
@@ -3498,6 +3505,11 @@ ast2obj_expr(void* _o)
         value = ast2obj_bytes(o->v.Bytes.s);
         if (!value) goto failed;
         if (_PyObject_SetAttrId(result, &PyId_s, value) == -1)
+            goto failed;
+        Py_DECREF(value);
+        value = ast2obj_string(o->v.Bytes.kind);
+        if (!value) goto failed;
+        if (_PyObject_SetAttrId(result, &PyId_kind, value) == -1)
             goto failed;
         Py_DECREF(value);
         break;
@@ -7026,16 +7038,18 @@ obj2ast_expr(PyObject* obj, expr_ty* out, PyArena* arena)
             if (res != 0) goto failed;
             Py_CLEAR(tmp);
         }
-        if (_PyObject_HasAttrId(obj, &PyId_kind)) {
+        if (lookup_attr_id(obj, &PyId_kind, &tmp) < 0) {
+            return 1;
+        }
+        if (tmp == NULL) {
+            PyErr_SetString(PyExc_TypeError, "required field \"kind\" missing from Str");
+            return 1;
+        }
+        else {
             int res;
-            tmp = _PyObject_GetAttrId(obj, &PyId_kind);
-            if (tmp == NULL) goto failed;
             res = obj2ast_string(tmp, &kind, arena);
             if (res != 0) goto failed;
             Py_CLEAR(tmp);
-        } else {
-            PyErr_SetString(PyExc_TypeError, "required field \"kind\" missing from Str");
-            return 1;
         }
         *out = Str(s, kind, lineno, col_offset, arena);
         if (*out == NULL) goto failed;
@@ -7141,6 +7155,7 @@ obj2ast_expr(PyObject* obj, expr_ty* out, PyArena* arena)
     }
     if (isinstance) {
         bytes s;
+        string kind;
 
         if (lookup_attr_id(obj, &PyId_s, &tmp) < 0) {
             return 1;
@@ -7155,7 +7170,20 @@ obj2ast_expr(PyObject* obj, expr_ty* out, PyArena* arena)
             if (res != 0) goto failed;
             Py_CLEAR(tmp);
         }
-        *out = Bytes(s, lineno, col_offset, arena);
+        if (lookup_attr_id(obj, &PyId_kind, &tmp) < 0) {
+            return 1;
+        }
+        if (tmp == NULL) {
+            PyErr_SetString(PyExc_TypeError, "required field \"kind\" missing from Bytes");
+            return 1;
+        }
+        else {
+            int res;
+            res = obj2ast_string(tmp, &kind, arena);
+            if (res != 0) goto failed;
+            Py_CLEAR(tmp);
+        }
+        *out = Bytes(s, kind, lineno, col_offset, arena);
         if (*out == NULL) goto failed;
         return 0;
     }
