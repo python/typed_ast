@@ -1575,7 +1575,7 @@ ast_for_arguments(struct compiling *c, const node *n)
                     return NULL;
                 asdl_seq_SET(posargs, k++, arg);
                 i += 1; /* the name */
-                if (TYPE(CHILD(n, i)) == COMMA)
+                if (i < NCH(n) && TYPE(CHILD(n, i)) == COMMA)
                     i += 1; /* the comma, if present */
                 break;
             case STAR:
@@ -1591,7 +1591,7 @@ ast_for_arguments(struct compiling *c, const node *n)
                     int res = 0;
                     i += 2; /* now follows keyword only arguments */
 
-                    if (TYPE(CHILD(n, i)) == TYPE_COMMENT) {
+                    if (i < NCH(n) && TYPE(CHILD(n, i)) == TYPE_COMMENT) {
                         ast_error(c, CHILD(n, i),
                                 "bare * has associated type comment");
                         return NULL;
@@ -1608,10 +1608,10 @@ ast_for_arguments(struct compiling *c, const node *n)
                         return NULL;
 
                     i += 2; /* the star and the name */
-                    if (TYPE(CHILD(n, i)) == COMMA)
+                    if (i < NCH(n) && TYPE(CHILD(n, i)) == COMMA)
                         i += 1; /* the comma, if present */
 
-                    if (TYPE(CHILD(n, i)) == TYPE_COMMENT) {
+                    if (i < NCH(n) && TYPE(CHILD(n, i)) == TYPE_COMMENT) {
                         vararg->type_comment = NEW_TYPE_COMMENT(CHILD(n, i));
                         i += 1;
                     }
@@ -1783,19 +1783,25 @@ ast_for_funcdef_impl(struct compiling *c, const node *n0,
     }
     if (TYPE(CHILD(n, name_i + 3)) == TYPE_COMMENT) {
         type_comment = NEW_TYPE_COMMENT(CHILD(n, name_i + 3));
+        printf("type_comment 1\n");
         name_i += 1;
     }
     body = ast_for_suite(c, CHILD(n, name_i + 3));
     if (!body)
         return NULL;
 
-    if (!type_comment && NCH(CHILD(n, name_i + 3)) > 1) {
-        /* If the function doesn't have a type comment on the same line, check
-         * if the suite has a type comment in it. */
+    if (NCH(CHILD(n, name_i + 3)) > 1) {
+        /* Check if the suite has a type comment in it. */
         tc = CHILD(CHILD(n, name_i + 3), 1);
 
-        if (TYPE(tc) == TYPE_COMMENT)
+        if (TYPE(tc) == TYPE_COMMENT) {
+            printf("type comment 2\n");
+            if (type_comment != NULL) {
+                ast_error(c, n, "Cannot have two type comments on def");
+                return NULL;
+            }
             type_comment = NEW_TYPE_COMMENT(tc);
+        }
     }
 
     if (is_async)

@@ -27,6 +27,17 @@ def test_basics():
         assert tree.body[1].type_comment == "() -> None"
 
 
+redundantdef = """\
+def foo():  # type: () -> int
+    # type: () -> str
+    return ''
+"""
+def test_redundantdef():
+    for version in range(MIN_VER, NEXT_VER):
+        with pytest.raises(SyntaxError):
+            t = _ast3._parse(redundantdef, "<redundantdef>", "exec", version)
+
+
 vardecl = """\
 a = 0  # type: int
 a  # type: int
