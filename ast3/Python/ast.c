@@ -1795,7 +1795,6 @@ ast_for_funcdef_impl(struct compiling *c, const node *n0,
         tc = CHILD(CHILD(n, name_i + 3), 1);
 
         if (TYPE(tc) == TYPE_COMMENT) {
-            printf("type comment 2\n");
             if (type_comment != NULL) {
                 ast_error(c, n, "Cannot have two type comments on def");
                 return NULL;
