@@ -1783,7 +1783,6 @@ ast_for_funcdef_impl(struct compiling *c, const node *n0,
     }
     if (TYPE(CHILD(n, name_i + 3)) == TYPE_COMMENT) {
         type_comment = NEW_TYPE_COMMENT(CHILD(n, name_i + 3));
-        printf("type_comment 1\n");
         name_i += 1;
     }
     body = ast_for_suite(c, CHILD(n, name_i + 3));
