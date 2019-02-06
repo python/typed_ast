@@ -741,6 +741,8 @@ static string
 new_type_comment(const char *s, struct compiling *c)
 {
     PyObject *res = PyUnicode_DecodeUTF8(s, strlen(s), NULL);
+    if (!res)
+        return NULL;
     if (PyArena_AddPyObject(c->c_arena, res) < 0) {
         Py_DECREF(res);
         return NULL;
@@ -1449,6 +1451,8 @@ handle_keywordonly_args(struct compiling *c, const node *n, int start,
             case TYPE_COMMENT:
                 /* arg will be equal to the last argument processed */
                 arg->type_comment = NEW_TYPE_COMMENT(ch);
+                if (!arg->type_comment)
+                    goto error;
                 i += 1;
                 break;
             case DOUBLESTAR:
@@ -1618,6 +1622,8 @@ ast_for_arguments(struct compiling *c, const node *n)
 
                     if (i < NCH(n) && TYPE(CHILD(n, i)) == TYPE_COMMENT) {
                         vararg->type_comment = NEW_TYPE_COMMENT(CHILD(n, i));
+                        if (!vararg->type_comment)
+                            return NULL;
                         i += 1;
                     }
 
@@ -1649,6 +1655,8 @@ ast_for_arguments(struct compiling *c, const node *n)
 
                 /* arg will be equal to the last argument processed */
                 arg->type_comment = NEW_TYPE_COMMENT(ch);
+                if (!arg->type_comment)
+                    return NULL;
                 i += 1;
                 break;
             default:
@@ -1788,6 +1796,8 @@ ast_for_funcdef_impl(struct compiling *c, const node *n0,
     }
     if (TYPE(CHILD(n, name_i + 3)) == TYPE_COMMENT) {
         type_comment = NEW_TYPE_COMMENT(CHILD(n, name_i + 3));
+        if (!type_comment)
+            return NULL;
         name_i += 1;
     }
     body = ast_for_suite(c, CHILD(n, name_i + 3));
@@ -1804,6 +1814,8 @@ ast_for_funcdef_impl(struct compiling *c, const node *n0,
                 return NULL;
             }
             type_comment = NEW_TYPE_COMMENT(tc);
+            if (!type_comment)
+                return NULL;
         }
     }
 
@@ -3286,8 +3298,11 @@ ast_for_expr_stmt(struct compiling *c, const node *n)
             expression = ast_for_expr(c, value);
         if (!expression)
             return NULL;
-        if (has_type_comment)
+        if (has_type_comment) {
             type_comment = NEW_TYPE_COMMENT(CHILD(n, nch_minus_type));
+            if (!type_comment)
+                return NULL;
+        }
         else
             type_comment = NULL;
         return Assign(targets, expression, type_comment, LINENO(n), n->n_col_offset, c->c_arena);
@@ -3975,8 +3990,11 @@ ast_for_for_stmt(struct compiling *c, const node *n0, bool is_async)
     if (!suite_seq)
         return NULL;
 
-    if (has_type_comment)
+    if (has_type_comment) {
         type_comment = NEW_TYPE_COMMENT(CHILD(n, 5));
+        if (!type_comment)
+            return NULL;
+    }
     else
         type_comment = NULL;
 
@@ -4167,8 +4185,11 @@ ast_for_with_stmt(struct compiling *c, const node *n0, bool is_async)
     if (!body)
         return NULL;
 
-    if (has_type_comment)
+    if (has_type_comment) {
         type_comment = NEW_TYPE_COMMENT(CHILD(n, NCH(n) - 2));
+        if (!type_comment)
+            return NULL;
+    }
     else
         type_comment = NULL;
 
