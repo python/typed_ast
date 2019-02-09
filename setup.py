@@ -116,6 +116,7 @@ setup (name = 'typed-ast',
            'Programming Language :: Python :: 3.7',
            'Topic :: Software Development',
        ],
-       packages = ['typed_ast'],
+       packages = ['typed_ast', 'typed_ast.tests'],
+       package_dir={ 'typed_ast.tests': 'ast3/tests' },
        ext_package='typed_ast',
        ext_modules = [_ast27, _ast3])

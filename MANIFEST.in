@@ -1,3 +1,4 @@
 recursive-include ast27 *.h
 recursive-include ast3 *.h
+recursive-include ast3/tests *.py
 include LICENSE
