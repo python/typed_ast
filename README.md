@@ -22,7 +22,7 @@ instead.  To avoid feature bloat, any new features for `typed_ast` should have
 the potential to be broadly useful and not be built just for one niche usecase
 or in a manner such that only one project can use them.
 
-### Incompatabilities
+### Incompatibilities
 
 For the purposes of *consuming* syntax trees, this should be a drop-in replacement.
 It is not a drop-in replacement for users that wish to create or transform ASTs,
