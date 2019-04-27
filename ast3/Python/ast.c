@@ -29,6 +29,7 @@ _PyObject_FastCall(PyObject *func, PyObject *const *args, int nargs)
         return NULL;
     }
     for (i = 0; i < nargs; i++) {
+        Py_INCREF(args[i]);
         if (PyTuple_SetItem(t, i, args[i]) < 0) {
             Py_DECREF(t);
             return NULL;
