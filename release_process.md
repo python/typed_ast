@@ -1,7 +1,7 @@
 # Typed AST PyPI Release Process
 0. Thoroughly test the prospective release.
 1. Make a commit titled "Release version \[version number\]" which removes the
-   `-dev` suffix of the version string in
+   `-dev0` suffix of the version string in
    [`typed_ast/__init__.py`](https://github.com/python/typed_ast/blob/master/typed_ast/__init__.py).
    Switch the version to a new minor version if there have been
    backwards-incompatible changes.
