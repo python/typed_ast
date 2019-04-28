@@ -27,5 +27,5 @@
 9. Upload the sdist and wheels to PyPI with `twine upload dist/*`.
 10. If possible, verify the final `typed_ast` wheels work on Windows, MacOS,
     and Linux platforms.
-11. Make a commit which bumps the bugfix version and adds back the `.dev.0`
+11. Make a commit which bumps the bugfix version and adds back the `.dev0`
     suffix.
