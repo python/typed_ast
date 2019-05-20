@@ -2,7 +2,7 @@
 
 # Compile wheels
 for PYBIN in /opt/python/*/bin; do
-  if [ $(echo "${PYBIN}" | grep -o '[[:digit:]][[:digit:]]' | head -n 1) -ge 33 ]; then
+  if [ $(echo "${PYBIN}" | grep -o '[[:digit:]][[:digit:]]' | head -n 1) -ge 35 ]; then
     # typed_ast only builds on Python 3.3 and newer
     "${PYBIN}/pip" wheel /io/ -w wheelhouse/
   fi
