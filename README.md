@@ -8,8 +8,8 @@ parser similar to the standard `ast` library.  Unlike `ast`, the parsers in
 `typed_ast` include [PEP 484](https://www.python.org/dev/peps/pep-0484/) type
 comments and are independent of the version of Python under which they are run.
 The `typed_ast` parsers produce the standard Python AST (plus type comments),
-and are both fast and correct, as they are based on the CPython 2.7 and 3.6
-parsers.  `typed_ast` runs on Python 3.3-3.7 on Linux, OS X and Windows.
+and are both fast and correct, as they are based on the CPython 2.7 and 3.7
+parsers.  `typed_ast` runs on CPython 3.5-3.8 on Linux, OS X and Windows.
 
 ## Development Philosophy
 
@@ -29,11 +29,12 @@ It is not a drop-in replacement for users that wish to create or transform ASTs,
 as a number of syntax tree classes have additional fields that must be populated
 when constructing them.
 
-### Python 3.7
+### Python 3.8
 
-`typed_ast` has not yet been updated to be based on the Python 3.7
-parser. The main consequence of this that `await` and `async` are
-not treated as keywords.
+`typed_ast` will not be updated to support parsing Python 3.8 and
+newer.  Instead, it is recommended to use the stdlib `ast` module
+there, which has been augmented to support extracting type comments
+and has limited support for parsing older versions of Python 3.
 
 ## Submodules
 ### ast3
