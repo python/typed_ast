@@ -58,7 +58,7 @@ def literal_eval(node_or_string):
     and None.
     """
     _safe_names = {'None': None, 'True': True, 'False': False}
-    if isinstance(node_or_string, basestring):
+    if isinstance(node_or_string, (str, bytes)):
         node_or_string = parse(node_or_string, mode='eval')
     if isinstance(node_or_string, Expression):
         node_or_string = node_or_string.body
