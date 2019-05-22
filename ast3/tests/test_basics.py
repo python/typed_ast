@@ -195,11 +195,35 @@ def foo():
 
 def bar():
     x = 1  # type: ignore
+
+def baz():
+    pass  # type: ignore[excuse]
+    pass  # type: ignore=excuse
+    pass  # type: ignore [excuse]
+    x = 1  # type: ignore whatever
 """
 def test_ignores():
+    expected = [
+        (2, ''),
+        (5, ''),
+        (8, '[excuse]'),
+        (9, '=excuse'),
+        (10, ' [excuse]'),
+        (11, ' whatever'),
+    ]
+
     for version in range(MIN_VER, NEXT_VER):
         tree = _ast3._parse(ignores, "<ignores>", "exec", version)
-        assert [ti.lineno for ti in tree.type_ignores] == [2, 5]
+        assert [(ti.lineno, ti.tag) for ti in tree.type_ignores] == expected
+        with pytest.raises(SyntaxError):
+            _ast3._parse("pass  # type: ignoreé\n", "<ignores>", "exec", version)
+
+
+    tree = _ast27.parse(ignores, "<ignores>", "exec")
+    assert [(ti.lineno, ti.tag) for ti in tree.type_ignores] == expected
+    with pytest.raises(SyntaxError):
+        _ast27.parse("pass  # type: ignoreé\n", "<ignores>", "exec")
+
 
 
 asyncfunc = """\

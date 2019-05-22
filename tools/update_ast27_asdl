@@ -1,0 +1,8 @@
+#!/bin/bash -eux
+
+# Run after changing `Parser/Python.asdl`
+
+PROJ_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )/.."
+
+python2 ast27/Parser/asdl_c.py -h ast27/Include/ ast27/Parser/Python.asdl
+python2 ast27/Parser/asdl_c.py -c ast27/Python/ ast27/Parser/Python.asdl

@@ -387,6 +387,7 @@ struct _type_ignore {
         union {
                 struct {
                         int lineno;
+                        string tag;
                 } TypeIgnore;
                 
         } v;
@@ -540,8 +541,8 @@ arguments_ty _Ta27_arguments(asdl_seq * args, identifier vararg, identifier kwar
 keyword_ty _Ta27_keyword(identifier arg, expr_ty value, PyArena *arena);
 #define alias(a0, a1, a2) _Ta27_alias(a0, a1, a2)
 alias_ty _Ta27_alias(identifier name, identifier asname, PyArena *arena);
-#define TypeIgnore(a0, a1) _Ta27_TypeIgnore(a0, a1)
-type_ignore_ty _Ta27_TypeIgnore(int lineno, PyArena *arena);
+#define TypeIgnore(a0, a1, a2) _Ta27_TypeIgnore(a0, a1, a2)
+type_ignore_ty _Ta27_TypeIgnore(int lineno, string tag, PyArena *arena);
 
 PyObject* Ta27AST_mod2obj(mod_ty t);
 mod_ty Ta27AST_obj2mod(PyObject* ast, PyArena* arena, int mode);

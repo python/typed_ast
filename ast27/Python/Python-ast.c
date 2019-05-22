@@ -396,6 +396,7 @@ static PyObject* ast2obj_type_ignore(void*);
 static PyTypeObject *TypeIgnore_type;
 static char *TypeIgnore_fields[]={
         "lineno",
+        "tag",
 };
 
 
@@ -974,7 +975,7 @@ static int init_types(void)
         type_ignore_type = make_type("type_ignore", &AST_type, NULL, 0);
         if (!type_ignore_type) return 0;
         if (!add_attributes(type_ignore_type, NULL, 0)) return 0;
-        TypeIgnore_type = make_type("TypeIgnore", type_ignore_type, TypeIgnore_fields, 1);
+        TypeIgnore_type = make_type("TypeIgnore", type_ignore_type, TypeIgnore_fields, 2);
         if (!TypeIgnore_type) return 0;
         initialized = 1;
         return 1;
@@ -2153,14 +2154,20 @@ alias(identifier name, identifier asname, PyArena *arena)
 }
 
 type_ignore_ty
-TypeIgnore(int lineno, PyArena *arena)
+TypeIgnore(int lineno, string tag, PyArena *arena)
 {
         type_ignore_ty p;
+        if (!tag) {
+                PyErr_SetString(PyExc_ValueError,
+                                "field tag is required for TypeIgnore");
+                return NULL;
+        }
         p = (type_ignore_ty)PyArena_Malloc(arena, sizeof(*p));
         if (!p)
                 return NULL;
         p->kind = TypeIgnore_kind;
         p->v.TypeIgnore.lineno = lineno;
+        p->v.TypeIgnore.tag = tag;
         return p;
 }
 
@@ -3406,6 +3413,11 @@ ast2obj_type_ignore(void* _o)
                 value = ast2obj_int(o->v.TypeIgnore.lineno);
                 if (!value) goto failed;
                 if (PyObject_SetAttrString(result, "lineno", value) == -1)
+                        goto failed;
+                Py_DECREF(value);
+                value = ast2obj_string(o->v.TypeIgnore.tag);
+                if (!value) goto failed;
+                if (PyObject_SetAttrString(result, "tag", value) == -1)
                         goto failed;
                 Py_DECREF(value);
                 break;
@@ -6848,6 +6860,7 @@ obj2ast_type_ignore(PyObject* obj, type_ignore_ty* out, PyArena* arena)
         }
         if (isinstance) {
                 int lineno;
+                string tag;
 
                 if (PyObject_HasAttrString(obj, "lineno")) {
                         int res;
@@ -6861,7 +6874,19 @@ obj2ast_type_ignore(PyObject* obj, type_ignore_ty* out, PyArena* arena)
                         PyErr_SetString(PyExc_TypeError, "required field \"lineno\" missing from TypeIgnore");
                         return 1;
                 }
-                *out = TypeIgnore(lineno, arena);
+                if (PyObject_HasAttrString(obj, "tag")) {
+                        int res;
+                        tmp = PyObject_GetAttrString(obj, "tag");
+                        if (tmp == NULL) goto failed;
+                        res = obj2ast_string(tmp, &tag, arena);
+                        if (res != 0) goto failed;
+                        Py_XDECREF(tmp);
+                        tmp = NULL;
+                } else {
+                        PyErr_SetString(PyExc_TypeError, "required field \"tag\" missing from TypeIgnore");
+                        return 1;
+                }
+                *out = TypeIgnore(lineno, tag, arena);
                 if (*out == NULL) goto failed;
                 return 0;
         }
