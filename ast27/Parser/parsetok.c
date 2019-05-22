@@ -188,7 +188,8 @@ growable_comment_array_add(growable_comment_array *arr, int lineno, char *commen
 
 static void
 growable_comment_array_deallocate(growable_comment_array *arr) {
-    for (unsigned i = 0; i < arr->num_items; i++) {
+    unsigned i;
+    for (i = 0; i < arr->num_items; i++) {
         PyObject_FREE(arr->items[i].comment);
     }
     free(arr->items);
