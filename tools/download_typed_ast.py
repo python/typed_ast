@@ -45,7 +45,7 @@ def download_appveyor(version):
             download(api_url + artifact_url + '/' + artifact['fileName'])
 
 # gcloud downloads for linux wehels
-MIN_VER = 4
+MIN_VER = 5
 MAX_VER = 7
 
 GCLOUD_URL = "https://storage.googleapis.com/typed-ast/typed_ast-{version}-cp3{pyver}-cp3{pyver}m-{platform}.whl"
