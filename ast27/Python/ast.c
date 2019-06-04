@@ -297,7 +297,10 @@ Ta27AST_FromNode(const node *n, PyCompilerFlags *flags, const char *filename,
                 goto error;
 
             for (i = 0; i < num; i++) {
-                type_ignore_ty ti = TypeIgnore(LINENO(CHILD(ch, i)), arena);
+                string type_comment = new_type_comment(STR(CHILD(ch, i)), &c);
+                if (!type_comment)
+                    goto error;
+                type_ignore_ty ti = TypeIgnore(LINENO(CHILD(ch, i)), type_comment, arena);
                 if (!ti)
                     goto error;
                 asdl_seq_SET(type_ignores, i, ti);
@@ -2431,7 +2434,7 @@ ast_for_print_stmt(struct compiling *c, const node *n)
         dest = ast_for_expr(c, CHILD(n, 2));
         if (!dest)
             return NULL;
-            start = 4;
+        start = 4;
     }
     values_count = (NCH(n) + 1 - start) / 2;
     if (values_count) {

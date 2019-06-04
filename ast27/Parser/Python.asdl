@@ -10,7 +10,7 @@ module Python version "$Revision$"
 	    -- not really an actual node but useful in Jython's typesystem.
 	    | Suite(stmt* body)
 
-	stmt = FunctionDef(identifier name, arguments args, 
+	stmt = FunctionDef(identifier name, arguments args,
                             stmt* body, expr* decorator_list, string? type_comment)
 	      | ClassDef(identifier name, expr* bases, stmt* body, expr* decorator_list)
 	      | Return(expr? value)
@@ -78,7 +78,7 @@ module Python version "$Revision$"
 	     | Attribute(expr value, identifier attr, expr_context ctx)
 	     | Subscript(expr value, slice slice, expr_context ctx)
 	     | Name(identifier id, expr_context ctx)
-	     | List(expr* elts, expr_context ctx) 
+	     | List(expr* elts, expr_context ctx)
 	     | Tuple(expr* elts, expr_context ctx)
 
 	      -- col_offset is the byte offset in the utf8 string the parser uses
@@ -86,13 +86,13 @@ module Python version "$Revision$"
 
 	expr_context = Load | Store | Del | AugLoad | AugStore | Param
 
-	slice = Ellipsis | Slice(expr? lower, expr? upper, expr? step) 
-	      | ExtSlice(slice* dims) 
-	      | Index(expr value) 
+	slice = Ellipsis | Slice(expr? lower, expr? upper, expr? step)
+	      | ExtSlice(slice* dims)
+	      | Index(expr value)
 
-	boolop = And | Or 
+	boolop = And | Or
 
-	operator = Add | Sub | Mult | Div | Mod | Pow | LShift 
+	operator = Add | Sub | Mult | Div | Mod | Pow | LShift
                  | RShift | BitOr | BitXor | BitAnd | FloorDiv
 
 	unaryop = Invert | Not | UAdd | USub
@@ -109,7 +109,7 @@ module Python version "$Revision$"
 	-- It is either an empty list or a list with length equal to the number of
 	-- args (including varargs and kwargs, if present) and with members set to the
 	-- string of each arg's type comment, if present, or None otherwise.
-	arguments = (expr* args, identifier? vararg, 
+	arguments = (expr* args, identifier? vararg,
 		     identifier? kwarg, expr* defaults, string* type_comments)
 
         -- keyword arguments supplied to call
@@ -118,5 +118,5 @@ module Python version "$Revision$"
         -- import name with optional 'as' alias.
         alias = (identifier name, identifier? asname)
 
-  type_ignore = TypeIgnore(int lineno)
+  type_ignore = TypeIgnore(int lineno, string tag)
 }

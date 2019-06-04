@@ -1,0 +1,16 @@
+# Generated files
+# https://github.com/github/linguist#generated-code
+ast3/Include/graminit.h          linguist-generated=true
+ast3/Python/graminit.h           linguist-generated=true
+ast3/Include/Python-ast.h        linguist-generated=true
+ast3/Python/Python-ast.c         linguist-generated=true
+ast3/Include/token.h             linguist-generated=true
+ast3/Lib/token.py                linguist-generated=true
+ast3/Parser/token.c              linguist-generated=true
+ast27/Include/graminit.h         linguist-generated=true
+ast27/Python/graminit.h          linguist-generated=true
+ast27/Include/Python-ast.h       linguist-generated=true
+ast27/Python/Python-ast.c        linguist-generated=true
+ast27/Include/token.h            linguist-generated=true
+ast27/Lib/token.py               linguist-generated=true
+ast27/Parser/token.c             linguist-generated=true

@@ -152,12 +152,16 @@ warn(const char *msg, const char *filename, int lineno)
 
 
 typedef struct {
-    int *items;
+    struct {
+        int lineno;
+        char *comment;
+    } *items;
     size_t size;
     size_t num_items;
-} growable_int_array;
+} growable_comment_array;
 
-int growable_int_array_init(growable_int_array *arr, size_t initial_size) {
+static int
+growable_comment_array_init(growable_comment_array *arr, size_t initial_size) {
     assert(initial_size > 0);
     arr->items = malloc(initial_size * sizeof(*arr->items));
     arr->size = initial_size;
@@ -166,20 +170,28 @@ int growable_int_array_init(growable_int_array *arr, size_t initial_size) {
     return arr->items != NULL;
 }
 
-int growable_int_array_add(growable_int_array *arr, int item) {
+static int
+growable_comment_array_add(growable_comment_array *arr, int lineno, char *comment) {
     if (arr->num_items >= arr->size) {
         arr->size *= 2;
         arr->items = realloc(arr->items, arr->size * sizeof(*arr->items));
-        if (!arr->items)
+        if (!arr->items) {
             return 0;
+        }
     }
 
-    arr->items[arr->num_items] = item;
+    arr->items[arr->num_items].lineno = lineno;
+    arr->items[arr->num_items].comment = comment;
     arr->num_items++;
     return 1;
 }
 
-void growable_int_array_deallocate(growable_int_array *arr) {
+static void
+growable_comment_array_deallocate(growable_comment_array *arr) {
+    unsigned i;
+    for (i = 0; i < arr->num_items; i++) {
+        PyObject_FREE(arr->items[i].comment);
+    }
     free(arr->items);
 }
 
@@ -195,8 +207,8 @@ parsetok(struct tok_state *tok, grammar *g, int start, perrdetail *err_ret,
     node *n;
     int started = 0;
 
-    growable_int_array type_ignores;
-    if (!growable_int_array_init(&type_ignores, 10)) {
+    growable_comment_array type_ignores;
+    if (!growable_comment_array_init(&type_ignores, 10)) {
         err_ret->error = E_NOMEM;
         Ta27Tokenizer_Free(tok);
         return NULL;
@@ -264,7 +276,7 @@ parsetok(struct tok_state *tok, grammar *g, int start, perrdetail *err_ret,
             col_offset = -1;
 
         if (type == TYPE_IGNORE) {
-            if (!growable_int_array_add(&type_ignores, tok->lineno)) {
+            if (!growable_comment_array_add(&type_ignores, tok->lineno, str)) {
                 err_ret->error = E_NOMEM;
                 break;
             }
@@ -297,14 +309,22 @@ parsetok(struct tok_state *tok, grammar *g, int start, perrdetail *err_ret,
             REQ(ch, ENDMARKER);
 
             for (i = 0; i < type_ignores.num_items; i++) {
-                Ta27Node_AddChild(ch, TYPE_IGNORE, NULL, type_ignores.items[i], 0);
+                int res = Ta27Node_AddChild(ch, TYPE_IGNORE, type_ignores.items[i].comment,
+                                            type_ignores.items[i].lineno, 0);
+                if (res != 0) {
+                    err_ret->error = res;
+                    Ta27Node_Free(n);
+                    n = NULL;
+                    break;
+                }
+                type_ignores.items[i].comment = NULL;
             }
         }
-        growable_int_array_deallocate(&type_ignores);
-
     }
     else
         n = NULL;
+
+    growable_comment_array_deallocate(&type_ignores);
 
 #ifdef PY_PARSER_REQUIRES_FUTURE_KEYWORD
     *flags = ps->p_flags;
