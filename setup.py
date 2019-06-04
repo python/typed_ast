@@ -96,12 +96,11 @@ with open('typed_ast/__init__.py', 'r', encoding='utf8') as f:
     version = _version_re.search(f.read()).group('version')
     version = str(ast.literal_eval(version))
 
-setup (name = 'typed-ast',
+setup (name = 'typed_ast',
        version = version,
        description = 'a fork of Python 2 and 3 ast modules with type comment support',
        long_description = long_description,
        author = 'David Fisher',
-       author_email = 'ddfisher@dropbox.com',
        url = 'https://github.com/python/typed_ast',
        license='Apache License 2.0',
        platforms = ['POSIX', 'Windows'],
