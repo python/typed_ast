@@ -17,7 +17,7 @@ typedef int bool;
 #define false 0
 #define true 1
 
-#ifndef _PyObject_FastCall
+#if PY_MINOR_VERSION < 6
 static PyObject *
 _PyObject_FastCall(PyObject *func, PyObject *const *args, int nargs)
 {
