@@ -46,16 +46,18 @@ def download_appveyor(version):
 
 # gcloud downloads for linux wehels
 MIN_VER = 5
-MAX_VER = 7
+MAX_VER = 8
 
-GCLOUD_URL = "https://storage.googleapis.com/typed-ast/typed_ast-{version}-cp3{pyver}-cp3{pyver}m-{platform}.whl"
+GCLOUD_URL = "https://storage.googleapis.com/typed-ast/typed_ast-{version}-cp3{pyver}-cp3{pyver}{abi_tag}-{platform}.whl"
 
 def download_entries(base_url, version, platform):
     entries = ""
     for pyver in range(MIN_VER, MAX_VER + 1):
+        abi_tag = "" if pyver >= 8 else "m"
         url = base_url.format(
             version=version,
             pyver=pyver,
+            abi_tag=abi_tag,
             platform=platform)
         download(url)
 
