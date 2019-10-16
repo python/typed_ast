@@ -8,8 +8,12 @@ environment:
     - PYTHON: "C:\\Python36-x64"
     - PYTHON: "C:\\Python37"
     - PYTHON: "C:\\Python37-x64"
+    - PYTHON: "C:\\Python38"
+    - PYTHON: "C:\\Python38-x64"
 
 install:
+  # Download and install python if we don't have the version we need
+  - ps: .\install_python.ps1
   # We need wheel installed to build wheels
   - "%PYTHON%\\python.exe -m pip install wheel"
 
@@ -23,4 +27,3 @@ after_test:
 
 artifacts:
   - path: dist\*
-
