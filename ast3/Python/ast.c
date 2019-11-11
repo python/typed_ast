@@ -4531,8 +4531,14 @@ decode_bytes_with_escapes(struct compiling *c, const node *n, const char *s,
                           size_t len)
 {
     const char *first_invalid_escape;
+
+    #if PY_MINOR_VERSION < 9
     PyObject *result = _PyBytes_DecodeEscape(s, len, NULL, 0, NULL,
                                              &first_invalid_escape);
+    #else
+    PyObject *result = _PyBytes_DecodeEscape(s, len, NULL,
+                                             &first_invalid_escape);
+    #endif
     if (result == NULL)
         return NULL;
 
