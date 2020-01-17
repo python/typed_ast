@@ -15,7 +15,7 @@
 
 
 #ifdef Py_DEBUG
-extern int Py_DebugFlag;
+PyAPI_DATA(int) Py_DebugFlag;
 #define D(x) if (!Py_DebugFlag); else x
 #else
 #define D(x)
