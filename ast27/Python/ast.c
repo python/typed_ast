@@ -4,14 +4,14 @@
  *
  */
 #include "Python.h"
-#include "Python-ast.h"
-#include "grammar.h"
-#include "node.h"
+#include "../Include/Python-ast.h"
+#include "../Include/grammar.h"
+#include "../Include/node.h"
 #include "pyarena.h"
-#include "ast.h"
-#include "token.h"
-#include "parsetok.h"
-#include "graminit.h"
+#include "../Include/ast.h"
+#include "../Include/token.h"
+#include "../Include/parsetok.h"
+#include "../Include/graminit.h"
 #include "unicodeobject.h"
 
 #include <assert.h>

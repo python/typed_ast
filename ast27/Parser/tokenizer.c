@@ -2,13 +2,13 @@
 /* Tokenizer implementation */
 
 #include "Python.h"
-#include "pgenheaders.h"
+#include "../Include/pgenheaders.h"
 
 #include <ctype.h>
 #include <assert.h>
 
 #include "tokenizer.h"
-#include "errcode.h"
+#include "../Include/errcode.h"
 
 #ifndef PGEN
 #include "unicodeobject.h"

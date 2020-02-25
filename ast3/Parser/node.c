@@ -1,8 +1,8 @@
 /* Parse tree node implementation */
 
 #include "Python.h"
-#include "node.h"
-#include "errcode.h"
+#include "../Include/node.h"
+#include "../Include/errcode.h"
 
 node *
 Ta3Node_New(int type)

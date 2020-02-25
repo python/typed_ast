@@ -2,9 +2,9 @@
 /* Grammar subroutines needed by parser */
 
 #include "Python.h"
-#include "pgenheaders.h"
-#include "grammar.h"
-#include "token.h"
+#include "../Include/pgenheaders.h"
+#include "../Include/grammar.h"
+#include "../Include/token.h"
 
 /* Return the DFA for the given type */
 

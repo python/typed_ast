@@ -10,7 +10,7 @@
 */
 
 #include "Python.h"
-#include "Python-ast.h"
+#include "../Include/Python-ast.h"
 
 static PyTypeObject AST_type;
 static PyTypeObject *mod_type;

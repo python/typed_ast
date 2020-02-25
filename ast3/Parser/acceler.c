@@ -10,10 +10,10 @@
    are not part of the static data structure written on graminit.[ch]
    by the parser generator. */
 
-#include "pgenheaders.h"
-#include "grammar.h"
-#include "node.h"
-#include "token.h"
+#include "../Include/pgenheaders.h"
+#include "../Include/grammar.h"
+#include "../Include/node.h"
+#include "../Include/token.h"
 #include "parser.h"
 
 /* Forward references */

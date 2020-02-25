@@ -1,8 +1,8 @@
 
 /* Bitset primitives used by the parser generator */
 
-#include "pgenheaders.h"
-#include "bitset.h"
+#include "../Include/pgenheaders.h"
+#include "../Include/bitset.h"
 
 bitset
 newbitset(int nbits)

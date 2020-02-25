@@ -1,12 +1,12 @@
 #include "Python.h"
-#include "Python-ast.h"
-#include "node.h"
-#include "grammar.h"
-#include "token.h"
-#include "ast.h"
-#include "parsetok.h"
-#include "errcode.h"
-#include "graminit.h"
+#include "../Include/Python-ast.h"
+#include "../Include/node.h"
+#include "../Include/grammar.h"
+#include "../Include/token.h"
+#include "../Include/ast.h"
+#include "../Include/parsetok.h"
+#include "../Include/errcode.h"
+#include "../Include/graminit.h"
 
 extern grammar _Ta3Parser_Grammar; /* from graminit.c */
 

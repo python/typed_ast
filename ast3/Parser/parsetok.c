@@ -1,14 +1,14 @@
 
 /* Parser-tokenizer link implementation */
 
-#include "pgenheaders.h"
+#include "../Include/pgenheaders.h"
 #include "tokenizer.h"
-#include "node.h"
-#include "grammar.h"
+#include "../Include/node.h"
+#include "../Include/grammar.h"
 #include "parser.h"
-#include "parsetok.h"
-#include "errcode.h"
-#include "graminit.h"
+#include "../Include/parsetok.h"
+#include "../Include/errcode.h"
+#include "../Include/graminit.h"
 
 
 /* Forward */
