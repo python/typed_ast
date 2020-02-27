@@ -6,12 +6,12 @@
 /* XXX To do: error recovery */
 
 #include "Python.h"
-#include "pgenheaders.h"
-#include "token.h"
-#include "grammar.h"
-#include "node.h"
+#include "../Include/pgenheaders.h"
+#include "../Include/token.h"
+#include "../Include/grammar.h"
+#include "../Include/node.h"
 #include "parser.h"
-#include "errcode.h"
+#include "../Include/errcode.h"
 
 
 #ifdef Py_DEBUG

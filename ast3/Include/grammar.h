@@ -7,7 +7,7 @@
 extern "C" {
 #endif
 
-#include "bitset.h" /* Sigh... */
+#include "../Include/bitset.h"
 
 /* A label of an arc */
 

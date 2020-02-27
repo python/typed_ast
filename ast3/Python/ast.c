@@ -4,10 +4,10 @@
  *
  */
 #include "Python.h"
-#include "Python-ast.h"
-#include "node.h"
-#include "ast.h"
-#include "token.h"
+#include "../Include/Python-ast.h"
+#include "../Include/node.h"
+#include "../Include/ast.h"
+#include "../Include/token.h"
 #include "pythonrun.h"
 
 #include <assert.h>
@@ -641,9 +641,9 @@ Ta3AST_Validate(mod_ty mod)
 }
 
 /* This is done here, so defines like "test" don't interfere with AST use above. */
-#include "grammar.h"
-#include "parsetok.h"
-#include "graminit.h"
+#include "../Include/grammar.h"
+#include "../Include/parsetok.h"
+#include "../Include/graminit.h"
 
 /* Data structure used internally */
 struct compiling {

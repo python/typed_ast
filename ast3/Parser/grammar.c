@@ -2,12 +2,12 @@
 /* Grammar implementation */
 
 #include "Python.h"
-#include "pgenheaders.h"
+#include "../Include/pgenheaders.h"
 
 #include <ctype.h>
 
-#include "token.h"
-#include "grammar.h"
+#include "../Include/token.h"
+#include "../Include/grammar.h"
 
 PyAPI_DATA(int) Py_DebugFlag;
 
