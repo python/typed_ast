@@ -1,5 +1,6 @@
 #include "../Include/pegen_extra.h"
 
+// Backport of _PyObject_LookupAttr for 3.6
 int
 _Pegen_PyObject_LookupAttr(PyObject *v, PyObject *name, PyObject **result)
 {
@@ -49,7 +50,7 @@ _Pegen_PyObject_LookupAttr(PyObject *v, PyObject *name, PyObject **result)
     return 0;
 }
 
-// Backports for Python 3.6
+// Backports of _PyType_Name for Python 3.6
 const char *
 _Ta3Type_Name(PyTypeObject *type)
 {
