@@ -1,5 +1,5 @@
 #include "Python.h"
-#include "../Include/asdl.h"
+#include "asdl.h"
 
 asdl_seq *
 _Ta3_asdl_seq_new(Py_ssize_t size, PyArena *arena)

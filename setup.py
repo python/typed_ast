@@ -48,38 +48,29 @@ _ast27 = Extension(
 
 _ast3 = Extension(
     '_ast3',
-    include_dirs = ['ast3/Include'],
+    include_dirs = ['ast3/Include', 'ast3/Parser'],
     sources = [
-        'ast3/Parser/acceler.c',
-        'ast3/Parser/bitset.c',
-        'ast3/Parser/grammar.c',
-        'ast3/Parser/grammar1.c',
-        'ast3/Parser/node.c',
-        'ast3/Parser/parser.c',
-        'ast3/Parser/parsetok.c',
-        'ast3/Parser/tokenizer.c',
-        'ast3/Python/asdl.c',
-        'ast3/Python/ast.c',
-        'ast3/Python/graminit.c',
         'ast3/Python/Python-ast.c',
+        'ast3/Custom/pegen_extra.c',
+        'ast3/Python/asdl.c',
+        'ast3/Parser/tokenizer.c',
+        'ast3/Parser/pegen/pegen.c',
+        'ast3/Parser/pegen/peg_api.c',
+        'ast3/Parser/pegen/parse_string.c',
+        'ast3/Parser/pegen/parse.c',
         'ast3/Custom/typed_ast.c',
     ],
     depends = [
         'ast3/Include/asdl.h',
-        'ast3/Include/ast.h',
-        'ast3/Include/bitset.h',
-        'ast3/Include/compile-ast3.h',
-        'ast3/Include/errcode.h',
-        'ast3/Include/graminit.h',
-        'ast3/Include/grammar.h',
-        'ast3/Include/node.h',
-        'ast3/Include/parsetok.h',
-        'ast3/Include/pgenheaders.h',
+        'ast3/Include/pegen_extra.h',
         'ast3/Include/Python-ast.h',
         'ast3/Include/token.h',
-        'ast3/Parser/parser.h',
+        'ast3/Parser/pegen/pegen.h',
+        'ast3/Parser/pegen/parse_string.h',
         'ast3/Parser/tokenizer.h',
-    ])
+    ],
+    extra_compile_args=["-UNDEBUG"]
+)
 
 long_description = """
 `typed_ast` is a Python 3 package that provides a Python 2.7 and Python 3
