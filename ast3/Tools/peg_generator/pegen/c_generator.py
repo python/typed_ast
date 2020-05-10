@@ -27,13 +27,13 @@ from pegen.parser_generator import ParserGenerator
 
 EXTENSION_PREFIX = """\
 #include "pegen.h"
-
+#include "ta3_compat.h"
 """
 
 
 EXTENSION_SUFFIX = """
 void *
-_PyPegen_parse(Parser *p)
+_Ta3Pegen_parse(Parser *p)
 {
     // Initialize keywords
     p->keywords = reserved_keywords;
@@ -102,7 +102,7 @@ class CCallMakerVisitor(GrammarVisitor):
             self.keyword_cache[keyword] = self.gen.keyword_type()
         return FunctionCall(
             assigned_variable="keyword",
-            function="_PyPegen_expect_token",
+            function="_Ta3Pegen_expect_token",
             arguments=["p", self.keyword_cache[keyword]],
             return_type="Token *",
             nodetype=NodeTypes.KEYWORD,
@@ -115,7 +115,7 @@ class CCallMakerVisitor(GrammarVisitor):
             if name in BASE_NODETYPES:
                 return FunctionCall(
                     assigned_variable=f"{name.lower()}_var",
-                    function=f"_PyPegen_{name.lower()}_token",
+                    function=f"_Ta3Pegen_{name.lower()}_token",
                     arguments=["p"],
                     nodetype=BASE_NODETYPES[name],
                     return_type="expr_ty",
@@ -123,7 +123,7 @@ class CCallMakerVisitor(GrammarVisitor):
                 )
             return FunctionCall(
                 assigned_variable=f"{name.lower()}_var",
-                function=f"_PyPegen_expect_token",
+                function=f"_Ta3Pegen_expect_token",
                 arguments=["p", name],
                 nodetype=NodeTypes.GENERIC_TOKEN,
                 return_type="Token *",
@@ -152,7 +152,7 @@ class CCallMakerVisitor(GrammarVisitor):
             type = self.exact_tokens[val]
             return FunctionCall(
                 assigned_variable="literal",
-                function=f"_PyPegen_expect_token",
+                function=f"_Ta3Pegen_expect_token",
                 arguments=["p", type],
                 nodetype=NodeTypes.GENERIC_TOKEN,
                 return_type="Token *",
@@ -190,20 +190,20 @@ class CCallMakerVisitor(GrammarVisitor):
         call = self.visit(node.node)
         if call.nodetype == NodeTypes.NAME_TOKEN:
             return FunctionCall(
-                function=f"_PyPegen_lookahead_with_name",
+                function=f"_Ta3Pegen_lookahead_with_name",
                 arguments=[positive, call.function, *call.arguments],
                 return_type="int",
             )
         elif call.nodetype in {NodeTypes.GENERIC_TOKEN, NodeTypes.KEYWORD}:
             return FunctionCall(
-                function=f"_PyPegen_lookahead_with_int",
+                function=f"_Ta3Pegen_lookahead_with_int",
                 arguments=[positive, call.function, *call.arguments],
                 return_type="int",
                 comment=f"token={node.node}",
             )
         else:
             return FunctionCall(
-                function=f"_PyPegen_lookahead",
+                function=f"_Ta3Pegen_lookahead",
                 arguments=[positive, call.function, *call.arguments],
                 return_type="int",
             )
@@ -413,7 +413,7 @@ class CParserGenerator(ParserGenerator, GrammarVisitor):
         self.print("};")
 
     def _set_up_token_start_metadata_extraction(self) -> None:
-        self.print("if (p->mark == p->fill && _PyPegen_fill_token(p) < 0) {")
+        self.print("if (p->mark == p->fill && _Ta3Pegen_fill_token(p) < 0) {")
         with self.indent():
             self.print("p->error_indicator = 1;")
             self.print("return NULL;")
@@ -424,7 +424,7 @@ class CParserGenerator(ParserGenerator, GrammarVisitor):
         self.print("UNUSED(start_col_offset); // Only used by EXTRA macro")
 
     def _set_up_token_end_metadata_extraction(self) -> None:
-        self.print("Token *token = _PyPegen_get_last_nonnwhitespace_token(p);")
+        self.print("Token *token = _Ta3Pegen_get_last_nonnwhitespace_token(p);")
         self.print("if (token == NULL) {")
         with self.indent():
             self.print("return NULL;")
@@ -438,7 +438,7 @@ class CParserGenerator(ParserGenerator, GrammarVisitor):
         self.print("{")
         with self.indent():
             self.print(f"{result_type} res = NULL;")
-            self.print(f"if (_PyPegen_is_memoized(p, {node.name}_type, &res))")
+            self.print(f"if (_Ta3Pegen_is_memoized(p, {node.name}_type, &res))")
             with self.indent():
                 self.print("return res;")
             self.print("int mark = p->mark;")
@@ -446,7 +446,7 @@ class CParserGenerator(ParserGenerator, GrammarVisitor):
             self.print("while (1) {")
             with self.indent():
                 self.call_with_errorcheck_return(
-                    f"_PyPegen_update_memo(p, mark, {node.name}_type, res)", "res"
+                    f"_Ta3Pegen_update_memo(p, mark, {node.name}_type, res)", "res"
                 )
                 self.print("p->mark = mark;")
                 self.print(f"void *raw = {node.name}_raw(p);")
@@ -475,7 +475,7 @@ class CParserGenerator(ParserGenerator, GrammarVisitor):
             self.print("}")
             self.print(f"{result_type} res = NULL;")
             if memoize:
-                self.print(f"if (_PyPegen_is_memoized(p, {node.name}_type, &res))")
+                self.print(f"if (_Ta3Pegen_is_memoized(p, {node.name}_type, &res))")
                 with self.indent():
                     self.print("return res;")
             self.print("int mark = p->mark;")
@@ -493,7 +493,7 @@ class CParserGenerator(ParserGenerator, GrammarVisitor):
         self.print("  done:")
         with self.indent():
             if memoize:
-                self.print(f"_PyPegen_insert_memo(p, mark, {node.name}_type, res);")
+                self.print(f"_Ta3Pegen_insert_memo(p, mark, {node.name}_type, res);")
             self.print("return res;")
 
     def _handle_loop_rule_body(self, node: Rule, rhs: Rhs) -> None:
@@ -507,7 +507,7 @@ class CParserGenerator(ParserGenerator, GrammarVisitor):
             self.print("}")
             self.print(f"void *res = NULL;")
             if memoize:
-                self.print(f"if (_PyPegen_is_memoized(p, {node.name}_type, &res))")
+                self.print(f"if (_Ta3Pegen_is_memoized(p, {node.name}_type, &res))")
                 with self.indent():
                     self.print("return res;")
             self.print("int mark = p->mark;")
@@ -530,7 +530,7 @@ class CParserGenerator(ParserGenerator, GrammarVisitor):
                     self.print("PyMem_Free(children);")
                     self.print("return NULL;")
                 self.print("}")
-            self.print("asdl_seq *seq = _Py_asdl_seq_new(n, p->arena);")
+            self.print("asdl_seq *seq = _Ta3_asdl_seq_new(n, p->arena);")
             self.out_of_memory_return(
                 f"!seq",
                 "NULL",
@@ -540,7 +540,7 @@ class CParserGenerator(ParserGenerator, GrammarVisitor):
             self.print("for (int i = 0; i < n; i++) asdl_seq_SET(seq, i, children[i]);")
             self.print("PyMem_Free(children);")
             if node.name:
-                self.print(f"_PyPegen_insert_memo(p, start_mark, {node.name}_type, seq);")
+                self.print(f"_Ta3Pegen_insert_memo(p, start_mark, {node.name}_type, seq);")
             self.print("return seq;")
 
     def visit_Rule(self, node: Rule) -> None:
@@ -619,7 +619,7 @@ class CParserGenerator(ParserGenerator, GrammarVisitor):
             if is_gather:
                 assert len(self.local_variable_names) == 2
                 self.print(
-                    f"res = _PyPegen_seq_insert_in_front(p, "
+                    f"res = _Ta3Pegen_seq_insert_in_front(p, "
                     f"{self.local_variable_names[0]}, {self.local_variable_names[1]});"
                 )
             else:
@@ -628,7 +628,7 @@ class CParserGenerator(ParserGenerator, GrammarVisitor):
                         f'fprintf(stderr, "Hit without action [%d:%d]: %s\\n", mark, p->mark, "{node}");'
                     )
                 self.print(
-                    f"res = _PyPegen_dummy_name(p, {', '.join(self.local_variable_names)});"
+                    f"res = _Ta3Pegen_dummy_name(p, {', '.join(self.local_variable_names)});"
                 )
         else:
             if self.debug:
@@ -638,7 +638,7 @@ class CParserGenerator(ParserGenerator, GrammarVisitor):
             self.print(f"res = {self.local_variable_names[0]};")
 
     def emit_dummy_action(self) -> None:
-        self.print(f"res = _PyPegen_dummy_name(p);")
+        self.print(f"res = _Ta3Pegen_dummy_name(p);")
 
     def handle_alt_normal(self, node: Alt, is_gather: bool) -> None:
         self.join_conditions(keyword="if", node=node)

@@ -292,9 +292,9 @@ class PrototypeVisitor(EmitVisitor):
         margs = "a0"
         for i in range(1, len(args)+1):
             margs += ", a%d" % i
-        self.emit("#define %s(%s) _Py_%s(%s)" % (name, margs, name, margs), 0,
+        self.emit("#define %s(%s) _Ta3_%s(%s)" % (name, margs, name, margs), 0,
                 reflow=False)
-        self.emit("%s _Py_%s(%s);" % (ctype, name, argstr), False)
+        self.emit("%s _Ta3_%s(%s);" % (ctype, name, argstr), False)
 
     def visitProduct(self, prod, name):
         self.emit_function(name, get_c_type(name),
@@ -520,7 +520,7 @@ class Obj2ModVisitor(PickleVisitor):
 
     def visitField(self, field, name, sum=None, prod=None, depth=0):
         ctype = get_c_type(field.type)
-        line = "if (_PyObject_LookupAttr(obj, astmodulestate_global->%s, &tmp) < 0) {"
+        line = "if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->%s, &tmp) < 0) {"
         self.emit(line % field.name, depth)
         self.emit("return 1;", depth+1)
         self.emit("}", depth)
@@ -548,16 +548,16 @@ class Obj2ModVisitor(PickleVisitor):
             self.emit("Py_ssize_t i;", depth+1)
             self.emit("if (!PyList_Check(tmp)) {", depth+1)
             self.emit("PyErr_Format(PyExc_TypeError, \"%s field \\\"%s\\\" must "
-                      "be a list, not a %%.200s\", _PyType_Name(Py_TYPE(tmp)));" %
+                      "be a list, not a %%.200s\", _Ta3Type_Name(Py_TYPE(tmp)));" %
                       (name, field.name),
                       depth+2, reflow=False)
             self.emit("goto failed;", depth+2)
             self.emit("}", depth+1)
             self.emit("len = PyList_GET_SIZE(tmp);", depth+1)
             if self.isSimpleType(field):
-                self.emit("%s = _Py_asdl_int_seq_new(len, arena);" % field.name, depth+1)
+                self.emit("%s = _Ta3_asdl_int_seq_new(len, arena);" % field.name, depth+1)
             else:
-                self.emit("%s = _Py_asdl_seq_new(len, arena);" % field.name, depth+1)
+                self.emit("%s = _Ta3_asdl_seq_new(len, arena);" % field.name, depth+1)
             self.emit("if (%s == NULL) goto failed;" % field.name, depth+1)
             self.emit("for (i = 0; i < len; i++) {", depth+1)
             self.emit("%s val;" % ctype, depth+2)
@@ -685,7 +685,7 @@ ast_type_init(PyObject *self, PyObject *args, PyObject *kw)
     Py_ssize_t i, numfields = 0;
     int res = -1;
     PyObject *key, *value, *fields;
-    if (_PyObject_LookupAttr((PyObject*)Py_TYPE(self), astmodulestate_global->_fields, &fields) < 0) {
+    if (_Pegen_PyObject_LookupAttr((PyObject*)Py_TYPE(self), astmodulestate_global->_fields, &fields) < 0) {
         goto cleanup;
     }
     if (fields) {
@@ -698,7 +698,7 @@ ast_type_init(PyObject *self, PyObject *args, PyObject *kw)
     if (numfields < PyTuple_GET_SIZE(args)) {
         PyErr_Format(PyExc_TypeError, "%.400s constructor takes at most "
                      "%zd positional argument%s",
-                     _PyType_Name(Py_TYPE(self)),
+                     _Ta3Type_Name(Py_TYPE(self)),
                      numfields, numfields == 1 ? "" : "s");
         res = -1;
         goto cleanup;
@@ -733,7 +733,7 @@ static PyObject *
 ast_type_reduce(PyObject *self, PyObject *unused)
 {
     PyObject *dict;
-    if (_PyObject_LookupAttr(self, astmodulestate_global->__dict__, &dict) < 0) {
+    if (_Pegen_PyObject_LookupAttr(self, astmodulestate_global->__dict__, &dict) < 0) {
         return NULL;
     }
     if (dict) {
@@ -1023,7 +1023,7 @@ class ASTModuleVisitor(PickleVisitor):
 
     def visitModule(self, mod):
         self.emit("PyMODINIT_FUNC", 0)
-        self.emit("PyInit__ast(void)", 0)
+        self.emit("PyInit__ast3(void)", 0)
         self.emit("{", 0)
         self.emit("PyObject *m;", 1)
         self.emit("if (!init_types()) return NULL;", 1)
@@ -1223,7 +1223,7 @@ class ObjVisitor(PickleVisitor):
 class PartingShots(StaticVisitor):
 
     CODE = """
-PyObject* PyAST_mod2obj(mod_ty t)
+PyObject* Ta3AST_mod2obj(mod_ty t)
 {
     if (!init_types())
         return NULL;
@@ -1231,15 +1231,11 @@ PyObject* PyAST_mod2obj(mod_ty t)
 }
 
 /* mode is 0 for "exec", 1 for "eval" and 2 for "single" input */
-mod_ty PyAST_obj2mod(PyObject* ast, PyArena* arena, int mode)
+mod_ty Ta3AST_obj2mod(PyObject* ast, PyArena* arena, int mode)
 {
     PyObject *req_type[3];
     const char * const req_name[] = {"Module", "Expression", "Interactive"};
     int isinstance;
-
-    if (PySys_Audit("compile", "OO", ast, Py_None) < 0) {
-        return NULL;
-    }
 
     req_type[0] = astmodulestate_global->Module_type;
     req_type[1] = astmodulestate_global->Expression_type;
@@ -1255,7 +1251,7 @@ mod_ty PyAST_obj2mod(PyObject* ast, PyArena* arena, int mode)
         return NULL;
     if (!isinstance) {
         PyErr_Format(PyExc_TypeError, "expected %s node, got %.400s",
-                     req_name[mode], _PyType_Name(Py_TYPE(ast)));
+                     req_name[mode], _Ta3Type_Name(Py_TYPE(ast)));
         return NULL;
     }
 
@@ -1266,7 +1262,7 @@ mod_ty PyAST_obj2mod(PyObject* ast, PyArena* arena, int mode)
         return res;
 }
 
-int PyAST_Check(PyObject* obj)
+int Ta3AST_Check(PyObject* obj)
 {
     if (!init_types())
         return -1;
@@ -1346,10 +1342,10 @@ static void astmodule_free(void* module) {
 
 static struct PyModuleDef _astmodule = {
     PyModuleDef_HEAD_INIT,
-    "_ast",
+    "_ast3",
     NULL,
     sizeof(astmodulestate),
-    NULL,
+    ast3_methods,
     NULL,
     astmodule_traverse,
     astmodule_clear,
@@ -1387,14 +1383,15 @@ def main(srcfile, dump_module=False):
     if H_FILE:
         with open(H_FILE, "w") as f:
             f.write(auto_gen_msg)
-            f.write('#ifndef Py_PYTHON_AST_H\n')
-            f.write('#define Py_PYTHON_AST_H\n')
+            f.write('#ifndef Ta3_PYTHON_AST_H\n')
+            f.write('#define Ta3_PYTHON_AST_H\n')
             f.write('#ifdef __cplusplus\n')
             f.write('extern "C" {\n')
             f.write('#endif\n')
             f.write('\n')
             f.write('#ifndef Py_LIMITED_API\n')
             f.write('#include "asdl.h"\n')
+            f.write('#include "../Include/ta3_compat.h"')
             f.write('\n')
             f.write('#undef Yield   /* undefine macro conflicting with <winbase.h> */\n')
             f.write('\n')
@@ -1405,15 +1402,15 @@ def main(srcfile, dump_module=False):
             f.write("// Note: these macros affect function definitions, not only call sites.\n")
             PrototypeVisitor(f).visit(mod)
             f.write("\n")
-            f.write("PyObject* PyAST_mod2obj(mod_ty t);\n")
-            f.write("mod_ty PyAST_obj2mod(PyObject* ast, PyArena* arena, int mode);\n")
-            f.write("int PyAST_Check(PyObject* obj);\n")
+            f.write("PyObject* Ta3AST_mod2obj(mod_ty t);\n")
+            f.write("mod_ty Ta3AST_obj2mod(PyObject* ast, PyArena* arena, int mode);\n")
+            f.write("int Ta3AST_Check(PyObject* obj);\n")
             f.write("#endif /* !Py_LIMITED_API */\n")
             f.write('\n')
             f.write('#ifdef __cplusplus\n')
             f.write('}\n')
             f.write('#endif\n')
-            f.write('#endif /* !Py_PYTHON_AST_H */\n')
+            f.write('#endif /* !Ta3_PYTHON_AST_H */\n')
 
     if C_FILE:
         with open(C_FILE, "w") as f:
@@ -1421,9 +1418,14 @@ def main(srcfile, dump_module=False):
             f.write('#include <stddef.h>\n')
             f.write('\n')
             f.write('#include "Python.h"\n')
-            f.write('#include "%s-ast.h"\n' % mod.name)
+            f.write('#include "../Include/%s-ast.h"\n' % mod.name)
             f.write('#include "structmember.h"         // PyMemberDef\n')
             f.write('\n')
+            f.write("PyObject *ast3_parse(PyObject *self, PyObject *args);\n")
+            f.write("static PyMethodDef ast3_methods[] = {\n")
+            f.write('    {"_parse",  ast3_parse, METH_VARARGS, "Parse string into typed AST."},\n')
+            f.write("    {NULL, NULL, NULL}\n")
+            f.write("};\n")
 
             generate_module_def(f, mod)
 

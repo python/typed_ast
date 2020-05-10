@@ -3,9 +3,14 @@
 #include <stddef.h>
 
 #include "Python.h"
-#include "Python-ast.h"
+#include "../Include/Python-ast.h"
 #include "structmember.h"         // PyMemberDef
 
+PyObject *ast3_parse(PyObject *self, PyObject *args);
+static PyMethodDef ast3_methods[] = {
+    {"_parse",  ast3_parse, METH_VARARGS, "Parse string into typed AST."},
+    {NULL, NULL, NULL}
+};
 typedef struct {
     int initialized;
     PyObject *AST_type;
@@ -670,10 +675,10 @@ static void astmodule_free(void* module) {
 
 static struct PyModuleDef _astmodule = {
     PyModuleDef_HEAD_INIT,
-    "_ast",
+    "_ast3",
     NULL,
     sizeof(astmodulestate),
-    NULL,
+    ast3_methods,
     NULL,
     astmodule_traverse,
     astmodule_clear,
@@ -1126,7 +1131,7 @@ ast_type_init(PyObject *self, PyObject *args, PyObject *kw)
     Py_ssize_t i, numfields = 0;
     int res = -1;
     PyObject *key, *value, *fields;
-    if (_PyObject_LookupAttr((PyObject*)Py_TYPE(self), astmodulestate_global->_fields, &fields) < 0) {
+    if (_Pegen_PyObject_LookupAttr((PyObject*)Py_TYPE(self), astmodulestate_global->_fields, &fields) < 0) {
         goto cleanup;
     }
     if (fields) {
@@ -1139,7 +1144,7 @@ ast_type_init(PyObject *self, PyObject *args, PyObject *kw)
     if (numfields < PyTuple_GET_SIZE(args)) {
         PyErr_Format(PyExc_TypeError, "%.400s constructor takes at most "
                      "%zd positional argument%s",
-                     _PyType_Name(Py_TYPE(self)),
+                     _Ta3Type_Name(Py_TYPE(self)),
                      numfields, numfields == 1 ? "" : "s");
         res = -1;
         goto cleanup;
@@ -1174,7 +1179,7 @@ static PyObject *
 ast_type_reduce(PyObject *self, PyObject *unused)
 {
     PyObject *dict;
-    if (_PyObject_LookupAttr(self, astmodulestate_global->__dict__, &dict) < 0) {
+    if (_Pegen_PyObject_LookupAttr(self, astmodulestate_global->__dict__, &dict) < 0) {
         return NULL;
     }
     if (dict) {
@@ -5100,7 +5105,8 @@ obj2ast_mod(PyObject* obj, mod_ty* out, PyArena* arena)
         asdl_seq* body;
         asdl_seq* type_ignores;
 
-        if (_PyObject_LookupAttr(obj, astmodulestate_global->body, &tmp) < 0) {
+        if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->body, &tmp)
+            < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -5112,11 +5118,11 @@ obj2ast_mod(PyObject* obj, mod_ty* out, PyArena* arena)
             Py_ssize_t len;
             Py_ssize_t i;
             if (!PyList_Check(tmp)) {
-                PyErr_Format(PyExc_TypeError, "Module field \"body\" must be a list, not a %.200s", _PyType_Name(Py_TYPE(tmp)));
+                PyErr_Format(PyExc_TypeError, "Module field \"body\" must be a list, not a %.200s", _Ta3Type_Name(Py_TYPE(tmp)));
                 goto failed;
             }
             len = PyList_GET_SIZE(tmp);
-            body = _Py_asdl_seq_new(len, arena);
+            body = _Ta3_asdl_seq_new(len, arena);
             if (body == NULL) goto failed;
             for (i = 0; i < len; i++) {
                 stmt_ty val;
@@ -5133,8 +5139,8 @@ obj2ast_mod(PyObject* obj, mod_ty* out, PyArena* arena)
             }
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttr(obj, astmodulestate_global->type_ignores,
-            &tmp) < 0) {
+        if (_Pegen_PyObject_LookupAttr(obj,
+            astmodulestate_global->type_ignores, &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -5146,11 +5152,11 @@ obj2ast_mod(PyObject* obj, mod_ty* out, PyArena* arena)
             Py_ssize_t len;
             Py_ssize_t i;
             if (!PyList_Check(tmp)) {
-                PyErr_Format(PyExc_TypeError, "Module field \"type_ignores\" must be a list, not a %.200s", _PyType_Name(Py_TYPE(tmp)));
+                PyErr_Format(PyExc_TypeError, "Module field \"type_ignores\" must be a list, not a %.200s", _Ta3Type_Name(Py_TYPE(tmp)));
                 goto failed;
             }
             len = PyList_GET_SIZE(tmp);
-            type_ignores = _Py_asdl_seq_new(len, arena);
+            type_ignores = _Ta3_asdl_seq_new(len, arena);
             if (type_ignores == NULL) goto failed;
             for (i = 0; i < len; i++) {
                 type_ignore_ty val;
@@ -5179,7 +5185,8 @@ obj2ast_mod(PyObject* obj, mod_ty* out, PyArena* arena)
     if (isinstance) {
         asdl_seq* body;
 
-        if (_PyObject_LookupAttr(obj, astmodulestate_global->body, &tmp) < 0) {
+        if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->body, &tmp)
+            < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -5191,11 +5198,11 @@ obj2ast_mod(PyObject* obj, mod_ty* out, PyArena* arena)
             Py_ssize_t len;
             Py_ssize_t i;
             if (!PyList_Check(tmp)) {
-                PyErr_Format(PyExc_TypeError, "Interactive field \"body\" must be a list, not a %.200s", _PyType_Name(Py_TYPE(tmp)));
+                PyErr_Format(PyExc_TypeError, "Interactive field \"body\" must be a list, not a %.200s", _Ta3Type_Name(Py_TYPE(tmp)));
                 goto failed;
             }
             len = PyList_GET_SIZE(tmp);
-            body = _Py_asdl_seq_new(len, arena);
+            body = _Ta3_asdl_seq_new(len, arena);
             if (body == NULL) goto failed;
             for (i = 0; i < len; i++) {
                 stmt_ty val;
@@ -5224,7 +5231,8 @@ obj2ast_mod(PyObject* obj, mod_ty* out, PyArena* arena)
     if (isinstance) {
         expr_ty body;
 
-        if (_PyObject_LookupAttr(obj, astmodulestate_global->body, &tmp) < 0) {
+        if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->body, &tmp)
+            < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -5250,8 +5258,8 @@ obj2ast_mod(PyObject* obj, mod_ty* out, PyArena* arena)
         asdl_seq* argtypes;
         expr_ty returns;
 
-        if (_PyObject_LookupAttr(obj, astmodulestate_global->argtypes, &tmp) <
-            0) {
+        if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->argtypes,
+            &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -5263,11 +5271,11 @@ obj2ast_mod(PyObject* obj, mod_ty* out, PyArena* arena)
             Py_ssize_t len;
             Py_ssize_t i;
             if (!PyList_Check(tmp)) {
-                PyErr_Format(PyExc_TypeError, "FunctionType field \"argtypes\" must be a list, not a %.200s", _PyType_Name(Py_TYPE(tmp)));
+                PyErr_Format(PyExc_TypeError, "FunctionType field \"argtypes\" must be a list, not a %.200s", _Ta3Type_Name(Py_TYPE(tmp)));
                 goto failed;
             }
             len = PyList_GET_SIZE(tmp);
-            argtypes = _Py_asdl_seq_new(len, arena);
+            argtypes = _Ta3_asdl_seq_new(len, arena);
             if (argtypes == NULL) goto failed;
             for (i = 0; i < len; i++) {
                 expr_ty val;
@@ -5284,8 +5292,8 @@ obj2ast_mod(PyObject* obj, mod_ty* out, PyArena* arena)
             }
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttr(obj, astmodulestate_global->returns, &tmp) <
-            0) {
+        if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->returns,
+            &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -5325,7 +5333,8 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
         *out = NULL;
         return 0;
     }
-    if (_PyObject_LookupAttr(obj, astmodulestate_global->lineno, &tmp) < 0) {
+    if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->lineno, &tmp) <
+        0) {
         return 1;
     }
     if (tmp == NULL) {
@@ -5338,8 +5347,8 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
         if (res != 0) goto failed;
         Py_CLEAR(tmp);
     }
-    if (_PyObject_LookupAttr(obj, astmodulestate_global->col_offset, &tmp) < 0)
-        {
+    if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->col_offset,
+        &tmp) < 0) {
         return 1;
     }
     if (tmp == NULL) {
@@ -5352,8 +5361,8 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
         if (res != 0) goto failed;
         Py_CLEAR(tmp);
     }
-    if (_PyObject_LookupAttr(obj, astmodulestate_global->end_lineno, &tmp) < 0)
-        {
+    if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->end_lineno,
+        &tmp) < 0) {
         return 1;
     }
     if (tmp == NULL || tmp == Py_None) {
@@ -5366,8 +5375,8 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
         if (res != 0) goto failed;
         Py_CLEAR(tmp);
     }
-    if (_PyObject_LookupAttr(obj, astmodulestate_global->end_col_offset, &tmp)
-        < 0) {
+    if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->end_col_offset,
+        &tmp) < 0) {
         return 1;
     }
     if (tmp == NULL || tmp == Py_None) {
@@ -5393,7 +5402,8 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
         expr_ty returns;
         string type_comment;
 
-        if (_PyObject_LookupAttr(obj, astmodulestate_global->name, &tmp) < 0) {
+        if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->name, &tmp)
+            < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -5406,7 +5416,8 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
             if (res != 0) goto failed;
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttr(obj, astmodulestate_global->args, &tmp) < 0) {
+        if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->args, &tmp)
+            < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -5419,7 +5430,8 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
             if (res != 0) goto failed;
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttr(obj, astmodulestate_global->body, &tmp) < 0) {
+        if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->body, &tmp)
+            < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -5431,11 +5443,11 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
             Py_ssize_t len;
             Py_ssize_t i;
             if (!PyList_Check(tmp)) {
-                PyErr_Format(PyExc_TypeError, "FunctionDef field \"body\" must be a list, not a %.200s", _PyType_Name(Py_TYPE(tmp)));
+                PyErr_Format(PyExc_TypeError, "FunctionDef field \"body\" must be a list, not a %.200s", _Ta3Type_Name(Py_TYPE(tmp)));
                 goto failed;
             }
             len = PyList_GET_SIZE(tmp);
-            body = _Py_asdl_seq_new(len, arena);
+            body = _Ta3_asdl_seq_new(len, arena);
             if (body == NULL) goto failed;
             for (i = 0; i < len; i++) {
                 stmt_ty val;
@@ -5452,8 +5464,8 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
             }
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttr(obj, astmodulestate_global->decorator_list,
-            &tmp) < 0) {
+        if (_Pegen_PyObject_LookupAttr(obj,
+            astmodulestate_global->decorator_list, &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -5465,11 +5477,11 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
             Py_ssize_t len;
             Py_ssize_t i;
             if (!PyList_Check(tmp)) {
-                PyErr_Format(PyExc_TypeError, "FunctionDef field \"decorator_list\" must be a list, not a %.200s", _PyType_Name(Py_TYPE(tmp)));
+                PyErr_Format(PyExc_TypeError, "FunctionDef field \"decorator_list\" must be a list, not a %.200s", _Ta3Type_Name(Py_TYPE(tmp)));
                 goto failed;
             }
             len = PyList_GET_SIZE(tmp);
-            decorator_list = _Py_asdl_seq_new(len, arena);
+            decorator_list = _Ta3_asdl_seq_new(len, arena);
             if (decorator_list == NULL) goto failed;
             for (i = 0; i < len; i++) {
                 expr_ty val;
@@ -5486,8 +5498,8 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
             }
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttr(obj, astmodulestate_global->returns, &tmp) <
-            0) {
+        if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->returns,
+            &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL || tmp == Py_None) {
@@ -5500,8 +5512,8 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
             if (res != 0) goto failed;
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttr(obj, astmodulestate_global->type_comment,
-            &tmp) < 0) {
+        if (_Pegen_PyObject_LookupAttr(obj,
+            astmodulestate_global->type_comment, &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL || tmp == Py_None) {
@@ -5533,7 +5545,8 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
         expr_ty returns;
         string type_comment;
 
-        if (_PyObject_LookupAttr(obj, astmodulestate_global->name, &tmp) < 0) {
+        if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->name, &tmp)
+            < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -5546,7 +5559,8 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
             if (res != 0) goto failed;
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttr(obj, astmodulestate_global->args, &tmp) < 0) {
+        if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->args, &tmp)
+            < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -5559,7 +5573,8 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
             if (res != 0) goto failed;
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttr(obj, astmodulestate_global->body, &tmp) < 0) {
+        if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->body, &tmp)
+            < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -5571,11 +5586,11 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
             Py_ssize_t len;
             Py_ssize_t i;
             if (!PyList_Check(tmp)) {
-                PyErr_Format(PyExc_TypeError, "AsyncFunctionDef field \"body\" must be a list, not a %.200s", _PyType_Name(Py_TYPE(tmp)));
+                PyErr_Format(PyExc_TypeError, "AsyncFunctionDef field \"body\" must be a list, not a %.200s", _Ta3Type_Name(Py_TYPE(tmp)));
                 goto failed;
             }
             len = PyList_GET_SIZE(tmp);
-            body = _Py_asdl_seq_new(len, arena);
+            body = _Ta3_asdl_seq_new(len, arena);
             if (body == NULL) goto failed;
             for (i = 0; i < len; i++) {
                 stmt_ty val;
@@ -5592,8 +5607,8 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
             }
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttr(obj, astmodulestate_global->decorator_list,
-            &tmp) < 0) {
+        if (_Pegen_PyObject_LookupAttr(obj,
+            astmodulestate_global->decorator_list, &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -5605,11 +5620,11 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
             Py_ssize_t len;
             Py_ssize_t i;
             if (!PyList_Check(tmp)) {
-                PyErr_Format(PyExc_TypeError, "AsyncFunctionDef field \"decorator_list\" must be a list, not a %.200s", _PyType_Name(Py_TYPE(tmp)));
+                PyErr_Format(PyExc_TypeError, "AsyncFunctionDef field \"decorator_list\" must be a list, not a %.200s", _Ta3Type_Name(Py_TYPE(tmp)));
                 goto failed;
             }
             len = PyList_GET_SIZE(tmp);
-            decorator_list = _Py_asdl_seq_new(len, arena);
+            decorator_list = _Ta3_asdl_seq_new(len, arena);
             if (decorator_list == NULL) goto failed;
             for (i = 0; i < len; i++) {
                 expr_ty val;
@@ -5626,8 +5641,8 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
             }
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttr(obj, astmodulestate_global->returns, &tmp) <
-            0) {
+        if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->returns,
+            &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL || tmp == Py_None) {
@@ -5640,8 +5655,8 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
             if (res != 0) goto failed;
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttr(obj, astmodulestate_global->type_comment,
-            &tmp) < 0) {
+        if (_Pegen_PyObject_LookupAttr(obj,
+            astmodulestate_global->type_comment, &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL || tmp == Py_None) {
@@ -5672,7 +5687,8 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
         asdl_seq* body;
         asdl_seq* decorator_list;
 
-        if (_PyObject_LookupAttr(obj, astmodulestate_global->name, &tmp) < 0) {
+        if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->name, &tmp)
+            < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -5685,7 +5701,8 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
             if (res != 0) goto failed;
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttr(obj, astmodulestate_global->bases, &tmp) < 0) {
+        if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->bases, &tmp)
+            < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -5697,11 +5714,11 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
             Py_ssize_t len;
             Py_ssize_t i;
             if (!PyList_Check(tmp)) {
-                PyErr_Format(PyExc_TypeError, "ClassDef field \"bases\" must be a list, not a %.200s", _PyType_Name(Py_TYPE(tmp)));
+                PyErr_Format(PyExc_TypeError, "ClassDef field \"bases\" must be a list, not a %.200s", _Ta3Type_Name(Py_TYPE(tmp)));
                 goto failed;
             }
             len = PyList_GET_SIZE(tmp);
-            bases = _Py_asdl_seq_new(len, arena);
+            bases = _Ta3_asdl_seq_new(len, arena);
             if (bases == NULL) goto failed;
             for (i = 0; i < len; i++) {
                 expr_ty val;
@@ -5718,8 +5735,8 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
             }
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttr(obj, astmodulestate_global->keywords, &tmp) <
-            0) {
+        if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->keywords,
+            &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -5731,11 +5748,11 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
             Py_ssize_t len;
             Py_ssize_t i;
             if (!PyList_Check(tmp)) {
-                PyErr_Format(PyExc_TypeError, "ClassDef field \"keywords\" must be a list, not a %.200s", _PyType_Name(Py_TYPE(tmp)));
+                PyErr_Format(PyExc_TypeError, "ClassDef field \"keywords\" must be a list, not a %.200s", _Ta3Type_Name(Py_TYPE(tmp)));
                 goto failed;
             }
             len = PyList_GET_SIZE(tmp);
-            keywords = _Py_asdl_seq_new(len, arena);
+            keywords = _Ta3_asdl_seq_new(len, arena);
             if (keywords == NULL) goto failed;
             for (i = 0; i < len; i++) {
                 keyword_ty val;
@@ -5752,7 +5769,8 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
             }
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttr(obj, astmodulestate_global->body, &tmp) < 0) {
+        if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->body, &tmp)
+            < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -5764,11 +5782,11 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
             Py_ssize_t len;
             Py_ssize_t i;
             if (!PyList_Check(tmp)) {
-                PyErr_Format(PyExc_TypeError, "ClassDef field \"body\" must be a list, not a %.200s", _PyType_Name(Py_TYPE(tmp)));
+                PyErr_Format(PyExc_TypeError, "ClassDef field \"body\" must be a list, not a %.200s", _Ta3Type_Name(Py_TYPE(tmp)));
                 goto failed;
             }
             len = PyList_GET_SIZE(tmp);
-            body = _Py_asdl_seq_new(len, arena);
+            body = _Ta3_asdl_seq_new(len, arena);
             if (body == NULL) goto failed;
             for (i = 0; i < len; i++) {
                 stmt_ty val;
@@ -5785,8 +5803,8 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
             }
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttr(obj, astmodulestate_global->decorator_list,
-            &tmp) < 0) {
+        if (_Pegen_PyObject_LookupAttr(obj,
+            astmodulestate_global->decorator_list, &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -5798,11 +5816,11 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
             Py_ssize_t len;
             Py_ssize_t i;
             if (!PyList_Check(tmp)) {
-                PyErr_Format(PyExc_TypeError, "ClassDef field \"decorator_list\" must be a list, not a %.200s", _PyType_Name(Py_TYPE(tmp)));
+                PyErr_Format(PyExc_TypeError, "ClassDef field \"decorator_list\" must be a list, not a %.200s", _Ta3Type_Name(Py_TYPE(tmp)));
                 goto failed;
             }
             len = PyList_GET_SIZE(tmp);
-            decorator_list = _Py_asdl_seq_new(len, arena);
+            decorator_list = _Ta3_asdl_seq_new(len, arena);
             if (decorator_list == NULL) goto failed;
             for (i = 0; i < len; i++) {
                 expr_ty val;
@@ -5832,7 +5850,8 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
     if (isinstance) {
         expr_ty value;
 
-        if (_PyObject_LookupAttr(obj, astmodulestate_global->value, &tmp) < 0) {
+        if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->value, &tmp)
+            < 0) {
             return 1;
         }
         if (tmp == NULL || tmp == Py_None) {
@@ -5858,8 +5877,8 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
     if (isinstance) {
         asdl_seq* targets;
 
-        if (_PyObject_LookupAttr(obj, astmodulestate_global->targets, &tmp) <
-            0) {
+        if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->targets,
+            &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -5871,11 +5890,11 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
             Py_ssize_t len;
             Py_ssize_t i;
             if (!PyList_Check(tmp)) {
-                PyErr_Format(PyExc_TypeError, "Delete field \"targets\" must be a list, not a %.200s", _PyType_Name(Py_TYPE(tmp)));
+                PyErr_Format(PyExc_TypeError, "Delete field \"targets\" must be a list, not a %.200s", _Ta3Type_Name(Py_TYPE(tmp)));
                 goto failed;
             }
             len = PyList_GET_SIZE(tmp);
-            targets = _Py_asdl_seq_new(len, arena);
+            targets = _Ta3_asdl_seq_new(len, arena);
             if (targets == NULL) goto failed;
             for (i = 0; i < len; i++) {
                 expr_ty val;
@@ -5907,8 +5926,8 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
         expr_ty value;
         string type_comment;
 
-        if (_PyObject_LookupAttr(obj, astmodulestate_global->targets, &tmp) <
-            0) {
+        if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->targets,
+            &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -5920,11 +5939,11 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
             Py_ssize_t len;
             Py_ssize_t i;
             if (!PyList_Check(tmp)) {
-                PyErr_Format(PyExc_TypeError, "Assign field \"targets\" must be a list, not a %.200s", _PyType_Name(Py_TYPE(tmp)));
+                PyErr_Format(PyExc_TypeError, "Assign field \"targets\" must be a list, not a %.200s", _Ta3Type_Name(Py_TYPE(tmp)));
                 goto failed;
             }
             len = PyList_GET_SIZE(tmp);
-            targets = _Py_asdl_seq_new(len, arena);
+            targets = _Ta3_asdl_seq_new(len, arena);
             if (targets == NULL) goto failed;
             for (i = 0; i < len; i++) {
                 expr_ty val;
@@ -5941,7 +5960,8 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
             }
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttr(obj, astmodulestate_global->value, &tmp) < 0) {
+        if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->value, &tmp)
+            < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -5954,8 +5974,8 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
             if (res != 0) goto failed;
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttr(obj, astmodulestate_global->type_comment,
-            &tmp) < 0) {
+        if (_Pegen_PyObject_LookupAttr(obj,
+            astmodulestate_global->type_comment, &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL || tmp == Py_None) {
@@ -5983,8 +6003,8 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
         operator_ty op;
         expr_ty value;
 
-        if (_PyObject_LookupAttr(obj, astmodulestate_global->target, &tmp) < 0)
-            {
+        if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->target,
+            &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -5997,7 +6017,8 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
             if (res != 0) goto failed;
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttr(obj, astmodulestate_global->op, &tmp) < 0) {
+        if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->op, &tmp) <
+            0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -6010,7 +6031,8 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
             if (res != 0) goto failed;
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttr(obj, astmodulestate_global->value, &tmp) < 0) {
+        if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->value, &tmp)
+            < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -6039,8 +6061,8 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
         expr_ty value;
         int simple;
 
-        if (_PyObject_LookupAttr(obj, astmodulestate_global->target, &tmp) < 0)
-            {
+        if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->target,
+            &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -6053,8 +6075,8 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
             if (res != 0) goto failed;
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttr(obj, astmodulestate_global->annotation, &tmp)
-            < 0) {
+        if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->annotation,
+            &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -6067,7 +6089,8 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
             if (res != 0) goto failed;
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttr(obj, astmodulestate_global->value, &tmp) < 0) {
+        if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->value, &tmp)
+            < 0) {
             return 1;
         }
         if (tmp == NULL || tmp == Py_None) {
@@ -6080,8 +6103,8 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
             if (res != 0) goto failed;
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttr(obj, astmodulestate_global->simple, &tmp) < 0)
-            {
+        if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->simple,
+            &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -6111,8 +6134,8 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
         asdl_seq* orelse;
         string type_comment;
 
-        if (_PyObject_LookupAttr(obj, astmodulestate_global->target, &tmp) < 0)
-            {
+        if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->target,
+            &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -6125,7 +6148,8 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
             if (res != 0) goto failed;
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttr(obj, astmodulestate_global->iter, &tmp) < 0) {
+        if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->iter, &tmp)
+            < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -6138,7 +6162,8 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
             if (res != 0) goto failed;
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttr(obj, astmodulestate_global->body, &tmp) < 0) {
+        if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->body, &tmp)
+            < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -6150,11 +6175,11 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
             Py_ssize_t len;
             Py_ssize_t i;
             if (!PyList_Check(tmp)) {
-                PyErr_Format(PyExc_TypeError, "For field \"body\" must be a list, not a %.200s", _PyType_Name(Py_TYPE(tmp)));
+                PyErr_Format(PyExc_TypeError, "For field \"body\" must be a list, not a %.200s", _Ta3Type_Name(Py_TYPE(tmp)));
                 goto failed;
             }
             len = PyList_GET_SIZE(tmp);
-            body = _Py_asdl_seq_new(len, arena);
+            body = _Ta3_asdl_seq_new(len, arena);
             if (body == NULL) goto failed;
             for (i = 0; i < len; i++) {
                 stmt_ty val;
@@ -6171,8 +6196,8 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
             }
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttr(obj, astmodulestate_global->orelse, &tmp) < 0)
-            {
+        if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->orelse,
+            &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -6184,11 +6209,11 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
             Py_ssize_t len;
             Py_ssize_t i;
             if (!PyList_Check(tmp)) {
-                PyErr_Format(PyExc_TypeError, "For field \"orelse\" must be a list, not a %.200s", _PyType_Name(Py_TYPE(tmp)));
+                PyErr_Format(PyExc_TypeError, "For field \"orelse\" must be a list, not a %.200s", _Ta3Type_Name(Py_TYPE(tmp)));
                 goto failed;
             }
             len = PyList_GET_SIZE(tmp);
-            orelse = _Py_asdl_seq_new(len, arena);
+            orelse = _Ta3_asdl_seq_new(len, arena);
             if (orelse == NULL) goto failed;
             for (i = 0; i < len; i++) {
                 stmt_ty val;
@@ -6205,8 +6230,8 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
             }
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttr(obj, astmodulestate_global->type_comment,
-            &tmp) < 0) {
+        if (_Pegen_PyObject_LookupAttr(obj,
+            astmodulestate_global->type_comment, &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL || tmp == Py_None) {
@@ -6236,8 +6261,8 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
         asdl_seq* orelse;
         string type_comment;
 
-        if (_PyObject_LookupAttr(obj, astmodulestate_global->target, &tmp) < 0)
-            {
+        if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->target,
+            &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -6250,7 +6275,8 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
             if (res != 0) goto failed;
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttr(obj, astmodulestate_global->iter, &tmp) < 0) {
+        if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->iter, &tmp)
+            < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -6263,7 +6289,8 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
             if (res != 0) goto failed;
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttr(obj, astmodulestate_global->body, &tmp) < 0) {
+        if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->body, &tmp)
+            < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -6275,11 +6302,11 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
             Py_ssize_t len;
             Py_ssize_t i;
             if (!PyList_Check(tmp)) {
-                PyErr_Format(PyExc_TypeError, "AsyncFor field \"body\" must be a list, not a %.200s", _PyType_Name(Py_TYPE(tmp)));
+                PyErr_Format(PyExc_TypeError, "AsyncFor field \"body\" must be a list, not a %.200s", _Ta3Type_Name(Py_TYPE(tmp)));
                 goto failed;
             }
             len = PyList_GET_SIZE(tmp);
-            body = _Py_asdl_seq_new(len, arena);
+            body = _Ta3_asdl_seq_new(len, arena);
             if (body == NULL) goto failed;
             for (i = 0; i < len; i++) {
                 stmt_ty val;
@@ -6296,8 +6323,8 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
             }
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttr(obj, astmodulestate_global->orelse, &tmp) < 0)
-            {
+        if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->orelse,
+            &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -6309,11 +6336,11 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
             Py_ssize_t len;
             Py_ssize_t i;
             if (!PyList_Check(tmp)) {
-                PyErr_Format(PyExc_TypeError, "AsyncFor field \"orelse\" must be a list, not a %.200s", _PyType_Name(Py_TYPE(tmp)));
+                PyErr_Format(PyExc_TypeError, "AsyncFor field \"orelse\" must be a list, not a %.200s", _Ta3Type_Name(Py_TYPE(tmp)));
                 goto failed;
             }
             len = PyList_GET_SIZE(tmp);
-            orelse = _Py_asdl_seq_new(len, arena);
+            orelse = _Ta3_asdl_seq_new(len, arena);
             if (orelse == NULL) goto failed;
             for (i = 0; i < len; i++) {
                 stmt_ty val;
@@ -6330,8 +6357,8 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
             }
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttr(obj, astmodulestate_global->type_comment,
-            &tmp) < 0) {
+        if (_Pegen_PyObject_LookupAttr(obj,
+            astmodulestate_global->type_comment, &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL || tmp == Py_None) {
@@ -6359,7 +6386,8 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
         asdl_seq* body;
         asdl_seq* orelse;
 
-        if (_PyObject_LookupAttr(obj, astmodulestate_global->test, &tmp) < 0) {
+        if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->test, &tmp)
+            < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -6372,7 +6400,8 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
             if (res != 0) goto failed;
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttr(obj, astmodulestate_global->body, &tmp) < 0) {
+        if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->body, &tmp)
+            < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -6384,11 +6413,11 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
             Py_ssize_t len;
             Py_ssize_t i;
             if (!PyList_Check(tmp)) {
-                PyErr_Format(PyExc_TypeError, "While field \"body\" must be a list, not a %.200s", _PyType_Name(Py_TYPE(tmp)));
+                PyErr_Format(PyExc_TypeError, "While field \"body\" must be a list, not a %.200s", _Ta3Type_Name(Py_TYPE(tmp)));
                 goto failed;
             }
             len = PyList_GET_SIZE(tmp);
-            body = _Py_asdl_seq_new(len, arena);
+            body = _Ta3_asdl_seq_new(len, arena);
             if (body == NULL) goto failed;
             for (i = 0; i < len; i++) {
                 stmt_ty val;
@@ -6405,8 +6434,8 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
             }
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttr(obj, astmodulestate_global->orelse, &tmp) < 0)
-            {
+        if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->orelse,
+            &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -6418,11 +6447,11 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
             Py_ssize_t len;
             Py_ssize_t i;
             if (!PyList_Check(tmp)) {
-                PyErr_Format(PyExc_TypeError, "While field \"orelse\" must be a list, not a %.200s", _PyType_Name(Py_TYPE(tmp)));
+                PyErr_Format(PyExc_TypeError, "While field \"orelse\" must be a list, not a %.200s", _Ta3Type_Name(Py_TYPE(tmp)));
                 goto failed;
             }
             len = PyList_GET_SIZE(tmp);
-            orelse = _Py_asdl_seq_new(len, arena);
+            orelse = _Ta3_asdl_seq_new(len, arena);
             if (orelse == NULL) goto failed;
             for (i = 0; i < len; i++) {
                 stmt_ty val;
@@ -6454,7 +6483,8 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
         asdl_seq* body;
         asdl_seq* orelse;
 
-        if (_PyObject_LookupAttr(obj, astmodulestate_global->test, &tmp) < 0) {
+        if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->test, &tmp)
+            < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -6467,7 +6497,8 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
             if (res != 0) goto failed;
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttr(obj, astmodulestate_global->body, &tmp) < 0) {
+        if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->body, &tmp)
+            < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -6479,11 +6510,11 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
             Py_ssize_t len;
             Py_ssize_t i;
             if (!PyList_Check(tmp)) {
-                PyErr_Format(PyExc_TypeError, "If field \"body\" must be a list, not a %.200s", _PyType_Name(Py_TYPE(tmp)));
+                PyErr_Format(PyExc_TypeError, "If field \"body\" must be a list, not a %.200s", _Ta3Type_Name(Py_TYPE(tmp)));
                 goto failed;
             }
             len = PyList_GET_SIZE(tmp);
-            body = _Py_asdl_seq_new(len, arena);
+            body = _Ta3_asdl_seq_new(len, arena);
             if (body == NULL) goto failed;
             for (i = 0; i < len; i++) {
                 stmt_ty val;
@@ -6500,8 +6531,8 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
             }
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttr(obj, astmodulestate_global->orelse, &tmp) < 0)
-            {
+        if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->orelse,
+            &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -6513,11 +6544,11 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
             Py_ssize_t len;
             Py_ssize_t i;
             if (!PyList_Check(tmp)) {
-                PyErr_Format(PyExc_TypeError, "If field \"orelse\" must be a list, not a %.200s", _PyType_Name(Py_TYPE(tmp)));
+                PyErr_Format(PyExc_TypeError, "If field \"orelse\" must be a list, not a %.200s", _Ta3Type_Name(Py_TYPE(tmp)));
                 goto failed;
             }
             len = PyList_GET_SIZE(tmp);
-            orelse = _Py_asdl_seq_new(len, arena);
+            orelse = _Ta3_asdl_seq_new(len, arena);
             if (orelse == NULL) goto failed;
             for (i = 0; i < len; i++) {
                 stmt_ty val;
@@ -6549,7 +6580,8 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
         asdl_seq* body;
         string type_comment;
 
-        if (_PyObject_LookupAttr(obj, astmodulestate_global->items, &tmp) < 0) {
+        if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->items, &tmp)
+            < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -6561,11 +6593,11 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
             Py_ssize_t len;
             Py_ssize_t i;
             if (!PyList_Check(tmp)) {
-                PyErr_Format(PyExc_TypeError, "With field \"items\" must be a list, not a %.200s", _PyType_Name(Py_TYPE(tmp)));
+                PyErr_Format(PyExc_TypeError, "With field \"items\" must be a list, not a %.200s", _Ta3Type_Name(Py_TYPE(tmp)));
                 goto failed;
             }
             len = PyList_GET_SIZE(tmp);
-            items = _Py_asdl_seq_new(len, arena);
+            items = _Ta3_asdl_seq_new(len, arena);
             if (items == NULL) goto failed;
             for (i = 0; i < len; i++) {
                 withitem_ty val;
@@ -6582,7 +6614,8 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
             }
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttr(obj, astmodulestate_global->body, &tmp) < 0) {
+        if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->body, &tmp)
+            < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -6594,11 +6627,11 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
             Py_ssize_t len;
             Py_ssize_t i;
             if (!PyList_Check(tmp)) {
-                PyErr_Format(PyExc_TypeError, "With field \"body\" must be a list, not a %.200s", _PyType_Name(Py_TYPE(tmp)));
+                PyErr_Format(PyExc_TypeError, "With field \"body\" must be a list, not a %.200s", _Ta3Type_Name(Py_TYPE(tmp)));
                 goto failed;
             }
             len = PyList_GET_SIZE(tmp);
-            body = _Py_asdl_seq_new(len, arena);
+            body = _Ta3_asdl_seq_new(len, arena);
             if (body == NULL) goto failed;
             for (i = 0; i < len; i++) {
                 stmt_ty val;
@@ -6615,8 +6648,8 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
             }
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttr(obj, astmodulestate_global->type_comment,
-            &tmp) < 0) {
+        if (_Pegen_PyObject_LookupAttr(obj,
+            astmodulestate_global->type_comment, &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL || tmp == Py_None) {
@@ -6644,7 +6677,8 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
         asdl_seq* body;
         string type_comment;
 
-        if (_PyObject_LookupAttr(obj, astmodulestate_global->items, &tmp) < 0) {
+        if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->items, &tmp)
+            < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -6656,11 +6690,11 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
             Py_ssize_t len;
             Py_ssize_t i;
             if (!PyList_Check(tmp)) {
-                PyErr_Format(PyExc_TypeError, "AsyncWith field \"items\" must be a list, not a %.200s", _PyType_Name(Py_TYPE(tmp)));
+                PyErr_Format(PyExc_TypeError, "AsyncWith field \"items\" must be a list, not a %.200s", _Ta3Type_Name(Py_TYPE(tmp)));
                 goto failed;
             }
             len = PyList_GET_SIZE(tmp);
-            items = _Py_asdl_seq_new(len, arena);
+            items = _Ta3_asdl_seq_new(len, arena);
             if (items == NULL) goto failed;
             for (i = 0; i < len; i++) {
                 withitem_ty val;
@@ -6677,7 +6711,8 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
             }
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttr(obj, astmodulestate_global->body, &tmp) < 0) {
+        if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->body, &tmp)
+            < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -6689,11 +6724,11 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
             Py_ssize_t len;
             Py_ssize_t i;
             if (!PyList_Check(tmp)) {
-                PyErr_Format(PyExc_TypeError, "AsyncWith field \"body\" must be a list, not a %.200s", _PyType_Name(Py_TYPE(tmp)));
+                PyErr_Format(PyExc_TypeError, "AsyncWith field \"body\" must be a list, not a %.200s", _Ta3Type_Name(Py_TYPE(tmp)));
                 goto failed;
             }
             len = PyList_GET_SIZE(tmp);
-            body = _Py_asdl_seq_new(len, arena);
+            body = _Ta3_asdl_seq_new(len, arena);
             if (body == NULL) goto failed;
             for (i = 0; i < len; i++) {
                 stmt_ty val;
@@ -6710,8 +6745,8 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
             }
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttr(obj, astmodulestate_global->type_comment,
-            &tmp) < 0) {
+        if (_Pegen_PyObject_LookupAttr(obj,
+            astmodulestate_global->type_comment, &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL || tmp == Py_None) {
@@ -6738,7 +6773,8 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
         expr_ty exc;
         expr_ty cause;
 
-        if (_PyObject_LookupAttr(obj, astmodulestate_global->exc, &tmp) < 0) {
+        if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->exc, &tmp) <
+            0) {
             return 1;
         }
         if (tmp == NULL || tmp == Py_None) {
@@ -6751,7 +6787,8 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
             if (res != 0) goto failed;
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttr(obj, astmodulestate_global->cause, &tmp) < 0) {
+        if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->cause, &tmp)
+            < 0) {
             return 1;
         }
         if (tmp == NULL || tmp == Py_None) {
@@ -6780,7 +6817,8 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
         asdl_seq* orelse;
         asdl_seq* finalbody;
 
-        if (_PyObject_LookupAttr(obj, astmodulestate_global->body, &tmp) < 0) {
+        if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->body, &tmp)
+            < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -6792,11 +6830,11 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
             Py_ssize_t len;
             Py_ssize_t i;
             if (!PyList_Check(tmp)) {
-                PyErr_Format(PyExc_TypeError, "Try field \"body\" must be a list, not a %.200s", _PyType_Name(Py_TYPE(tmp)));
+                PyErr_Format(PyExc_TypeError, "Try field \"body\" must be a list, not a %.200s", _Ta3Type_Name(Py_TYPE(tmp)));
                 goto failed;
             }
             len = PyList_GET_SIZE(tmp);
-            body = _Py_asdl_seq_new(len, arena);
+            body = _Ta3_asdl_seq_new(len, arena);
             if (body == NULL) goto failed;
             for (i = 0; i < len; i++) {
                 stmt_ty val;
@@ -6813,8 +6851,8 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
             }
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttr(obj, astmodulestate_global->handlers, &tmp) <
-            0) {
+        if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->handlers,
+            &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -6826,11 +6864,11 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
             Py_ssize_t len;
             Py_ssize_t i;
             if (!PyList_Check(tmp)) {
-                PyErr_Format(PyExc_TypeError, "Try field \"handlers\" must be a list, not a %.200s", _PyType_Name(Py_TYPE(tmp)));
+                PyErr_Format(PyExc_TypeError, "Try field \"handlers\" must be a list, not a %.200s", _Ta3Type_Name(Py_TYPE(tmp)));
                 goto failed;
             }
             len = PyList_GET_SIZE(tmp);
-            handlers = _Py_asdl_seq_new(len, arena);
+            handlers = _Ta3_asdl_seq_new(len, arena);
             if (handlers == NULL) goto failed;
             for (i = 0; i < len; i++) {
                 excepthandler_ty val;
@@ -6847,8 +6885,8 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
             }
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttr(obj, astmodulestate_global->orelse, &tmp) < 0)
-            {
+        if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->orelse,
+            &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -6860,11 +6898,11 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
             Py_ssize_t len;
             Py_ssize_t i;
             if (!PyList_Check(tmp)) {
-                PyErr_Format(PyExc_TypeError, "Try field \"orelse\" must be a list, not a %.200s", _PyType_Name(Py_TYPE(tmp)));
+                PyErr_Format(PyExc_TypeError, "Try field \"orelse\" must be a list, not a %.200s", _Ta3Type_Name(Py_TYPE(tmp)));
                 goto failed;
             }
             len = PyList_GET_SIZE(tmp);
-            orelse = _Py_asdl_seq_new(len, arena);
+            orelse = _Ta3_asdl_seq_new(len, arena);
             if (orelse == NULL) goto failed;
             for (i = 0; i < len; i++) {
                 stmt_ty val;
@@ -6881,8 +6919,8 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
             }
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttr(obj, astmodulestate_global->finalbody, &tmp) <
-            0) {
+        if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->finalbody,
+            &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -6894,11 +6932,11 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
             Py_ssize_t len;
             Py_ssize_t i;
             if (!PyList_Check(tmp)) {
-                PyErr_Format(PyExc_TypeError, "Try field \"finalbody\" must be a list, not a %.200s", _PyType_Name(Py_TYPE(tmp)));
+                PyErr_Format(PyExc_TypeError, "Try field \"finalbody\" must be a list, not a %.200s", _Ta3Type_Name(Py_TYPE(tmp)));
                 goto failed;
             }
             len = PyList_GET_SIZE(tmp);
-            finalbody = _Py_asdl_seq_new(len, arena);
+            finalbody = _Ta3_asdl_seq_new(len, arena);
             if (finalbody == NULL) goto failed;
             for (i = 0; i < len; i++) {
                 stmt_ty val;
@@ -6929,7 +6967,8 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
         expr_ty test;
         expr_ty msg;
 
-        if (_PyObject_LookupAttr(obj, astmodulestate_global->test, &tmp) < 0) {
+        if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->test, &tmp)
+            < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -6942,7 +6981,8 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
             if (res != 0) goto failed;
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttr(obj, astmodulestate_global->msg, &tmp) < 0) {
+        if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->msg, &tmp) <
+            0) {
             return 1;
         }
         if (tmp == NULL || tmp == Py_None) {
@@ -6968,7 +7008,8 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
     if (isinstance) {
         asdl_seq* names;
 
-        if (_PyObject_LookupAttr(obj, astmodulestate_global->names, &tmp) < 0) {
+        if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->names, &tmp)
+            < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -6980,11 +7021,11 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
             Py_ssize_t len;
             Py_ssize_t i;
             if (!PyList_Check(tmp)) {
-                PyErr_Format(PyExc_TypeError, "Import field \"names\" must be a list, not a %.200s", _PyType_Name(Py_TYPE(tmp)));
+                PyErr_Format(PyExc_TypeError, "Import field \"names\" must be a list, not a %.200s", _Ta3Type_Name(Py_TYPE(tmp)));
                 goto failed;
             }
             len = PyList_GET_SIZE(tmp);
-            names = _Py_asdl_seq_new(len, arena);
+            names = _Ta3_asdl_seq_new(len, arena);
             if (names == NULL) goto failed;
             for (i = 0; i < len; i++) {
                 alias_ty val;
@@ -7016,8 +7057,8 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
         asdl_seq* names;
         int level;
 
-        if (_PyObject_LookupAttr(obj, astmodulestate_global->module, &tmp) < 0)
-            {
+        if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->module,
+            &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL || tmp == Py_None) {
@@ -7030,7 +7071,8 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
             if (res != 0) goto failed;
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttr(obj, astmodulestate_global->names, &tmp) < 0) {
+        if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->names, &tmp)
+            < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -7042,11 +7084,11 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
             Py_ssize_t len;
             Py_ssize_t i;
             if (!PyList_Check(tmp)) {
-                PyErr_Format(PyExc_TypeError, "ImportFrom field \"names\" must be a list, not a %.200s", _PyType_Name(Py_TYPE(tmp)));
+                PyErr_Format(PyExc_TypeError, "ImportFrom field \"names\" must be a list, not a %.200s", _Ta3Type_Name(Py_TYPE(tmp)));
                 goto failed;
             }
             len = PyList_GET_SIZE(tmp);
-            names = _Py_asdl_seq_new(len, arena);
+            names = _Ta3_asdl_seq_new(len, arena);
             if (names == NULL) goto failed;
             for (i = 0; i < len; i++) {
                 alias_ty val;
@@ -7063,7 +7105,8 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
             }
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttr(obj, astmodulestate_global->level, &tmp) < 0) {
+        if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->level, &tmp)
+            < 0) {
             return 1;
         }
         if (tmp == NULL || tmp == Py_None) {
@@ -7089,7 +7132,8 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
     if (isinstance) {
         asdl_seq* names;
 
-        if (_PyObject_LookupAttr(obj, astmodulestate_global->names, &tmp) < 0) {
+        if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->names, &tmp)
+            < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -7101,11 +7145,11 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
             Py_ssize_t len;
             Py_ssize_t i;
             if (!PyList_Check(tmp)) {
-                PyErr_Format(PyExc_TypeError, "Global field \"names\" must be a list, not a %.200s", _PyType_Name(Py_TYPE(tmp)));
+                PyErr_Format(PyExc_TypeError, "Global field \"names\" must be a list, not a %.200s", _Ta3Type_Name(Py_TYPE(tmp)));
                 goto failed;
             }
             len = PyList_GET_SIZE(tmp);
-            names = _Py_asdl_seq_new(len, arena);
+            names = _Ta3_asdl_seq_new(len, arena);
             if (names == NULL) goto failed;
             for (i = 0; i < len; i++) {
                 identifier val;
@@ -7135,7 +7179,8 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
     if (isinstance) {
         asdl_seq* names;
 
-        if (_PyObject_LookupAttr(obj, astmodulestate_global->names, &tmp) < 0) {
+        if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->names, &tmp)
+            < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -7147,11 +7192,11 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
             Py_ssize_t len;
             Py_ssize_t i;
             if (!PyList_Check(tmp)) {
-                PyErr_Format(PyExc_TypeError, "Nonlocal field \"names\" must be a list, not a %.200s", _PyType_Name(Py_TYPE(tmp)));
+                PyErr_Format(PyExc_TypeError, "Nonlocal field \"names\" must be a list, not a %.200s", _Ta3Type_Name(Py_TYPE(tmp)));
                 goto failed;
             }
             len = PyList_GET_SIZE(tmp);
-            names = _Py_asdl_seq_new(len, arena);
+            names = _Ta3_asdl_seq_new(len, arena);
             if (names == NULL) goto failed;
             for (i = 0; i < len; i++) {
                 identifier val;
@@ -7181,7 +7226,8 @@ obj2ast_stmt(PyObject* obj, stmt_ty* out, PyArena* arena)
     if (isinstance) {
         expr_ty value;
 
-        if (_PyObject_LookupAttr(obj, astmodulestate_global->value, &tmp) < 0) {
+        if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->value, &tmp)
+            < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -7255,7 +7301,8 @@ obj2ast_expr(PyObject* obj, expr_ty* out, PyArena* arena)
         *out = NULL;
         return 0;
     }
-    if (_PyObject_LookupAttr(obj, astmodulestate_global->lineno, &tmp) < 0) {
+    if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->lineno, &tmp) <
+        0) {
         return 1;
     }
     if (tmp == NULL) {
@@ -7268,8 +7315,8 @@ obj2ast_expr(PyObject* obj, expr_ty* out, PyArena* arena)
         if (res != 0) goto failed;
         Py_CLEAR(tmp);
     }
-    if (_PyObject_LookupAttr(obj, astmodulestate_global->col_offset, &tmp) < 0)
-        {
+    if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->col_offset,
+        &tmp) < 0) {
         return 1;
     }
     if (tmp == NULL) {
@@ -7282,8 +7329,8 @@ obj2ast_expr(PyObject* obj, expr_ty* out, PyArena* arena)
         if (res != 0) goto failed;
         Py_CLEAR(tmp);
     }
-    if (_PyObject_LookupAttr(obj, astmodulestate_global->end_lineno, &tmp) < 0)
-        {
+    if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->end_lineno,
+        &tmp) < 0) {
         return 1;
     }
     if (tmp == NULL || tmp == Py_None) {
@@ -7296,8 +7343,8 @@ obj2ast_expr(PyObject* obj, expr_ty* out, PyArena* arena)
         if (res != 0) goto failed;
         Py_CLEAR(tmp);
     }
-    if (_PyObject_LookupAttr(obj, astmodulestate_global->end_col_offset, &tmp)
-        < 0) {
+    if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->end_col_offset,
+        &tmp) < 0) {
         return 1;
     }
     if (tmp == NULL || tmp == Py_None) {
@@ -7319,7 +7366,8 @@ obj2ast_expr(PyObject* obj, expr_ty* out, PyArena* arena)
         boolop_ty op;
         asdl_seq* values;
 
-        if (_PyObject_LookupAttr(obj, astmodulestate_global->op, &tmp) < 0) {
+        if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->op, &tmp) <
+            0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -7332,8 +7380,8 @@ obj2ast_expr(PyObject* obj, expr_ty* out, PyArena* arena)
             if (res != 0) goto failed;
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttr(obj, astmodulestate_global->values, &tmp) < 0)
-            {
+        if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->values,
+            &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -7345,11 +7393,11 @@ obj2ast_expr(PyObject* obj, expr_ty* out, PyArena* arena)
             Py_ssize_t len;
             Py_ssize_t i;
             if (!PyList_Check(tmp)) {
-                PyErr_Format(PyExc_TypeError, "BoolOp field \"values\" must be a list, not a %.200s", _PyType_Name(Py_TYPE(tmp)));
+                PyErr_Format(PyExc_TypeError, "BoolOp field \"values\" must be a list, not a %.200s", _Ta3Type_Name(Py_TYPE(tmp)));
                 goto failed;
             }
             len = PyList_GET_SIZE(tmp);
-            values = _Py_asdl_seq_new(len, arena);
+            values = _Ta3_asdl_seq_new(len, arena);
             if (values == NULL) goto failed;
             for (i = 0; i < len; i++) {
                 expr_ty val;
@@ -7380,8 +7428,8 @@ obj2ast_expr(PyObject* obj, expr_ty* out, PyArena* arena)
         expr_ty target;
         expr_ty value;
 
-        if (_PyObject_LookupAttr(obj, astmodulestate_global->target, &tmp) < 0)
-            {
+        if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->target,
+            &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -7394,7 +7442,8 @@ obj2ast_expr(PyObject* obj, expr_ty* out, PyArena* arena)
             if (res != 0) goto failed;
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttr(obj, astmodulestate_global->value, &tmp) < 0) {
+        if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->value, &tmp)
+            < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -7422,7 +7471,8 @@ obj2ast_expr(PyObject* obj, expr_ty* out, PyArena* arena)
         operator_ty op;
         expr_ty right;
 
-        if (_PyObject_LookupAttr(obj, astmodulestate_global->left, &tmp) < 0) {
+        if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->left, &tmp)
+            < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -7435,7 +7485,8 @@ obj2ast_expr(PyObject* obj, expr_ty* out, PyArena* arena)
             if (res != 0) goto failed;
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttr(obj, astmodulestate_global->op, &tmp) < 0) {
+        if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->op, &tmp) <
+            0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -7448,7 +7499,8 @@ obj2ast_expr(PyObject* obj, expr_ty* out, PyArena* arena)
             if (res != 0) goto failed;
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttr(obj, astmodulestate_global->right, &tmp) < 0) {
+        if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->right, &tmp)
+            < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -7475,7 +7527,8 @@ obj2ast_expr(PyObject* obj, expr_ty* out, PyArena* arena)
         unaryop_ty op;
         expr_ty operand;
 
-        if (_PyObject_LookupAttr(obj, astmodulestate_global->op, &tmp) < 0) {
+        if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->op, &tmp) <
+            0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -7488,8 +7541,8 @@ obj2ast_expr(PyObject* obj, expr_ty* out, PyArena* arena)
             if (res != 0) goto failed;
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttr(obj, astmodulestate_global->operand, &tmp) <
-            0) {
+        if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->operand,
+            &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -7516,7 +7569,8 @@ obj2ast_expr(PyObject* obj, expr_ty* out, PyArena* arena)
         arguments_ty args;
         expr_ty body;
 
-        if (_PyObject_LookupAttr(obj, astmodulestate_global->args, &tmp) < 0) {
+        if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->args, &tmp)
+            < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -7529,7 +7583,8 @@ obj2ast_expr(PyObject* obj, expr_ty* out, PyArena* arena)
             if (res != 0) goto failed;
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttr(obj, astmodulestate_global->body, &tmp) < 0) {
+        if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->body, &tmp)
+            < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -7557,7 +7612,8 @@ obj2ast_expr(PyObject* obj, expr_ty* out, PyArena* arena)
         expr_ty body;
         expr_ty orelse;
 
-        if (_PyObject_LookupAttr(obj, astmodulestate_global->test, &tmp) < 0) {
+        if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->test, &tmp)
+            < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -7570,7 +7626,8 @@ obj2ast_expr(PyObject* obj, expr_ty* out, PyArena* arena)
             if (res != 0) goto failed;
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttr(obj, astmodulestate_global->body, &tmp) < 0) {
+        if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->body, &tmp)
+            < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -7583,8 +7640,8 @@ obj2ast_expr(PyObject* obj, expr_ty* out, PyArena* arena)
             if (res != 0) goto failed;
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttr(obj, astmodulestate_global->orelse, &tmp) < 0)
-            {
+        if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->orelse,
+            &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -7611,7 +7668,8 @@ obj2ast_expr(PyObject* obj, expr_ty* out, PyArena* arena)
         asdl_seq* keys;
         asdl_seq* values;
 
-        if (_PyObject_LookupAttr(obj, astmodulestate_global->keys, &tmp) < 0) {
+        if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->keys, &tmp)
+            < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -7623,11 +7681,11 @@ obj2ast_expr(PyObject* obj, expr_ty* out, PyArena* arena)
             Py_ssize_t len;
             Py_ssize_t i;
             if (!PyList_Check(tmp)) {
-                PyErr_Format(PyExc_TypeError, "Dict field \"keys\" must be a list, not a %.200s", _PyType_Name(Py_TYPE(tmp)));
+                PyErr_Format(PyExc_TypeError, "Dict field \"keys\" must be a list, not a %.200s", _Ta3Type_Name(Py_TYPE(tmp)));
                 goto failed;
             }
             len = PyList_GET_SIZE(tmp);
-            keys = _Py_asdl_seq_new(len, arena);
+            keys = _Ta3_asdl_seq_new(len, arena);
             if (keys == NULL) goto failed;
             for (i = 0; i < len; i++) {
                 expr_ty val;
@@ -7644,8 +7702,8 @@ obj2ast_expr(PyObject* obj, expr_ty* out, PyArena* arena)
             }
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttr(obj, astmodulestate_global->values, &tmp) < 0)
-            {
+        if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->values,
+            &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -7657,11 +7715,11 @@ obj2ast_expr(PyObject* obj, expr_ty* out, PyArena* arena)
             Py_ssize_t len;
             Py_ssize_t i;
             if (!PyList_Check(tmp)) {
-                PyErr_Format(PyExc_TypeError, "Dict field \"values\" must be a list, not a %.200s", _PyType_Name(Py_TYPE(tmp)));
+                PyErr_Format(PyExc_TypeError, "Dict field \"values\" must be a list, not a %.200s", _Ta3Type_Name(Py_TYPE(tmp)));
                 goto failed;
             }
             len = PyList_GET_SIZE(tmp);
-            values = _Py_asdl_seq_new(len, arena);
+            values = _Ta3_asdl_seq_new(len, arena);
             if (values == NULL) goto failed;
             for (i = 0; i < len; i++) {
                 expr_ty val;
@@ -7691,7 +7749,8 @@ obj2ast_expr(PyObject* obj, expr_ty* out, PyArena* arena)
     if (isinstance) {
         asdl_seq* elts;
 
-        if (_PyObject_LookupAttr(obj, astmodulestate_global->elts, &tmp) < 0) {
+        if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->elts, &tmp)
+            < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -7703,11 +7762,11 @@ obj2ast_expr(PyObject* obj, expr_ty* out, PyArena* arena)
             Py_ssize_t len;
             Py_ssize_t i;
             if (!PyList_Check(tmp)) {
-                PyErr_Format(PyExc_TypeError, "Set field \"elts\" must be a list, not a %.200s", _PyType_Name(Py_TYPE(tmp)));
+                PyErr_Format(PyExc_TypeError, "Set field \"elts\" must be a list, not a %.200s", _Ta3Type_Name(Py_TYPE(tmp)));
                 goto failed;
             }
             len = PyList_GET_SIZE(tmp);
-            elts = _Py_asdl_seq_new(len, arena);
+            elts = _Ta3_asdl_seq_new(len, arena);
             if (elts == NULL) goto failed;
             for (i = 0; i < len; i++) {
                 expr_ty val;
@@ -7737,7 +7796,8 @@ obj2ast_expr(PyObject* obj, expr_ty* out, PyArena* arena)
         expr_ty elt;
         asdl_seq* generators;
 
-        if (_PyObject_LookupAttr(obj, astmodulestate_global->elt, &tmp) < 0) {
+        if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->elt, &tmp) <
+            0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -7750,8 +7810,8 @@ obj2ast_expr(PyObject* obj, expr_ty* out, PyArena* arena)
             if (res != 0) goto failed;
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttr(obj, astmodulestate_global->generators, &tmp)
-            < 0) {
+        if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->generators,
+            &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -7763,11 +7823,11 @@ obj2ast_expr(PyObject* obj, expr_ty* out, PyArena* arena)
             Py_ssize_t len;
             Py_ssize_t i;
             if (!PyList_Check(tmp)) {
-                PyErr_Format(PyExc_TypeError, "ListComp field \"generators\" must be a list, not a %.200s", _PyType_Name(Py_TYPE(tmp)));
+                PyErr_Format(PyExc_TypeError, "ListComp field \"generators\" must be a list, not a %.200s", _Ta3Type_Name(Py_TYPE(tmp)));
                 goto failed;
             }
             len = PyList_GET_SIZE(tmp);
-            generators = _Py_asdl_seq_new(len, arena);
+            generators = _Ta3_asdl_seq_new(len, arena);
             if (generators == NULL) goto failed;
             for (i = 0; i < len; i++) {
                 comprehension_ty val;
@@ -7798,7 +7858,8 @@ obj2ast_expr(PyObject* obj, expr_ty* out, PyArena* arena)
         expr_ty elt;
         asdl_seq* generators;
 
-        if (_PyObject_LookupAttr(obj, astmodulestate_global->elt, &tmp) < 0) {
+        if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->elt, &tmp) <
+            0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -7811,8 +7872,8 @@ obj2ast_expr(PyObject* obj, expr_ty* out, PyArena* arena)
             if (res != 0) goto failed;
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttr(obj, astmodulestate_global->generators, &tmp)
-            < 0) {
+        if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->generators,
+            &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -7824,11 +7885,11 @@ obj2ast_expr(PyObject* obj, expr_ty* out, PyArena* arena)
             Py_ssize_t len;
             Py_ssize_t i;
             if (!PyList_Check(tmp)) {
-                PyErr_Format(PyExc_TypeError, "SetComp field \"generators\" must be a list, not a %.200s", _PyType_Name(Py_TYPE(tmp)));
+                PyErr_Format(PyExc_TypeError, "SetComp field \"generators\" must be a list, not a %.200s", _Ta3Type_Name(Py_TYPE(tmp)));
                 goto failed;
             }
             len = PyList_GET_SIZE(tmp);
-            generators = _Py_asdl_seq_new(len, arena);
+            generators = _Ta3_asdl_seq_new(len, arena);
             if (generators == NULL) goto failed;
             for (i = 0; i < len; i++) {
                 comprehension_ty val;
@@ -7860,7 +7921,8 @@ obj2ast_expr(PyObject* obj, expr_ty* out, PyArena* arena)
         expr_ty value;
         asdl_seq* generators;
 
-        if (_PyObject_LookupAttr(obj, astmodulestate_global->key, &tmp) < 0) {
+        if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->key, &tmp) <
+            0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -7873,7 +7935,8 @@ obj2ast_expr(PyObject* obj, expr_ty* out, PyArena* arena)
             if (res != 0) goto failed;
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttr(obj, astmodulestate_global->value, &tmp) < 0) {
+        if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->value, &tmp)
+            < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -7886,8 +7949,8 @@ obj2ast_expr(PyObject* obj, expr_ty* out, PyArena* arena)
             if (res != 0) goto failed;
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttr(obj, astmodulestate_global->generators, &tmp)
-            < 0) {
+        if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->generators,
+            &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -7899,11 +7962,11 @@ obj2ast_expr(PyObject* obj, expr_ty* out, PyArena* arena)
             Py_ssize_t len;
             Py_ssize_t i;
             if (!PyList_Check(tmp)) {
-                PyErr_Format(PyExc_TypeError, "DictComp field \"generators\" must be a list, not a %.200s", _PyType_Name(Py_TYPE(tmp)));
+                PyErr_Format(PyExc_TypeError, "DictComp field \"generators\" must be a list, not a %.200s", _Ta3Type_Name(Py_TYPE(tmp)));
                 goto failed;
             }
             len = PyList_GET_SIZE(tmp);
-            generators = _Py_asdl_seq_new(len, arena);
+            generators = _Ta3_asdl_seq_new(len, arena);
             if (generators == NULL) goto failed;
             for (i = 0; i < len; i++) {
                 comprehension_ty val;
@@ -7934,7 +7997,8 @@ obj2ast_expr(PyObject* obj, expr_ty* out, PyArena* arena)
         expr_ty elt;
         asdl_seq* generators;
 
-        if (_PyObject_LookupAttr(obj, astmodulestate_global->elt, &tmp) < 0) {
+        if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->elt, &tmp) <
+            0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -7947,8 +8011,8 @@ obj2ast_expr(PyObject* obj, expr_ty* out, PyArena* arena)
             if (res != 0) goto failed;
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttr(obj, astmodulestate_global->generators, &tmp)
-            < 0) {
+        if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->generators,
+            &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -7960,11 +8024,11 @@ obj2ast_expr(PyObject* obj, expr_ty* out, PyArena* arena)
             Py_ssize_t len;
             Py_ssize_t i;
             if (!PyList_Check(tmp)) {
-                PyErr_Format(PyExc_TypeError, "GeneratorExp field \"generators\" must be a list, not a %.200s", _PyType_Name(Py_TYPE(tmp)));
+                PyErr_Format(PyExc_TypeError, "GeneratorExp field \"generators\" must be a list, not a %.200s", _Ta3Type_Name(Py_TYPE(tmp)));
                 goto failed;
             }
             len = PyList_GET_SIZE(tmp);
-            generators = _Py_asdl_seq_new(len, arena);
+            generators = _Ta3_asdl_seq_new(len, arena);
             if (generators == NULL) goto failed;
             for (i = 0; i < len; i++) {
                 comprehension_ty val;
@@ -7994,7 +8058,8 @@ obj2ast_expr(PyObject* obj, expr_ty* out, PyArena* arena)
     if (isinstance) {
         expr_ty value;
 
-        if (_PyObject_LookupAttr(obj, astmodulestate_global->value, &tmp) < 0) {
+        if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->value, &tmp)
+            < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -8020,7 +8085,8 @@ obj2ast_expr(PyObject* obj, expr_ty* out, PyArena* arena)
     if (isinstance) {
         expr_ty value;
 
-        if (_PyObject_LookupAttr(obj, astmodulestate_global->value, &tmp) < 0) {
+        if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->value, &tmp)
+            < 0) {
             return 1;
         }
         if (tmp == NULL || tmp == Py_None) {
@@ -8046,7 +8112,8 @@ obj2ast_expr(PyObject* obj, expr_ty* out, PyArena* arena)
     if (isinstance) {
         expr_ty value;
 
-        if (_PyObject_LookupAttr(obj, astmodulestate_global->value, &tmp) < 0) {
+        if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->value, &tmp)
+            < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -8074,7 +8141,8 @@ obj2ast_expr(PyObject* obj, expr_ty* out, PyArena* arena)
         asdl_int_seq* ops;
         asdl_seq* comparators;
 
-        if (_PyObject_LookupAttr(obj, astmodulestate_global->left, &tmp) < 0) {
+        if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->left, &tmp)
+            < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -8087,7 +8155,8 @@ obj2ast_expr(PyObject* obj, expr_ty* out, PyArena* arena)
             if (res != 0) goto failed;
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttr(obj, astmodulestate_global->ops, &tmp) < 0) {
+        if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->ops, &tmp) <
+            0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -8099,11 +8168,11 @@ obj2ast_expr(PyObject* obj, expr_ty* out, PyArena* arena)
             Py_ssize_t len;
             Py_ssize_t i;
             if (!PyList_Check(tmp)) {
-                PyErr_Format(PyExc_TypeError, "Compare field \"ops\" must be a list, not a %.200s", _PyType_Name(Py_TYPE(tmp)));
+                PyErr_Format(PyExc_TypeError, "Compare field \"ops\" must be a list, not a %.200s", _Ta3Type_Name(Py_TYPE(tmp)));
                 goto failed;
             }
             len = PyList_GET_SIZE(tmp);
-            ops = _Py_asdl_int_seq_new(len, arena);
+            ops = _Ta3_asdl_int_seq_new(len, arena);
             if (ops == NULL) goto failed;
             for (i = 0; i < len; i++) {
                 cmpop_ty val;
@@ -8120,8 +8189,8 @@ obj2ast_expr(PyObject* obj, expr_ty* out, PyArena* arena)
             }
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttr(obj, astmodulestate_global->comparators, &tmp)
-            < 0) {
+        if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->comparators,
+            &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -8133,11 +8202,11 @@ obj2ast_expr(PyObject* obj, expr_ty* out, PyArena* arena)
             Py_ssize_t len;
             Py_ssize_t i;
             if (!PyList_Check(tmp)) {
-                PyErr_Format(PyExc_TypeError, "Compare field \"comparators\" must be a list, not a %.200s", _PyType_Name(Py_TYPE(tmp)));
+                PyErr_Format(PyExc_TypeError, "Compare field \"comparators\" must be a list, not a %.200s", _Ta3Type_Name(Py_TYPE(tmp)));
                 goto failed;
             }
             len = PyList_GET_SIZE(tmp);
-            comparators = _Py_asdl_seq_new(len, arena);
+            comparators = _Ta3_asdl_seq_new(len, arena);
             if (comparators == NULL) goto failed;
             for (i = 0; i < len; i++) {
                 expr_ty val;
@@ -8169,7 +8238,8 @@ obj2ast_expr(PyObject* obj, expr_ty* out, PyArena* arena)
         asdl_seq* args;
         asdl_seq* keywords;
 
-        if (_PyObject_LookupAttr(obj, astmodulestate_global->func, &tmp) < 0) {
+        if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->func, &tmp)
+            < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -8182,7 +8252,8 @@ obj2ast_expr(PyObject* obj, expr_ty* out, PyArena* arena)
             if (res != 0) goto failed;
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttr(obj, astmodulestate_global->args, &tmp) < 0) {
+        if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->args, &tmp)
+            < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -8194,11 +8265,11 @@ obj2ast_expr(PyObject* obj, expr_ty* out, PyArena* arena)
             Py_ssize_t len;
             Py_ssize_t i;
             if (!PyList_Check(tmp)) {
-                PyErr_Format(PyExc_TypeError, "Call field \"args\" must be a list, not a %.200s", _PyType_Name(Py_TYPE(tmp)));
+                PyErr_Format(PyExc_TypeError, "Call field \"args\" must be a list, not a %.200s", _Ta3Type_Name(Py_TYPE(tmp)));
                 goto failed;
             }
             len = PyList_GET_SIZE(tmp);
-            args = _Py_asdl_seq_new(len, arena);
+            args = _Ta3_asdl_seq_new(len, arena);
             if (args == NULL) goto failed;
             for (i = 0; i < len; i++) {
                 expr_ty val;
@@ -8215,8 +8286,8 @@ obj2ast_expr(PyObject* obj, expr_ty* out, PyArena* arena)
             }
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttr(obj, astmodulestate_global->keywords, &tmp) <
-            0) {
+        if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->keywords,
+            &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -8228,11 +8299,11 @@ obj2ast_expr(PyObject* obj, expr_ty* out, PyArena* arena)
             Py_ssize_t len;
             Py_ssize_t i;
             if (!PyList_Check(tmp)) {
-                PyErr_Format(PyExc_TypeError, "Call field \"keywords\" must be a list, not a %.200s", _PyType_Name(Py_TYPE(tmp)));
+                PyErr_Format(PyExc_TypeError, "Call field \"keywords\" must be a list, not a %.200s", _Ta3Type_Name(Py_TYPE(tmp)));
                 goto failed;
             }
             len = PyList_GET_SIZE(tmp);
-            keywords = _Py_asdl_seq_new(len, arena);
+            keywords = _Ta3_asdl_seq_new(len, arena);
             if (keywords == NULL) goto failed;
             for (i = 0; i < len; i++) {
                 keyword_ty val;
@@ -8264,7 +8335,8 @@ obj2ast_expr(PyObject* obj, expr_ty* out, PyArena* arena)
         int conversion;
         expr_ty format_spec;
 
-        if (_PyObject_LookupAttr(obj, astmodulestate_global->value, &tmp) < 0) {
+        if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->value, &tmp)
+            < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -8277,8 +8349,8 @@ obj2ast_expr(PyObject* obj, expr_ty* out, PyArena* arena)
             if (res != 0) goto failed;
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttr(obj, astmodulestate_global->conversion, &tmp)
-            < 0) {
+        if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->conversion,
+            &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL || tmp == Py_None) {
@@ -8291,8 +8363,8 @@ obj2ast_expr(PyObject* obj, expr_ty* out, PyArena* arena)
             if (res != 0) goto failed;
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttr(obj, astmodulestate_global->format_spec, &tmp)
-            < 0) {
+        if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->format_spec,
+            &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL || tmp == Py_None) {
@@ -8318,8 +8390,8 @@ obj2ast_expr(PyObject* obj, expr_ty* out, PyArena* arena)
     if (isinstance) {
         asdl_seq* values;
 
-        if (_PyObject_LookupAttr(obj, astmodulestate_global->values, &tmp) < 0)
-            {
+        if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->values,
+            &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -8331,11 +8403,11 @@ obj2ast_expr(PyObject* obj, expr_ty* out, PyArena* arena)
             Py_ssize_t len;
             Py_ssize_t i;
             if (!PyList_Check(tmp)) {
-                PyErr_Format(PyExc_TypeError, "JoinedStr field \"values\" must be a list, not a %.200s", _PyType_Name(Py_TYPE(tmp)));
+                PyErr_Format(PyExc_TypeError, "JoinedStr field \"values\" must be a list, not a %.200s", _Ta3Type_Name(Py_TYPE(tmp)));
                 goto failed;
             }
             len = PyList_GET_SIZE(tmp);
-            values = _Py_asdl_seq_new(len, arena);
+            values = _Ta3_asdl_seq_new(len, arena);
             if (values == NULL) goto failed;
             for (i = 0; i < len; i++) {
                 expr_ty val;
@@ -8366,7 +8438,8 @@ obj2ast_expr(PyObject* obj, expr_ty* out, PyArena* arena)
         constant value;
         string kind;
 
-        if (_PyObject_LookupAttr(obj, astmodulestate_global->value, &tmp) < 0) {
+        if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->value, &tmp)
+            < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -8379,7 +8452,8 @@ obj2ast_expr(PyObject* obj, expr_ty* out, PyArena* arena)
             if (res != 0) goto failed;
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttr(obj, astmodulestate_global->kind, &tmp) < 0) {
+        if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->kind, &tmp)
+            < 0) {
             return 1;
         }
         if (tmp == NULL || tmp == Py_None) {
@@ -8407,7 +8481,8 @@ obj2ast_expr(PyObject* obj, expr_ty* out, PyArena* arena)
         identifier attr;
         expr_context_ty ctx;
 
-        if (_PyObject_LookupAttr(obj, astmodulestate_global->value, &tmp) < 0) {
+        if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->value, &tmp)
+            < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -8420,7 +8495,8 @@ obj2ast_expr(PyObject* obj, expr_ty* out, PyArena* arena)
             if (res != 0) goto failed;
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttr(obj, astmodulestate_global->attr, &tmp) < 0) {
+        if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->attr, &tmp)
+            < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -8433,7 +8509,8 @@ obj2ast_expr(PyObject* obj, expr_ty* out, PyArena* arena)
             if (res != 0) goto failed;
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttr(obj, astmodulestate_global->ctx, &tmp) < 0) {
+        if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->ctx, &tmp) <
+            0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -8461,7 +8538,8 @@ obj2ast_expr(PyObject* obj, expr_ty* out, PyArena* arena)
         expr_ty slice;
         expr_context_ty ctx;
 
-        if (_PyObject_LookupAttr(obj, astmodulestate_global->value, &tmp) < 0) {
+        if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->value, &tmp)
+            < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -8474,7 +8552,8 @@ obj2ast_expr(PyObject* obj, expr_ty* out, PyArena* arena)
             if (res != 0) goto failed;
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttr(obj, astmodulestate_global->slice, &tmp) < 0) {
+        if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->slice, &tmp)
+            < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -8487,7 +8566,8 @@ obj2ast_expr(PyObject* obj, expr_ty* out, PyArena* arena)
             if (res != 0) goto failed;
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttr(obj, astmodulestate_global->ctx, &tmp) < 0) {
+        if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->ctx, &tmp) <
+            0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -8514,7 +8594,8 @@ obj2ast_expr(PyObject* obj, expr_ty* out, PyArena* arena)
         expr_ty value;
         expr_context_ty ctx;
 
-        if (_PyObject_LookupAttr(obj, astmodulestate_global->value, &tmp) < 0) {
+        if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->value, &tmp)
+            < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -8527,7 +8608,8 @@ obj2ast_expr(PyObject* obj, expr_ty* out, PyArena* arena)
             if (res != 0) goto failed;
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttr(obj, astmodulestate_global->ctx, &tmp) < 0) {
+        if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->ctx, &tmp) <
+            0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -8554,7 +8636,8 @@ obj2ast_expr(PyObject* obj, expr_ty* out, PyArena* arena)
         identifier id;
         expr_context_ty ctx;
 
-        if (_PyObject_LookupAttr(obj, astmodulestate_global->id, &tmp) < 0) {
+        if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->id, &tmp) <
+            0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -8567,7 +8650,8 @@ obj2ast_expr(PyObject* obj, expr_ty* out, PyArena* arena)
             if (res != 0) goto failed;
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttr(obj, astmodulestate_global->ctx, &tmp) < 0) {
+        if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->ctx, &tmp) <
+            0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -8594,7 +8678,8 @@ obj2ast_expr(PyObject* obj, expr_ty* out, PyArena* arena)
         asdl_seq* elts;
         expr_context_ty ctx;
 
-        if (_PyObject_LookupAttr(obj, astmodulestate_global->elts, &tmp) < 0) {
+        if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->elts, &tmp)
+            < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -8606,11 +8691,11 @@ obj2ast_expr(PyObject* obj, expr_ty* out, PyArena* arena)
             Py_ssize_t len;
             Py_ssize_t i;
             if (!PyList_Check(tmp)) {
-                PyErr_Format(PyExc_TypeError, "List field \"elts\" must be a list, not a %.200s", _PyType_Name(Py_TYPE(tmp)));
+                PyErr_Format(PyExc_TypeError, "List field \"elts\" must be a list, not a %.200s", _Ta3Type_Name(Py_TYPE(tmp)));
                 goto failed;
             }
             len = PyList_GET_SIZE(tmp);
-            elts = _Py_asdl_seq_new(len, arena);
+            elts = _Ta3_asdl_seq_new(len, arena);
             if (elts == NULL) goto failed;
             for (i = 0; i < len; i++) {
                 expr_ty val;
@@ -8627,7 +8712,8 @@ obj2ast_expr(PyObject* obj, expr_ty* out, PyArena* arena)
             }
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttr(obj, astmodulestate_global->ctx, &tmp) < 0) {
+        if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->ctx, &tmp) <
+            0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -8654,7 +8740,8 @@ obj2ast_expr(PyObject* obj, expr_ty* out, PyArena* arena)
         asdl_seq* elts;
         expr_context_ty ctx;
 
-        if (_PyObject_LookupAttr(obj, astmodulestate_global->elts, &tmp) < 0) {
+        if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->elts, &tmp)
+            < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -8666,11 +8753,11 @@ obj2ast_expr(PyObject* obj, expr_ty* out, PyArena* arena)
             Py_ssize_t len;
             Py_ssize_t i;
             if (!PyList_Check(tmp)) {
-                PyErr_Format(PyExc_TypeError, "Tuple field \"elts\" must be a list, not a %.200s", _PyType_Name(Py_TYPE(tmp)));
+                PyErr_Format(PyExc_TypeError, "Tuple field \"elts\" must be a list, not a %.200s", _Ta3Type_Name(Py_TYPE(tmp)));
                 goto failed;
             }
             len = PyList_GET_SIZE(tmp);
-            elts = _Py_asdl_seq_new(len, arena);
+            elts = _Ta3_asdl_seq_new(len, arena);
             if (elts == NULL) goto failed;
             for (i = 0; i < len; i++) {
                 expr_ty val;
@@ -8687,7 +8774,8 @@ obj2ast_expr(PyObject* obj, expr_ty* out, PyArena* arena)
             }
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttr(obj, astmodulestate_global->ctx, &tmp) < 0) {
+        if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->ctx, &tmp) <
+            0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -8715,7 +8803,8 @@ obj2ast_expr(PyObject* obj, expr_ty* out, PyArena* arena)
         expr_ty upper;
         expr_ty step;
 
-        if (_PyObject_LookupAttr(obj, astmodulestate_global->lower, &tmp) < 0) {
+        if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->lower, &tmp)
+            < 0) {
             return 1;
         }
         if (tmp == NULL || tmp == Py_None) {
@@ -8728,7 +8817,8 @@ obj2ast_expr(PyObject* obj, expr_ty* out, PyArena* arena)
             if (res != 0) goto failed;
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttr(obj, astmodulestate_global->upper, &tmp) < 0) {
+        if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->upper, &tmp)
+            < 0) {
             return 1;
         }
         if (tmp == NULL || tmp == Py_None) {
@@ -8741,7 +8831,8 @@ obj2ast_expr(PyObject* obj, expr_ty* out, PyArena* arena)
             if (res != 0) goto failed;
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttr(obj, astmodulestate_global->step, &tmp) < 0) {
+        if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->step, &tmp)
+            < 0) {
             return 1;
         }
         if (tmp == NULL || tmp == Py_None) {
@@ -9081,7 +9172,8 @@ obj2ast_comprehension(PyObject* obj, comprehension_ty* out, PyArena* arena)
     asdl_seq* ifs;
     int is_async;
 
-    if (_PyObject_LookupAttr(obj, astmodulestate_global->target, &tmp) < 0) {
+    if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->target, &tmp) <
+        0) {
         return 1;
     }
     if (tmp == NULL) {
@@ -9094,7 +9186,8 @@ obj2ast_comprehension(PyObject* obj, comprehension_ty* out, PyArena* arena)
         if (res != 0) goto failed;
         Py_CLEAR(tmp);
     }
-    if (_PyObject_LookupAttr(obj, astmodulestate_global->iter, &tmp) < 0) {
+    if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->iter, &tmp) < 0)
+        {
         return 1;
     }
     if (tmp == NULL) {
@@ -9107,7 +9200,7 @@ obj2ast_comprehension(PyObject* obj, comprehension_ty* out, PyArena* arena)
         if (res != 0) goto failed;
         Py_CLEAR(tmp);
     }
-    if (_PyObject_LookupAttr(obj, astmodulestate_global->ifs, &tmp) < 0) {
+    if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->ifs, &tmp) < 0) {
         return 1;
     }
     if (tmp == NULL) {
@@ -9119,11 +9212,11 @@ obj2ast_comprehension(PyObject* obj, comprehension_ty* out, PyArena* arena)
         Py_ssize_t len;
         Py_ssize_t i;
         if (!PyList_Check(tmp)) {
-            PyErr_Format(PyExc_TypeError, "comprehension field \"ifs\" must be a list, not a %.200s", _PyType_Name(Py_TYPE(tmp)));
+            PyErr_Format(PyExc_TypeError, "comprehension field \"ifs\" must be a list, not a %.200s", _Ta3Type_Name(Py_TYPE(tmp)));
             goto failed;
         }
         len = PyList_GET_SIZE(tmp);
-        ifs = _Py_asdl_seq_new(len, arena);
+        ifs = _Ta3_asdl_seq_new(len, arena);
         if (ifs == NULL) goto failed;
         for (i = 0; i < len; i++) {
             expr_ty val;
@@ -9140,7 +9233,8 @@ obj2ast_comprehension(PyObject* obj, comprehension_ty* out, PyArena* arena)
         }
         Py_CLEAR(tmp);
     }
-    if (_PyObject_LookupAttr(obj, astmodulestate_global->is_async, &tmp) < 0) {
+    if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->is_async, &tmp)
+        < 0) {
         return 1;
     }
     if (tmp == NULL) {
@@ -9176,7 +9270,8 @@ obj2ast_excepthandler(PyObject* obj, excepthandler_ty* out, PyArena* arena)
         *out = NULL;
         return 0;
     }
-    if (_PyObject_LookupAttr(obj, astmodulestate_global->lineno, &tmp) < 0) {
+    if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->lineno, &tmp) <
+        0) {
         return 1;
     }
     if (tmp == NULL) {
@@ -9189,8 +9284,8 @@ obj2ast_excepthandler(PyObject* obj, excepthandler_ty* out, PyArena* arena)
         if (res != 0) goto failed;
         Py_CLEAR(tmp);
     }
-    if (_PyObject_LookupAttr(obj, astmodulestate_global->col_offset, &tmp) < 0)
-        {
+    if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->col_offset,
+        &tmp) < 0) {
         return 1;
     }
     if (tmp == NULL) {
@@ -9203,8 +9298,8 @@ obj2ast_excepthandler(PyObject* obj, excepthandler_ty* out, PyArena* arena)
         if (res != 0) goto failed;
         Py_CLEAR(tmp);
     }
-    if (_PyObject_LookupAttr(obj, astmodulestate_global->end_lineno, &tmp) < 0)
-        {
+    if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->end_lineno,
+        &tmp) < 0) {
         return 1;
     }
     if (tmp == NULL || tmp == Py_None) {
@@ -9217,8 +9312,8 @@ obj2ast_excepthandler(PyObject* obj, excepthandler_ty* out, PyArena* arena)
         if (res != 0) goto failed;
         Py_CLEAR(tmp);
     }
-    if (_PyObject_LookupAttr(obj, astmodulestate_global->end_col_offset, &tmp)
-        < 0) {
+    if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->end_col_offset,
+        &tmp) < 0) {
         return 1;
     }
     if (tmp == NULL || tmp == Py_None) {
@@ -9241,7 +9336,8 @@ obj2ast_excepthandler(PyObject* obj, excepthandler_ty* out, PyArena* arena)
         identifier name;
         asdl_seq* body;
 
-        if (_PyObject_LookupAttr(obj, astmodulestate_global->type, &tmp) < 0) {
+        if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->type, &tmp)
+            < 0) {
             return 1;
         }
         if (tmp == NULL || tmp == Py_None) {
@@ -9254,7 +9350,8 @@ obj2ast_excepthandler(PyObject* obj, excepthandler_ty* out, PyArena* arena)
             if (res != 0) goto failed;
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttr(obj, astmodulestate_global->name, &tmp) < 0) {
+        if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->name, &tmp)
+            < 0) {
             return 1;
         }
         if (tmp == NULL || tmp == Py_None) {
@@ -9267,7 +9364,8 @@ obj2ast_excepthandler(PyObject* obj, excepthandler_ty* out, PyArena* arena)
             if (res != 0) goto failed;
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttr(obj, astmodulestate_global->body, &tmp) < 0) {
+        if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->body, &tmp)
+            < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -9279,11 +9377,11 @@ obj2ast_excepthandler(PyObject* obj, excepthandler_ty* out, PyArena* arena)
             Py_ssize_t len;
             Py_ssize_t i;
             if (!PyList_Check(tmp)) {
-                PyErr_Format(PyExc_TypeError, "ExceptHandler field \"body\" must be a list, not a %.200s", _PyType_Name(Py_TYPE(tmp)));
+                PyErr_Format(PyExc_TypeError, "ExceptHandler field \"body\" must be a list, not a %.200s", _Ta3Type_Name(Py_TYPE(tmp)));
                 goto failed;
             }
             len = PyList_GET_SIZE(tmp);
-            body = _Py_asdl_seq_new(len, arena);
+            body = _Ta3_asdl_seq_new(len, arena);
             if (body == NULL) goto failed;
             for (i = 0; i < len; i++) {
                 stmt_ty val;
@@ -9324,8 +9422,8 @@ obj2ast_arguments(PyObject* obj, arguments_ty* out, PyArena* arena)
     arg_ty kwarg;
     asdl_seq* defaults;
 
-    if (_PyObject_LookupAttr(obj, astmodulestate_global->posonlyargs, &tmp) <
-        0) {
+    if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->posonlyargs,
+        &tmp) < 0) {
         return 1;
     }
     if (tmp == NULL) {
@@ -9337,11 +9435,11 @@ obj2ast_arguments(PyObject* obj, arguments_ty* out, PyArena* arena)
         Py_ssize_t len;
         Py_ssize_t i;
         if (!PyList_Check(tmp)) {
-            PyErr_Format(PyExc_TypeError, "arguments field \"posonlyargs\" must be a list, not a %.200s", _PyType_Name(Py_TYPE(tmp)));
+            PyErr_Format(PyExc_TypeError, "arguments field \"posonlyargs\" must be a list, not a %.200s", _Ta3Type_Name(Py_TYPE(tmp)));
             goto failed;
         }
         len = PyList_GET_SIZE(tmp);
-        posonlyargs = _Py_asdl_seq_new(len, arena);
+        posonlyargs = _Ta3_asdl_seq_new(len, arena);
         if (posonlyargs == NULL) goto failed;
         for (i = 0; i < len; i++) {
             arg_ty val;
@@ -9358,7 +9456,8 @@ obj2ast_arguments(PyObject* obj, arguments_ty* out, PyArena* arena)
         }
         Py_CLEAR(tmp);
     }
-    if (_PyObject_LookupAttr(obj, astmodulestate_global->args, &tmp) < 0) {
+    if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->args, &tmp) < 0)
+        {
         return 1;
     }
     if (tmp == NULL) {
@@ -9370,11 +9469,11 @@ obj2ast_arguments(PyObject* obj, arguments_ty* out, PyArena* arena)
         Py_ssize_t len;
         Py_ssize_t i;
         if (!PyList_Check(tmp)) {
-            PyErr_Format(PyExc_TypeError, "arguments field \"args\" must be a list, not a %.200s", _PyType_Name(Py_TYPE(tmp)));
+            PyErr_Format(PyExc_TypeError, "arguments field \"args\" must be a list, not a %.200s", _Ta3Type_Name(Py_TYPE(tmp)));
             goto failed;
         }
         len = PyList_GET_SIZE(tmp);
-        args = _Py_asdl_seq_new(len, arena);
+        args = _Ta3_asdl_seq_new(len, arena);
         if (args == NULL) goto failed;
         for (i = 0; i < len; i++) {
             arg_ty val;
@@ -9391,7 +9490,8 @@ obj2ast_arguments(PyObject* obj, arguments_ty* out, PyArena* arena)
         }
         Py_CLEAR(tmp);
     }
-    if (_PyObject_LookupAttr(obj, astmodulestate_global->vararg, &tmp) < 0) {
+    if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->vararg, &tmp) <
+        0) {
         return 1;
     }
     if (tmp == NULL || tmp == Py_None) {
@@ -9404,8 +9504,8 @@ obj2ast_arguments(PyObject* obj, arguments_ty* out, PyArena* arena)
         if (res != 0) goto failed;
         Py_CLEAR(tmp);
     }
-    if (_PyObject_LookupAttr(obj, astmodulestate_global->kwonlyargs, &tmp) < 0)
-        {
+    if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->kwonlyargs,
+        &tmp) < 0) {
         return 1;
     }
     if (tmp == NULL) {
@@ -9417,11 +9517,11 @@ obj2ast_arguments(PyObject* obj, arguments_ty* out, PyArena* arena)
         Py_ssize_t len;
         Py_ssize_t i;
         if (!PyList_Check(tmp)) {
-            PyErr_Format(PyExc_TypeError, "arguments field \"kwonlyargs\" must be a list, not a %.200s", _PyType_Name(Py_TYPE(tmp)));
+            PyErr_Format(PyExc_TypeError, "arguments field \"kwonlyargs\" must be a list, not a %.200s", _Ta3Type_Name(Py_TYPE(tmp)));
             goto failed;
         }
         len = PyList_GET_SIZE(tmp);
-        kwonlyargs = _Py_asdl_seq_new(len, arena);
+        kwonlyargs = _Ta3_asdl_seq_new(len, arena);
         if (kwonlyargs == NULL) goto failed;
         for (i = 0; i < len; i++) {
             arg_ty val;
@@ -9438,8 +9538,8 @@ obj2ast_arguments(PyObject* obj, arguments_ty* out, PyArena* arena)
         }
         Py_CLEAR(tmp);
     }
-    if (_PyObject_LookupAttr(obj, astmodulestate_global->kw_defaults, &tmp) <
-        0) {
+    if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->kw_defaults,
+        &tmp) < 0) {
         return 1;
     }
     if (tmp == NULL) {
@@ -9451,11 +9551,11 @@ obj2ast_arguments(PyObject* obj, arguments_ty* out, PyArena* arena)
         Py_ssize_t len;
         Py_ssize_t i;
         if (!PyList_Check(tmp)) {
-            PyErr_Format(PyExc_TypeError, "arguments field \"kw_defaults\" must be a list, not a %.200s", _PyType_Name(Py_TYPE(tmp)));
+            PyErr_Format(PyExc_TypeError, "arguments field \"kw_defaults\" must be a list, not a %.200s", _Ta3Type_Name(Py_TYPE(tmp)));
             goto failed;
         }
         len = PyList_GET_SIZE(tmp);
-        kw_defaults = _Py_asdl_seq_new(len, arena);
+        kw_defaults = _Ta3_asdl_seq_new(len, arena);
         if (kw_defaults == NULL) goto failed;
         for (i = 0; i < len; i++) {
             expr_ty val;
@@ -9472,7 +9572,8 @@ obj2ast_arguments(PyObject* obj, arguments_ty* out, PyArena* arena)
         }
         Py_CLEAR(tmp);
     }
-    if (_PyObject_LookupAttr(obj, astmodulestate_global->kwarg, &tmp) < 0) {
+    if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->kwarg, &tmp) <
+        0) {
         return 1;
     }
     if (tmp == NULL || tmp == Py_None) {
@@ -9485,7 +9586,8 @@ obj2ast_arguments(PyObject* obj, arguments_ty* out, PyArena* arena)
         if (res != 0) goto failed;
         Py_CLEAR(tmp);
     }
-    if (_PyObject_LookupAttr(obj, astmodulestate_global->defaults, &tmp) < 0) {
+    if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->defaults, &tmp)
+        < 0) {
         return 1;
     }
     if (tmp == NULL) {
@@ -9497,11 +9599,11 @@ obj2ast_arguments(PyObject* obj, arguments_ty* out, PyArena* arena)
         Py_ssize_t len;
         Py_ssize_t i;
         if (!PyList_Check(tmp)) {
-            PyErr_Format(PyExc_TypeError, "arguments field \"defaults\" must be a list, not a %.200s", _PyType_Name(Py_TYPE(tmp)));
+            PyErr_Format(PyExc_TypeError, "arguments field \"defaults\" must be a list, not a %.200s", _Ta3Type_Name(Py_TYPE(tmp)));
             goto failed;
         }
         len = PyList_GET_SIZE(tmp);
-        defaults = _Py_asdl_seq_new(len, arena);
+        defaults = _Ta3_asdl_seq_new(len, arena);
         if (defaults == NULL) goto failed;
         for (i = 0; i < len; i++) {
             expr_ty val;
@@ -9538,7 +9640,7 @@ obj2ast_arg(PyObject* obj, arg_ty* out, PyArena* arena)
     int end_lineno;
     int end_col_offset;
 
-    if (_PyObject_LookupAttr(obj, astmodulestate_global->arg, &tmp) < 0) {
+    if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->arg, &tmp) < 0) {
         return 1;
     }
     if (tmp == NULL) {
@@ -9551,8 +9653,8 @@ obj2ast_arg(PyObject* obj, arg_ty* out, PyArena* arena)
         if (res != 0) goto failed;
         Py_CLEAR(tmp);
     }
-    if (_PyObject_LookupAttr(obj, astmodulestate_global->annotation, &tmp) < 0)
-        {
+    if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->annotation,
+        &tmp) < 0) {
         return 1;
     }
     if (tmp == NULL || tmp == Py_None) {
@@ -9565,8 +9667,8 @@ obj2ast_arg(PyObject* obj, arg_ty* out, PyArena* arena)
         if (res != 0) goto failed;
         Py_CLEAR(tmp);
     }
-    if (_PyObject_LookupAttr(obj, astmodulestate_global->type_comment, &tmp) <
-        0) {
+    if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->type_comment,
+        &tmp) < 0) {
         return 1;
     }
     if (tmp == NULL || tmp == Py_None) {
@@ -9579,7 +9681,8 @@ obj2ast_arg(PyObject* obj, arg_ty* out, PyArena* arena)
         if (res != 0) goto failed;
         Py_CLEAR(tmp);
     }
-    if (_PyObject_LookupAttr(obj, astmodulestate_global->lineno, &tmp) < 0) {
+    if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->lineno, &tmp) <
+        0) {
         return 1;
     }
     if (tmp == NULL) {
@@ -9592,8 +9695,8 @@ obj2ast_arg(PyObject* obj, arg_ty* out, PyArena* arena)
         if (res != 0) goto failed;
         Py_CLEAR(tmp);
     }
-    if (_PyObject_LookupAttr(obj, astmodulestate_global->col_offset, &tmp) < 0)
-        {
+    if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->col_offset,
+        &tmp) < 0) {
         return 1;
     }
     if (tmp == NULL) {
@@ -9606,8 +9709,8 @@ obj2ast_arg(PyObject* obj, arg_ty* out, PyArena* arena)
         if (res != 0) goto failed;
         Py_CLEAR(tmp);
     }
-    if (_PyObject_LookupAttr(obj, astmodulestate_global->end_lineno, &tmp) < 0)
-        {
+    if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->end_lineno,
+        &tmp) < 0) {
         return 1;
     }
     if (tmp == NULL || tmp == Py_None) {
@@ -9620,8 +9723,8 @@ obj2ast_arg(PyObject* obj, arg_ty* out, PyArena* arena)
         if (res != 0) goto failed;
         Py_CLEAR(tmp);
     }
-    if (_PyObject_LookupAttr(obj, astmodulestate_global->end_col_offset, &tmp)
-        < 0) {
+    if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->end_col_offset,
+        &tmp) < 0) {
         return 1;
     }
     if (tmp == NULL || tmp == Py_None) {
@@ -9653,7 +9756,7 @@ obj2ast_keyword(PyObject* obj, keyword_ty* out, PyArena* arena)
     int end_lineno;
     int end_col_offset;
 
-    if (_PyObject_LookupAttr(obj, astmodulestate_global->arg, &tmp) < 0) {
+    if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->arg, &tmp) < 0) {
         return 1;
     }
     if (tmp == NULL || tmp == Py_None) {
@@ -9666,7 +9769,8 @@ obj2ast_keyword(PyObject* obj, keyword_ty* out, PyArena* arena)
         if (res != 0) goto failed;
         Py_CLEAR(tmp);
     }
-    if (_PyObject_LookupAttr(obj, astmodulestate_global->value, &tmp) < 0) {
+    if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->value, &tmp) <
+        0) {
         return 1;
     }
     if (tmp == NULL) {
@@ -9679,7 +9783,8 @@ obj2ast_keyword(PyObject* obj, keyword_ty* out, PyArena* arena)
         if (res != 0) goto failed;
         Py_CLEAR(tmp);
     }
-    if (_PyObject_LookupAttr(obj, astmodulestate_global->lineno, &tmp) < 0) {
+    if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->lineno, &tmp) <
+        0) {
         return 1;
     }
     if (tmp == NULL) {
@@ -9692,8 +9797,8 @@ obj2ast_keyword(PyObject* obj, keyword_ty* out, PyArena* arena)
         if (res != 0) goto failed;
         Py_CLEAR(tmp);
     }
-    if (_PyObject_LookupAttr(obj, astmodulestate_global->col_offset, &tmp) < 0)
-        {
+    if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->col_offset,
+        &tmp) < 0) {
         return 1;
     }
     if (tmp == NULL) {
@@ -9706,8 +9811,8 @@ obj2ast_keyword(PyObject* obj, keyword_ty* out, PyArena* arena)
         if (res != 0) goto failed;
         Py_CLEAR(tmp);
     }
-    if (_PyObject_LookupAttr(obj, astmodulestate_global->end_lineno, &tmp) < 0)
-        {
+    if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->end_lineno,
+        &tmp) < 0) {
         return 1;
     }
     if (tmp == NULL || tmp == Py_None) {
@@ -9720,8 +9825,8 @@ obj2ast_keyword(PyObject* obj, keyword_ty* out, PyArena* arena)
         if (res != 0) goto failed;
         Py_CLEAR(tmp);
     }
-    if (_PyObject_LookupAttr(obj, astmodulestate_global->end_col_offset, &tmp)
-        < 0) {
+    if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->end_col_offset,
+        &tmp) < 0) {
         return 1;
     }
     if (tmp == NULL || tmp == Py_None) {
@@ -9749,7 +9854,8 @@ obj2ast_alias(PyObject* obj, alias_ty* out, PyArena* arena)
     identifier name;
     identifier asname;
 
-    if (_PyObject_LookupAttr(obj, astmodulestate_global->name, &tmp) < 0) {
+    if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->name, &tmp) < 0)
+        {
         return 1;
     }
     if (tmp == NULL) {
@@ -9762,7 +9868,8 @@ obj2ast_alias(PyObject* obj, alias_ty* out, PyArena* arena)
         if (res != 0) goto failed;
         Py_CLEAR(tmp);
     }
-    if (_PyObject_LookupAttr(obj, astmodulestate_global->asname, &tmp) < 0) {
+    if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->asname, &tmp) <
+        0) {
         return 1;
     }
     if (tmp == NULL || tmp == Py_None) {
@@ -9789,8 +9896,8 @@ obj2ast_withitem(PyObject* obj, withitem_ty* out, PyArena* arena)
     expr_ty context_expr;
     expr_ty optional_vars;
 
-    if (_PyObject_LookupAttr(obj, astmodulestate_global->context_expr, &tmp) <
-        0) {
+    if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->context_expr,
+        &tmp) < 0) {
         return 1;
     }
     if (tmp == NULL) {
@@ -9803,8 +9910,8 @@ obj2ast_withitem(PyObject* obj, withitem_ty* out, PyArena* arena)
         if (res != 0) goto failed;
         Py_CLEAR(tmp);
     }
-    if (_PyObject_LookupAttr(obj, astmodulestate_global->optional_vars, &tmp) <
-        0) {
+    if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->optional_vars,
+        &tmp) < 0) {
         return 1;
     }
     if (tmp == NULL || tmp == Py_None) {
@@ -9845,8 +9952,8 @@ obj2ast_type_ignore(PyObject* obj, type_ignore_ty* out, PyArena* arena)
         int lineno;
         string tag;
 
-        if (_PyObject_LookupAttr(obj, astmodulestate_global->lineno, &tmp) < 0)
-            {
+        if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->lineno,
+            &tmp) < 0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -9859,7 +9966,8 @@ obj2ast_type_ignore(PyObject* obj, type_ignore_ty* out, PyArena* arena)
             if (res != 0) goto failed;
             Py_CLEAR(tmp);
         }
-        if (_PyObject_LookupAttr(obj, astmodulestate_global->tag, &tmp) < 0) {
+        if (_Pegen_PyObject_LookupAttr(obj, astmodulestate_global->tag, &tmp) <
+            0) {
             return 1;
         }
         if (tmp == NULL) {
@@ -9885,7 +9993,7 @@ obj2ast_type_ignore(PyObject* obj, type_ignore_ty* out, PyArena* arena)
 
 
 PyMODINIT_FUNC
-PyInit__ast(void)
+PyInit__ast3(void)
 {
     PyObject *m;
     if (!init_types()) return NULL;
@@ -10390,7 +10498,7 @@ error:
 }
 
 
-PyObject* PyAST_mod2obj(mod_ty t)
+PyObject* Ta3AST_mod2obj(mod_ty t)
 {
     if (!init_types())
         return NULL;
@@ -10398,15 +10506,11 @@ PyObject* PyAST_mod2obj(mod_ty t)
 }
 
 /* mode is 0 for "exec", 1 for "eval" and 2 for "single" input */
-mod_ty PyAST_obj2mod(PyObject* ast, PyArena* arena, int mode)
+mod_ty Ta3AST_obj2mod(PyObject* ast, PyArena* arena, int mode)
 {
     PyObject *req_type[3];
     const char * const req_name[] = {"Module", "Expression", "Interactive"};
     int isinstance;
-
-    if (PySys_Audit("compile", "OO", ast, Py_None) < 0) {
-        return NULL;
-    }
 
     req_type[0] = astmodulestate_global->Module_type;
     req_type[1] = astmodulestate_global->Expression_type;
@@ -10422,7 +10526,7 @@ mod_ty PyAST_obj2mod(PyObject* ast, PyArena* arena, int mode)
         return NULL;
     if (!isinstance) {
         PyErr_Format(PyExc_TypeError, "expected %s node, got %.400s",
-                     req_name[mode], _PyType_Name(Py_TYPE(ast)));
+                     req_name[mode], _Ta3Type_Name(Py_TYPE(ast)));
         return NULL;
     }
 
@@ -10433,7 +10537,7 @@ mod_ty PyAST_obj2mod(PyObject* ast, PyArena* arena, int mode)
         return res;
 }
 
-int PyAST_Check(PyObject* obj)
+int Ta3AST_Check(PyObject* obj)
 {
     if (!init_types())
         return -1;

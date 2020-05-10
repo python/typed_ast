@@ -33,14 +33,14 @@ typedef struct {
     int fmode;
 } FstringParser;
 
-void _PyPegen_FstringParser_Init(FstringParser *);
-int _PyPegen_parsestr(Parser *, int *, int *, PyObject **,
+void _Ta3Pegen_FstringParser_Init(FstringParser *);
+int _Ta3Pegen_parsestr(Parser *, int *, int *, PyObject **,
                       const char **, Py_ssize_t *, Token *);
-int _PyPegen_FstringParser_ConcatFstring(Parser *, FstringParser *, const char **,
+int _Ta3Pegen_FstringParser_ConcatFstring(Parser *, FstringParser *, const char **,
                                 const char *, int, int, Token *, Token *,
                                 Token *);
-int _PyPegen_FstringParser_ConcatAndDel(FstringParser *, PyObject *);
-expr_ty _PyPegen_FstringParser_Finish(Parser *, FstringParser *, Token *, Token *);
-void _PyPegen_FstringParser_Dealloc(FstringParser *);
+int _Ta3Pegen_FstringParser_ConcatAndDel(FstringParser *, PyObject *);
+expr_ty _Ta3Pegen_FstringParser_Finish(Parser *, FstringParser *, Token *, Token *);
+void _Ta3Pegen_FstringParser_Dealloc(FstringParser *);
 
 #endif

@@ -8,7 +8,7 @@ _build_return_object(mod_ty module, int mode, PyObject *filename_ob, PyArena *ar
     if (mode == 2) {
         result = (PyObject *)PyAST_CompileObject(module, filename_ob, NULL, -1, arena);
     } else if (mode == 1) {
-        result = PyAST_mod2obj(module);
+        result = Ta3AST_mod2obj(module);
     } else {
         result = Py_None;
         Py_INCREF(result);
@@ -42,8 +42,8 @@ parse_file(PyObject *self, PyObject *args, PyObject *kwds)
         goto error;
     }
 
-    PyCompilerFlags flags = _PyCompilerFlags_INIT;
-    mod_ty res = _PyPegen_run_parser_from_file(filename, Py_file_input, filename_ob, &flags, arena);
+    PegenCompilerFlags flags = _PyCompilerFlags_INIT;
+    mod_ty res = _Ta3Pegen_run_parser_from_file(filename, Py_file_input, filename_ob, &flags, arena);
     if (res == NULL) {
         goto error;
     }
@@ -81,8 +81,8 @@ parse_string(PyObject *self, PyObject *args, PyObject *kwds)
         goto error;
     }
 
-    PyCompilerFlags flags = _PyCompilerFlags_INIT;
-    mod_ty res = _PyPegen_run_parser_from_string(the_string, Py_file_input, filename_ob,
+    PegenCompilerFlags flags = _PyCompilerFlags_INIT;
+    mod_ty res = _Ta3Pegen_run_parser_from_string(the_string, Py_file_input, filename_ob,
                                         &flags, arena);
     if (res == NULL) {
         goto error;
@@ -98,21 +98,21 @@ error:
 static PyObject *
 clear_memo_stats()
 {
-    _PyPegen_clear_memo_statistics();
+    _Ta3Pegen_clear_memo_statistics();
     Py_RETURN_NONE;
 }
 
 static PyObject *
 get_memo_stats()
 {
-    return _PyPegen_get_memo_statistics();
+    return _Ta3Pegen_get_memo_statistics();
 }
 
 // TODO: Write to Python's sys.stdout instead of C's stdout.
 static PyObject *
 dump_memo_stats()
 {
-    PyObject *list = _PyPegen_get_memo_statistics();
+    PyObject *list = _Ta3Pegen_get_memo_statistics();
     if (list == NULL) {
         return NULL;
     }

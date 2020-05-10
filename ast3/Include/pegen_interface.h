@@ -11,32 +11,32 @@ extern "C" {
 #include "Python.h"
 #include "Python-ast.h"
 
-PyAPI_FUNC(mod_ty) PyPegen_ASTFromString(
+PyAPI_FUNC(mod_ty) Ta3Pegen_ASTFromString(
     const char *str,
     const char *filename,
     int mode,
-    PyCompilerFlags *flags,
+    PegenCompilerFlags *flags,
     PyArena *arena);
-PyAPI_FUNC(mod_ty) PyPegen_ASTFromStringObject(
+PyAPI_FUNC(mod_ty) Ta3Pegen_ASTFromStringObject(
     const char *str,
     PyObject* filename,
     int mode,
-    PyCompilerFlags *flags,
+    PegenCompilerFlags *flags,
     PyArena *arena);
-PyAPI_FUNC(mod_ty) PyPegen_ASTFromFileObject(
+PyAPI_FUNC(mod_ty) Ta3Pegen_ASTFromFileObject(
     FILE *fp,
     PyObject *filename_ob,
     int mode,
     const char *enc,
     const char *ps1,
     const char *ps2,
-    PyCompilerFlags *flags,
+    PegenCompilerFlags *flags,
     int *errcode,
     PyArena *arena);
-PyAPI_FUNC(mod_ty) PyPegen_ASTFromFilename(
+PyAPI_FUNC(mod_ty) Ta3Pegen_ASTFromFilename(
     const char *filename,
     int mode,
-    PyCompilerFlags *flags,
+    PegenCompilerFlags *flags,
     PyArena *arena);
 
 
