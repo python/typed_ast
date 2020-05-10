@@ -1424,7 +1424,7 @@ def main(srcfile, dump_module=False):
             f.write("PyObject *ast3_parse(PyObject *self, PyObject *args);\n")
             f.write("static PyMethodDef ast3_methods[] = {\n")
             f.write('    {"_parse",  ast3_parse, METH_VARARGS, "Parse string into typed AST."},\n')
-            f.write("    {NULL, NULL, NULL}\n")
+            f.write("    {NULL, NULL, 0, NULL}\n")
             f.write("};\n")
 
             generate_module_def(f, mod)

@@ -80,7 +80,7 @@ extern struct tok_state *Ta3Tokenizer_FromFile(FILE *, const char*,
 extern void Ta3Tokenizer_Free(struct tok_state *);
 extern int Ta3Tokenizer_Get(struct tok_state *, const char **, const char **);
 
-#define tok_dump _Py_tok_dump
+#define tok_dump _Ta3_tok_dump
 
 #ifdef __cplusplus
 }

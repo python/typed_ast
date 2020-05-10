@@ -9,7 +9,7 @@
 PyObject *ast3_parse(PyObject *self, PyObject *args);
 static PyMethodDef ast3_methods[] = {
     {"_parse",  ast3_parse, METH_VARARGS, "Parse string into typed AST."},
-    {NULL, NULL, NULL}
+    {NULL, NULL, 0, NULL}
 };
 typedef struct {
     int initialized;
