@@ -1,5 +1,5 @@
-#ifndef Py_PEGENINTERFACE
-#define Py_PEGENINTERFACE
+#ifndef Ta3_PEGENINTERFACE
+#define Ta3_PEGENINTERFACE
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -43,4 +43,4 @@ PyAPI_FUNC(mod_ty) PyPegen_ASTFromFilename(
 #ifdef __cplusplus
 }
 #endif
-#endif /* !Py_PEGENINTERFACE*/
+#endif /* !Ta3_PEGENINTERFACE*/

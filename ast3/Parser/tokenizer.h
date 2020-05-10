@@ -1,5 +1,5 @@
-#ifndef Py_TOKENIZER_H
-#define Py_TOKENIZER_H
+#ifndef Ta3_TOKENIZER_H
+#define Ta3_TOKENIZER_H
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -85,4 +85,4 @@ extern int PyTokenizer_Get(struct tok_state *, const char **, const char **);
 #ifdef __cplusplus
 }
 #endif
-#endif /* !Py_TOKENIZER_H */
+#endif /* !Ta3_TOKENIZER_H */

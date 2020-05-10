@@ -1,5 +1,5 @@
-#ifndef PEGEN_H
-#define PEGEN_H
+#ifndef Ta3_PEGEN_H
+#define Ta3_PEGEN_H
 
 #define PY_SSIZE_T_CLEAN
 #include <Python.h>

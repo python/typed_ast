@@ -1,5 +1,5 @@
-#ifndef STRINGS_H
-#define STRINGS_H
+#ifndef Ta3_STRINGS_H
+#define Ta3_STRINGS_H
 
 #include <Python.h>
 #include <Python-ast.h>
