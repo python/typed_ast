@@ -9,4 +9,10 @@ FOLDER="ast$1"
 PATTERN='s/Py\([A-Z_]*_H\( \*\/\)\{0,1\}\)$/'
 PATTERN+="Ta$1"
 PATTERN+='\1/'
-find "$FOLDER" -type f -name '*.h' | xargs -n 1 sed -i '' "$PATTERN"
+find "$FOLDER" -type f -name '*.h' -exec sed -i "$PATTERN" {} \;
+# manually update some headers
+GUARDS='s/STRINGS_H/Ta3_STRINGS_H/ s/PEGEN_H/Ta3_PEGEN_H/ s/Py_PEGENINTERFACE/Ta3_PEGENINTERFACE/'
+for GUARD in $GUARDS
+do
+    find "$FOLDER" -type f -name '*.h' -exec sed -i "$GUARD" {} \;    
+done

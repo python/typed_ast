@@ -1,0 +1,13 @@
+diff --git a/ast3/Tools/peg_generator/pegen/c_generator.py b/ast3/Tools/peg_generator/pegen/c_generator.py
+index 3bf6d9e..ac6f9ae 100644
+--- a/ast3/Tools/peg_generator/pegen/c_generator.py
++++ b/ast3/Tools/peg_generator/pegen/c_generator.py
+@@ -27,7 +27,7 @@ from pegen.parser_generator import ParserGenerator
+ 
+ EXTENSION_PREFIX = """\
+ #include "pegen.h"
+-
++#include "ta3_compat.h"
+ """
+ 
+ 

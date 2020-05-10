@@ -2,11 +2,16 @@
 PROJ_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )/.."
 
 # This requires GNU binutils (e.g. brew install binutils).
+if [ "$(uname)" == "Darwin" ]; then
+OBJDUMP="/usr/local/opt/binutils/bin/gobjdump"
+else
+OBJDUMP="objdump"
+fi
 
-/usr/local/opt/binutils/bin/gobjdump -t $PROJ_DIR/build/lib*/_ast${1}.*.so \
+$OBJDUMP -t $PROJ_DIR/build/lib*/typed_ast/_ast${1}.*.so \
     | grep ' g ' \
     | grep -v UND \
-    | sed 's/.* _//' \
+    | sed -r 's/[[:xdigit:]]+ g .* +(.*)/\1/' \
     | grep -v PyInit__ast \
     | grep 'Py' \
     > "exported_symbols${1}.txt"

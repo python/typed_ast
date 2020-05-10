@@ -1,0 +1,7 @@
+./tools/import_files.sh
+./tools/update_header_guards 3
+patch ast3/Parser/pegen/parse_string.c <tools/parse_string.c.patch
+patch ast3/Tools/peg_generator/pegen/c_generator.py <tools/c_generator.patch
+patch ast3/Include/ta3_compat.h <tools/ta3_compat.h.patch
+./tools/regen_parse.sh
+./tools/rename_symbols.sh

@@ -1,0 +1,22 @@
+diff --git a/ast3/Parser/pegen/parse_string.c b/ast3/Parser/pegen/parse_string.c
+index ca4b733..0a63686 100644
+--- a/ast3/Parser/pegen/parse_string.c
++++ b/ast3/Parser/pegen/parse_string.c
+@@ -4,6 +4,8 @@
+ #include "pegen.h"
+ #include "parse_string.h"
+ 
++#include "../Include/ta3_compat.h"
++
+ //// STRING HANDLING FUNCTIONS ////
+ 
+ // These functions are ported directly from Python/ast.c with some modifications
+@@ -131,7 +133,7 @@ static PyObject *
+ decode_bytes_with_escapes(Parser *p, const char *s, Py_ssize_t len, Token *t)
+ {
+     const char *first_invalid_escape;
+-    PyObject *result = _PyBytes_DecodeEscape(s, len, NULL, &first_invalid_escape);
++    PyObject *result = _PyBytes_DecodeEscape(s, len, NULL, 0, NULL, &first_invalid_escape);
+     if (result == NULL) {
+         return NULL;
+     }

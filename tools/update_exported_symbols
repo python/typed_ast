@@ -7,7 +7,13 @@ for CHANGE in $( cat "$PROJ_DIR/exported_symbols${1}.txt" ); do
   else
     NEW="Ta${1}${CHANGE:2}"
   fi
-  find "$PROJ_DIR/ast${1}" -type f -name '*.h' -or -name '*.c' | xargs -n 1 sed -i '' "s/$CHANGE/$NEW/"
+  for FILE in $(find "$PROJ_DIR/ast${1}" -type f -name "*.h" -or -name "*.c" -or -name "*.gram"); do
+    sed -i "s/$CHANGE/$NEW/" $FILE
+  done
+  sed -i "s/$CHANGE/$NEW/" ast3/Tools/peg_generator/pegen/c_generator.py
 done
+
+sed -i "s/_PyPegen_/_Ta3Pegen_/" ast3/Tools/peg_generator/pegen/c_generator.py
+sed -i 's/_PyPegen/_Ta3Pegen/' ast3/Grammar/python.gram
 
 echo "Symbols updated.  Remember to also update autogeneration code like Parser/asdl_c.py."
