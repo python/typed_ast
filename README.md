@@ -29,6 +29,9 @@ It is not a drop-in replacement for users that wish to create or transform ASTs,
 as a number of syntax tree classes have additional fields that must be populated
 when constructing them.
 
+Due to reliance on certain C APIs, this library does not build on and there
+are [no plans to support PyPy](https://github.com/python/typed_ast/issues/111).
+
 ### Python 3.8
 
 `typed_ast` will not be updated to support parsing Python 3.8 and
