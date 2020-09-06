@@ -1,6 +1,8 @@
 # Run unit tests and build Linux wheels with manylinux.
 # See: https://github.com/pypa/manylinux
 
+os: linux
+
 dist: xenial
 
 language: python
@@ -68,7 +70,6 @@ deploy:
   secret_access_key: "$GOOGLE_SECRET_KEY"
   bucket: "$GOOGLE_BUCKET_NAME"
   local_dir: wheelhouse
-  skip_cleanup: true
   acl: public-read
   on:
     repo: python/typed_ast
