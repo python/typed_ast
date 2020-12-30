@@ -292,7 +292,7 @@ Ta27AST_FromNode(const node *n, PyCompilerFlags *flags, const char *filename,
             ch = CHILD(n, NCH(n) - 1);
             REQ(ch, ENDMARKER);
             num = NCH(ch);
-            type_ignores = _Py_asdl_seq_new(num, arena);
+            type_ignores = _Ta27_asdl_seq_new(num, arena);
             if (!type_ignores)
                 goto error;
 
@@ -368,7 +368,7 @@ Ta27AST_FromNode(const node *n, PyCompilerFlags *flags, const char *filename,
                         num++;
                 }
 
-                argtypes = _Py_asdl_seq_new(num, arena);
+                argtypes = _Ta27_asdl_seq_new(num, arena);
 
                 j = 0;
                 for (i = 0; i < NCH(ch); i++) {
@@ -381,7 +381,7 @@ Ta27AST_FromNode(const node *n, PyCompilerFlags *flags, const char *filename,
                 }
             }
             else
-                argtypes = _Py_asdl_seq_new(0, arena);
+                argtypes = _Ta27_asdl_seq_new(0, arena);
 
             ret = ast_for_expr(&c, CHILD(n, NCH(n) - 1));
             if (!ret)
