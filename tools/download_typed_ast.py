@@ -70,6 +70,7 @@ def main(argv):
 
     download_entries(GCLOUD_URL, version, 'manylinux1_x86_64')
     download_entries(GCLOUD_URL, version, 'manylinux1_i686')
+    download_entries(GCLOUD_URL, version, 'manylinux2014_aarch64')
 
     download_appveyor(version)
 
