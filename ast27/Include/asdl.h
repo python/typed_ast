@@ -27,13 +27,8 @@ typedef struct {
     int elements[1];
 } asdl_int_seq;
 
-#if PY_MINOR_VERSION > 3
 #define asdl_seq_new _Ta27_asdl_seq_new
 #define asdl_int_seq_new _Ta27_asdl_int_seq_new
-#else
-#define _Ta27_asdl_seq_new asdl_seq_new
-#define _Ta27_asdl_int_seq_new asdl_int_seq_new
-#endif
 asdl_seq *asdl_seq_new(Py_ssize_t size, PyArena *arena);
 asdl_int_seq *asdl_int_seq_new(Py_ssize_t size, PyArena *arena);
 
