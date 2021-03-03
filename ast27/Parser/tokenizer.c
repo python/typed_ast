@@ -18,12 +18,6 @@
 #include "abstract.h"
 #endif /* PGEN */
 
-#if PY_MINOR_VERSION >= 10
-#include "cpython/pydebug.h"
-#else
-#include "pydebug.h"
-#endif
-
 #if PY_MINOR_VERSION >= 4
 PyAPI_FUNC(char *) PyOS_Readline(FILE *, FILE *, const char *);
 #else

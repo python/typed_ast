@@ -13,12 +13,6 @@
 #include "../Include/graminit.h"
 #include "unicodeobject.h"
 
-#if PY_MINOR_VERSION >= 10
-#include "cpython/pyarena.h"
-#else
-#include "pyarena.h"
-#endif
-
 #include <assert.h>
 
 /* Data structure used internally */
