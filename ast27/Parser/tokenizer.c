@@ -16,8 +16,13 @@
 #include "fileobject.h"
 #include "codecs.h"
 #include "abstract.h"
-#include "pydebug.h"
 #endif /* PGEN */
+
+#if PY_MINOR_VERSION >= 10
+#include "cpython/pydebug.h"
+#else
+#include "pydebug.h"
+#endif
 
 #if PY_MINOR_VERSION >= 4
 PyAPI_FUNC(char *) PyOS_Readline(FILE *, FILE *, const char *);

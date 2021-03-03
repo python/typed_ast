@@ -7,12 +7,17 @@
 #include "../Include/Python-ast.h"
 #include "../Include/grammar.h"
 #include "../Include/node.h"
-#include "pyarena.h"
 #include "../Include/ast.h"
 #include "../Include/token.h"
 #include "../Include/parsetok.h"
 #include "../Include/graminit.h"
 #include "unicodeobject.h"
+
+#if PY_MINOR_VERSION >= 10
+#include "cpython/pyarena.h"
+#else
+#include "pyarena.h"
+#endif
 
 #include <assert.h>
 
