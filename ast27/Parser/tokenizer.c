@@ -16,7 +16,6 @@
 #include "fileobject.h"
 #include "codecs.h"
 #include "abstract.h"
-#include "pydebug.h"
 #endif /* PGEN */
 
 #if PY_MINOR_VERSION >= 4
