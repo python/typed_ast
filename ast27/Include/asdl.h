@@ -1,6 +1,8 @@
 #ifndef Ta27_ASDL_H
 #define Ta27_ASDL_H
 
+#include "../Include/pyarena.h"
+
 typedef PyObject * identifier;
 typedef PyObject * string;
 typedef PyObject * object;

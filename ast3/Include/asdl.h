@@ -1,6 +1,8 @@
 #ifndef Ta3_ASDL_H
 #define Ta3_ASDL_H
 
+#include "../Include/pyarena.h"
+
 typedef PyObject * identifier;
 typedef PyObject * string;
 typedef PyObject * bytes;
