@@ -31,8 +31,8 @@
    possibly to recompile Python with that environment variable set.
 10. Compare the wheels produced to previous release of typed-ast to make sure
     you have the full matrix.
-11. Upload the sdist and wheels to PyPI with `twine upload dist/*`.
-12. If possible, verify the final `typed_ast` wheels work on Windows, MacOS,
+11. If possible, verify the final `typed_ast` wheels work on Windows, MacOS,
     and Linux platforms.
+12. Upload the sdist and wheels to PyPI with `twine upload dist/*`.
 13. Make a commit which bumps the bugfix version and adds back the `.dev0`
     suffix.
