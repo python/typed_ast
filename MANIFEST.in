@@ -1,4 +1,17 @@
+include ast27/Grammar/Grammar
+include ast27/Parser/Python.asdl
 recursive-include ast27 *.h
+recursive-include ast27 *.py
+
+include ast3/Grammar/Grammar
+include ast3/Parser/Python.asdl
 recursive-include ast3 *.h
+recursive-include ast3 *.py
+
 recursive-include ast3/tests *.py
 include LICENSE
+
+prune tools
+exclude CONTRIBUTING.md
+exclude release_process.md
+exclude update_process.md
