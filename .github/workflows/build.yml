@@ -1,9 +1,6 @@
 name: Build wheels
 
-on:
-  push:
-    branches: [master]
-    tags: ['*']
+on: [push, pull_request]
 
 jobs:
   build_wheels:
@@ -32,6 +29,8 @@ jobs:
           CIBW_SKIP: "*-manylinux_i686 *-win32"
           CIBW_ARCHS_MACOS: "x86_64 arm64"
           CIBW_BUILD_VERBOSITY: 1
+          CIBW_BEFORE_TEST: pip install pytest
+          CIBW_TEST_COMMAND: pytest {package}
         run: |
           python -m cibuildwheel --output-dir wheelhouse .
       - uses: actions/upload-artifact@v2
@@ -60,44 +59,3 @@ jobs:
           name: dist
           path: |
             dist/*.tar.gz
-  release:
-    name: create release
-    needs: [build_wheels, build_sdist_python_wheel]
-    runs-on: ubuntu-latest
-    steps:
-      - name: Download artifact
-        uses: actions/download-artifact@v2
-        with:
-          name: dist
-          path: dist
-      - name: Release
-        # https://github.com/actions/upload-release-asset/issues/47
-        uses: actions/github-script@v2
-        with:
-          github-token: ${{secrets.GITHUB_TOKEN}}
-          script: |
-            const fs = require('fs').promises;
-            const { repo: { owner, repo }, sha } = context;
-
-            console.log('environment', process.versions);
-            console.log({ owner, repo, sha });
-
-            const release = await github.repos.createRelease({
-              owner, repo,
-              // if GITHUB_REF just appears to be a branch, use tag-{commit} as the tag
-              tag_name: process.env.GITHUB_REF.includes("refs/heads/") ? "tag-" + sha : process.env.GITHUB_REF.split("/").pop(),
-              target_commitish: sha
-            });
-
-            console.log('created release', { release });
-
-            for (let file of await fs.readdir('dist')) {
-              console.log('uploading', file);
-
-              await github.repos.uploadReleaseAsset({
-                owner, repo,
-                release_id: release.data.id,
-                name: file,
-                data: await fs.readFile(`./dist/${file}`)
-              });
-            }
