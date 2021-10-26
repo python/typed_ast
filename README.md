@@ -4,12 +4,14 @@
 [![Chat at https://gitter.im/python/typed_ast](https://badges.gitter.im/python/typed_ast.svg)](https://gitter.im/python/typed_ast)
 
 `typed_ast` is a Python 3 package that provides a Python 2.7 and Python 3
-parser similar to the standard `ast` library.  Unlike `ast`, the parsers in
+parser similar to the standard `ast` library.  Unlike `ast` up to Python 3.7, the parsers in
 `typed_ast` include [PEP 484](https://www.python.org/dev/peps/pep-0484/) type
 comments and are independent of the version of Python under which they are run.
 The `typed_ast` parsers produce the standard Python AST (plus type comments),
 and are both fast and correct, as they are based on the CPython 2.7 and 3.7
-parsers.  `typed_ast` runs on CPython 3.6-3.10 on Linux, OS X and Windows.
+parsers.  `typed_ast` runs on CPython 3.6-3.10 on Linux, OS X and Windows,
+although starting with Python 3.8, we recommend to use the native `ast` parser
+(see below).
 
 ## Development Philosophy
 
@@ -41,9 +43,8 @@ and has limited support for parsing older versions of Python 3.
 
 ## Submodules
 ### ast3
-The `ast3` parser produces the AST from a recent version of Python 3
-(currently Python 3.6).  When new versions of Python 3 are released, it will be
-updated to match any changes in their AST.  (For rationale and technical
+The `ast3` parser produces the AST from a Python 3 code, up to Python 3.7. 
+(For rationale and technical
 details, see [here](update_process.md).)  The AST it currently produces is described in
 [ast3/Parser/Python.asdl](ast3/Parser/Python.asdl).  If you wish to limit
 parsing to older versions of Python 3, `ast3` can be configured to to give a
