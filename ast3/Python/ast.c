@@ -58,16 +58,6 @@ _PyBytes_DecodeEscape(const char *s,
 
 #endif
 
-PyObject *
-_PyUnicode_DecodeUnicodeEscape(const char *s,
-                               Py_ssize_t size,
-                               const char *errors,
-                               const char **first_invalid_escape)
-{
-    *first_invalid_escape = NULL;
-    return PyUnicode_DecodeUnicodeEscape(s, size, errors);
-}
-
 static int validate_stmts(asdl_seq *);
 static int validate_exprs(asdl_seq *, expr_context_ty, int);
 static int validate_nonempty_seq(asdl_seq *, const char *, const char *);
@@ -4461,7 +4451,6 @@ decode_unicode_with_escapes(struct compiling *c, const node *n, const char *s,
     char *buf;
     char *p;
     const char *end;
-    const char *first_invalid_escape;
 
     /* check for integer overflow */
     if (len > SIZE_MAX / 6)
@@ -4511,17 +4500,8 @@ decode_unicode_with_escapes(struct compiling *c, const node *n, const char *s,
     len = p - buf;
     s = buf;
 
-    v = _PyUnicode_DecodeUnicodeEscape(s, len, NULL, &first_invalid_escape);
+    v = PyUnicode_DecodeUnicodeEscape(s, len, NULL);
 
-    if (v != NULL && first_invalid_escape != NULL) {
-        if (warn_invalid_escape_sequence(c, n, *first_invalid_escape) < 0) {
-            /* We have not decref u before because first_invalid_escape points
-               inside u. */
-            Py_XDECREF(u);
-            Py_DECREF(v);
-            return NULL;
-        }
-    }
     Py_XDECREF(u);
     return v;
 }
