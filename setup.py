@@ -90,8 +90,9 @@ Python under which they are run.  The `typed_ast` parsers produce the standard
 Python AST (plus type comments), and are both fast and correct, as they are
 based on the CPython 2.7 and 3.7 parsers.
 
-`typed_ast` does not support Python 3.8 or higher code. Use the `ast`
-module from Python 3.8 or above for that.
+**Note:** The `ast` module of Python 3.8+ supports all features of `typed_ast`.
+On the other hand, `typed_ast` does not support Python 3.8 or higher code.
+We recommend to use `ast` on Python 3.8 or above.
 """.strip()
 
 _version_re = re.compile(r'__version__\s+=\s+(?P<version>.*)')

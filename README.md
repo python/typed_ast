@@ -9,8 +9,9 @@ parser similar to the standard `ast` library.  Unlike `ast` up to Python 3.7, th
 comments and are independent of the version of Python under which they are run.
 The `typed_ast` parsers produce the standard Python AST (plus type comments),
 and are both fast and correct, as they are based on the CPython 2.7 and 3.7
-parsers.  `typed_ast` runs on CPython 3.6-3.10 on Linux, OS X and Windows,
-although starting with Python 3.8, we recommend to use the native `ast` parser
+parsers.  `typed_ast` runs on CPython 3.6-3.10 on Linux, OS X and Windows.
+
+**Note:** Starting with Python 3.8, we recommend to use the native `ast` parser
 (see below).
 
 ## Development Philosophy
