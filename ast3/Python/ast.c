@@ -56,6 +56,8 @@ _PyBytes_DecodeEscape(const char *s,
     return PyBytes_DecodeEscape(s, len, errors, unicode, recode_encoding);
 }
 
+#endif
+
 PyObject *
 _PyUnicode_DecodeUnicodeEscape(const char *s,
                                Py_ssize_t size,
@@ -65,8 +67,6 @@ _PyUnicode_DecodeUnicodeEscape(const char *s,
     *first_invalid_escape = NULL;
     return PyUnicode_DecodeUnicodeEscape(s, size, errors);
 }
-
-#endif
 
 static int validate_stmts(asdl_seq *);
 static int validate_exprs(asdl_seq *, expr_context_ty, int);
