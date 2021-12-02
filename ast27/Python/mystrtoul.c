@@ -78,6 +78,32 @@ static int digitlimit[] = {
 #error "Need table for SIZEOF_LONG"
 #endif
 
+/* Table of digit values for 8-bit string -> integer conversion.
+ * '0' maps to 0, ..., '9' maps to 9.
+ * 'a' and 'A' map to 10, ..., 'z' and 'Z' map to 35.
+ * All other indices map to 37.
+ * Note that when converting a base B string, a char c is a legitimate
+ * base B digit iff digitvalue[Py_CHARPyLong_MASK(c)] < B.
+ */
+unsigned char digitvalue[256] = {
+    37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37,
+    37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37,
+    37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37,
+    0,  1,  2,  3,  4,  5,  6,  7,  8,  9,  37, 37, 37, 37, 37, 37,
+    37, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24,
+    25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 37, 37, 37, 37, 37,
+    37, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24,
+    25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 37, 37, 37, 37, 37,
+    37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37,
+    37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37,
+    37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37,
+    37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37,
+    37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37,
+    37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37,
+    37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37,
+    37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37,
+};
+
 /*
 **      strtoul
 **              This is a general purpose routine for converting
@@ -109,7 +135,7 @@ Ta27OS_strtoul(register char *str, char **ptr, int base)
             ++str;
             if (*str == 'x' || *str == 'X') {
                 /* there must be at least one digit after 0x */
-                if (_PyLong_DigitValue[Py_CHARMASK(str[1])] >= 16) {
+                if (digitvalue[Py_CHARMASK(str[1])] >= 16) {
                     if (ptr)
                         *ptr = str;
                     return 0;
@@ -118,7 +144,7 @@ Ta27OS_strtoul(register char *str, char **ptr, int base)
                 base = 16;
             } else if (*str == 'o' || *str == 'O') {
                 /* there must be at least one digit after 0o */
-                if (_PyLong_DigitValue[Py_CHARMASK(str[1])] >= 8) {
+                if (digitvalue[Py_CHARMASK(str[1])] >= 8) {
                     if (ptr)
                         *ptr = str;
                     return 0;
@@ -127,7 +153,7 @@ Ta27OS_strtoul(register char *str, char **ptr, int base)
                 base = 8;
             } else if (*str == 'b' || *str == 'B') {
                 /* there must be at least one digit after 0b */
-                if (_PyLong_DigitValue[Py_CHARMASK(str[1])] >= 2) {
+                if (digitvalue[Py_CHARMASK(str[1])] >= 2) {
                     if (ptr)
                         *ptr = str;
                     return 0;
@@ -147,7 +173,7 @@ Ta27OS_strtoul(register char *str, char **ptr, int base)
             ++str;
             if (*str == 'b' || *str == 'B') {
                 /* there must be at least one digit after 0b */
-                if (_PyLong_DigitValue[Py_CHARMASK(str[1])] >= 2) {
+                if (digitvalue[Py_CHARMASK(str[1])] >= 2) {
                     if (ptr)
                         *ptr = str;
                     return 0;
@@ -162,7 +188,7 @@ Ta27OS_strtoul(register char *str, char **ptr, int base)
             ++str;
             if (*str == 'o' || *str == 'O') {
                 /* there must be at least one digit after 0o */
-                if (_PyLong_DigitValue[Py_CHARMASK(str[1])] >= 8) {
+                if (digitvalue[Py_CHARMASK(str[1])] >= 8) {
                     if (ptr)
                         *ptr = str;
                     return 0;
@@ -177,7 +203,7 @@ Ta27OS_strtoul(register char *str, char **ptr, int base)
             ++str;
             if (*str == 'x' || *str == 'X') {
                 /* there must be at least one digit after 0x */
-                if (_PyLong_DigitValue[Py_CHARMASK(str[1])] >= 16) {
+                if (digitvalue[Py_CHARMASK(str[1])] >= 16) {
                     if (ptr)
                         *ptr = str;
                     return 0;
@@ -203,7 +229,7 @@ Ta27OS_strtoul(register char *str, char **ptr, int base)
     ovlimit = digitlimit[base];
 
     /* do the conversion until non-digit character encountered */
-    while ((c = _PyLong_DigitValue[Py_CHARMASK(*str)]) < base) {
+    while ((c = digitvalue[Py_CHARMASK(*str)]) < base) {
         if (ovlimit > 0) /* no overflow check required */
             result = result * base + c;
         else { /* requires overflow check */
@@ -240,7 +266,7 @@ Ta27OS_strtoul(register char *str, char **ptr, int base)
 overflowed:
     if (ptr) {
         /* spool through remaining digit characters */
-        while (_PyLong_DigitValue[Py_CHARMASK(*str)] < base)
+        while (digitvalue[Py_CHARMASK(*str)] < base)
             ++str;
         *ptr = str;
     }
