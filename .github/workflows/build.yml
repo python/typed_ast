@@ -4,7 +4,7 @@ on: [push, pull_request]
 
 jobs:
   build_wheels:
-    name: Build wheels on ${{ matrix.os }} PYTHON=py${{ matrix.python-version }}
+    name: py${{ matrix.python-version }} on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -37,7 +37,7 @@ jobs:
           name: dist
           path: ./wheelhouse/*.whl
   build_wheels_aarch64:
-    name: Build Aarch64 wheels on ${{ matrix.os }} PYTHON=py${{ matrix.python-version }}
+    name: py${{ matrix.python-version }} on ${{ matrix.os }} (aarch64)
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
