@@ -13,9 +13,12 @@
 #include <assert.h>
 
 // VS 2010 doesn't have <stdbool.h>...
+#ifndef __bool_true_false_are_defined
 typedef int bool;
 #define false 0
 #define true 1
+#endif
+
 
 #if PY_MINOR_VERSION < 6
 static PyObject *
