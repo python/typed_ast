@@ -69,7 +69,6 @@ more information, see the `py2to3` docstring in
 Note: as these parsers consider type comments part of the grammar, incorrectly
 placed type comments are considered syntax errors.
 
-## Updates and Releases
-To update `typed_ast` for new major Python releases, see [`update_process.md`](update_process.md).
+## Releases
 
 To make a new `typed_ast` release, see [`release_process.md`](release_process.md).
