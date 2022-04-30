@@ -3,6 +3,21 @@ name: Build wheels
 on: [push, pull_request]
 
 jobs:
+  test_prerelease_python:
+    # needed because manylinux is hesitant to support pre-release python
+    # so we can't just use cibuildwheel
+    name: prelease python
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+        with:
+          python-version: '3.11-dev'
+      - run: |
+          python3.11 -m pip install -e .
+          python3.11 -m pip install pytest
+          python3.11 -m pytest
+
   build_wheels:
     name: py${{ matrix.python-version }} on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
