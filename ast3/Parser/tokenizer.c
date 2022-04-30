@@ -1980,6 +1980,8 @@ Ta3Tokenizer_Get(struct tok_state *tok, char **p_start, char **p_end)
    The char* returned is malloc'ed via PyMem_MALLOC() and thus must be freed
    by the caller. */
 
+PyAPI_FUNC(int) _Py_dup(int fd);
+
 char *
 Ta3Tokenizer_FindEncodingFilename(int fd, PyObject *filename)
 {
