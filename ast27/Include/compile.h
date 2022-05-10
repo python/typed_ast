@@ -2,7 +2,7 @@
 #ifndef Ta27_COMPILE_H
 #define Ta27_COMPILE_H
 
-#include "code.h"
+#include "Python.h"
 
 #ifdef __cplusplus
 extern "C" {
