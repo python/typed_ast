@@ -207,10 +207,13 @@ def get_docstring(node, clean=True):
         raise TypeError("%r can't have docstrings" % node.__class__.__name__)
     if node.body and isinstance(node.body[0], Expr) and \
        isinstance(node.body[0].value, Str):
+        docstring = node.body[0].value.s
         if clean:
             import inspect
-            return inspect.cleandoc(node.body[0].value.s)
-        return node.body[0].value.s
+            if isinstance(docstring, str):
+                return inspect.cleandoc(docstring)
+            return inspect.cleandoc(docstring.decode()).encode()
+        return docstring
 
 
 def walk(node):
