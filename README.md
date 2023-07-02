@@ -1,3 +1,10 @@
+# End of life
+
+This project is no longer maintained.
+
+Use the standard library `ast` module instead.
+See https://github.com/python/typed_ast/issues/179.
+
 # Typed AST
 
 [![Build Status](https://travis-ci.org/python/typed_ast.svg?branch=master)](https://travis-ci.org/python/typed_ast)
