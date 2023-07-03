@@ -82,6 +82,19 @@ _ast3 = Extension(
     ])
 
 long_description = """
+===========
+End of life
+===========
+
+This project is no longer maintained.
+
+Use the standard library `ast` module instead.
+See https://github.com/python/typed_ast/issues/179.
+
+===========
+Description
+===========
+
 `typed_ast` is a Python 3 package that provides a Python 2.7 and Python 3
 parser similar to the standard `ast` library.  Unlike `ast` below Python 3.8,
 the parsers in
